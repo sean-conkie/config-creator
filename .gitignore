@@ -1,0 +1,9 @@
+# directories
+*venv/
+__pycache__/
+*data/*
+/.vscode/
+logs/*
+
+# files
+*.zip
