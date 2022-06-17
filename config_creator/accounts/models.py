@@ -13,7 +13,7 @@ class UserManager(BaseUserManager):
         user = self.model(
             email=self.normalize_email(email),
             forename=forename.title(),
-            forename=surname.title(),
+            surname=surname.title(),
         )
 
         user.set_password(password)
@@ -28,7 +28,7 @@ class UserManager(BaseUserManager):
             email,
             password=password,
             forename=forename.title(),
-            forename=surname.title(),
+            surname=surname.title(),
         )
         user.staff = True
         user.save(using=self._db)
@@ -42,7 +42,7 @@ class UserManager(BaseUserManager):
             email,
             password=password,
             forename=forename.title(),
-            forename=surname.title(),
+            surname=surname.title(),
         )
         user.staff = True
         user.admin = True
@@ -58,14 +58,14 @@ class User(AbstractBaseUser):
     )
     is_active = models.BooleanField(default=True)
     admin = models.BooleanField(default=False)
-    forename = models.TextField(balnk=False)
-    surname = models.TextField(balnk=False)
+    staff = models.BooleanField(default=True)
+    forename = models.TextField(blank=False)
+    surname = models.TextField(blank=False)
 
     objects = UserManager()
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = [
-        "email",
         "forename",
         "surname",
     ]  # Email & Password are required by default.
@@ -88,6 +88,11 @@ class User(AbstractBaseUser):
         "Does the user have permissions to view the app `app_label`?"
         # Simplest possible answer: Yes, always
         return True
+
+    @property
+    def is_staff(self):
+        "Is the user a member of staff?"
+        return self.staff
 
     @property
     def is_admin(self):
