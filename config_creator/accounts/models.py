@@ -59,8 +59,8 @@ class User(AbstractBaseUser):
     is_active = models.BooleanField(default=True)
     admin = models.BooleanField(default=False)
     staff = models.BooleanField(default=True)
-    forename = models.TextField(blank=False)
-    surname = models.TextField(blank=False)
+    forename = models.CharField(blank=False, max_length=250)
+    surname = models.CharField(blank=False, max_length=250)
 
     objects = UserManager()
 
