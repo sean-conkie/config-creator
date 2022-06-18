@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('database_interface_api', '0001_initial'),
+        ("database_interface_api", "0001_initial"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='connection',
-            name='connectionstring',
+            model_name="connection",
+            name="connectionstring",
             field=models.CharField(max_length=250),
         ),
         migrations.AlterField(
-            model_name='connection',
-            name='name',
+            model_name="connection",
+            name="name",
             field=models.CharField(max_length=250),
         ),
         migrations.AlterField(
-            model_name='connectiontype',
-            name='description',
+            model_name="connectiontype",
+            name="description",
             field=models.CharField(max_length=250, unique=True),
         ),
     ]
