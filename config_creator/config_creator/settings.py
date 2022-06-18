@@ -28,6 +28,7 @@ DEBUG = True
 ALLOWED_HOSTS = []
 
 AUTH_USER_MODEL = "accounts.User"
+LOGIN_URL = "/accounts/login"
 
 # Application definition
 
@@ -41,6 +42,7 @@ INSTALLED_APPS = [
     "accounts",
     "database_interface_api",
     "rest_framework",
+    "core",
 ]
 
 MIDDLEWARE = [
