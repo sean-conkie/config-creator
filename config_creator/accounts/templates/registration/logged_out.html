@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+
+<div class="d-flex h-100 text-center text-white bg-dark">
+  <div class="px-3">
+    <h1>Logged Out.</h1>
+    <p class="lead">Thanks for logging out.</p>
+    <p class="lead">
+      <a href="{% url 'login' %}?next=/" class="btn btn-lg btn-secondary fw-bold border-white bg-white">Sign In</a>
+    </p>
+  </div>
+</div>

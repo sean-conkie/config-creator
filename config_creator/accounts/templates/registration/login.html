@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Home{% endblock %}
+
+{% block content %}
+<style>
+  .form-main {
+    align-items: center;
+    padding-top: 40px;
+    padding-bottom: 40px;
+    height: 100vh;
+  }
+
+  .form-signin {
+    width: 100%;
+    max-width: 330px;
+    padding: 15px;
+    margin: auto;
+
+  }
+
+  .form-signin .checkbox {
+    font-weight: 400;
+  }
+
+  .form-signin .form-floating:focus-within {
+    z-index: 2;
+  }
+
+  .form-signin input[type="email"] {
+    margin-bottom: -1px;
+    border-bottom-right-radius: 0;
+    border-bottom-left-radius: 0;
+  }
+
+  .form-signin input[type="password"] {
+    margin-bottom: 10px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+  }
+
+</style>
+
+<div class="h-100 text-center bg-dark">
+  <div class="form-main">
+    <div class="container">
+      {% if form.errors %}
+        {% for err in form.get_invalid_login_error %}
+          <div class="alert alert-danger" role="alert">
+            {{err}}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+    <div class="form-signin align-middle text-dark">
+      <form method="post" action="{% url 'login' %}">
+        {% csrf_token %}
+        <h1 class="h3 mb-3 fw-normal text-white">Please sign in</h1>
+
+        <div class="form-floating">
+          <input type="email" class="form-control" id="id_username" placeholder="name@example.com" autofocus autocapitalize="none" name="username">
+          <label for="id_username">Email</label>
+        </div>
+        <div class="form-floating">
+          <input type="password" class="form-control" id="id_password" placeholder="Password" name="password">
+          <label for="id_password">Password</label>
+        </div>
+
+        <div class="checkbox mb-3">
+          <label class="text-light">
+            <input type="checkbox" value="remember-me"> Remember me
+          </label>
+        </div>
+        <button class="w-100 btn btn-lg btn-primary" type="submit">Sign in</button>
+        <input type="hidden" name="next" value="{{ next }}">
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}
