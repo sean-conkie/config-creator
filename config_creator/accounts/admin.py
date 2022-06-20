@@ -22,7 +22,15 @@ class UserAdmin(BaseUserAdmin):
     list_display = ["email", "forename", "surname", "admin"]
     list_filter = ["admin"]
     fieldsets = (
-        (None, {"fields": ("email",)}),
+        (
+            None,
+            {
+                "fields": (
+                    "email",
+                    "password",
+                )
+            },
+        ),
         (
             "Personal info",
             {
@@ -41,7 +49,13 @@ class UserAdmin(BaseUserAdmin):
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "forename", "surname", "password1", "password2"),
+                "fields": (
+                    "email",
+                    "forename",
+                    "surname",
+                    "password1",
+                    "password2",
+                ),
             },
         ),
     )

@@ -25,7 +25,7 @@ class UserManager(BaseUserManager):
         Creates and saves a staff user with the given email and password.
         """
         user = self.create_user(
-            email,
+            email=email,
             password=password,
             forename=forename.title(),
             surname=surname.title(),
@@ -39,7 +39,7 @@ class UserManager(BaseUserManager):
         Creates and saves a superuser with the given email and password.
         """
         user = self.create_user(
-            email,
+            email=email,
             password=password,
             forename=forename.title(),
             surname=surname.title(),
@@ -58,9 +58,9 @@ class User(AbstractBaseUser):
     )
     is_active = models.BooleanField(default=True)
     admin = models.BooleanField(default=False)
-    staff = models.BooleanField(default=True)
-    forename = models.CharField(blank=False, max_length=250)
-    surname = models.CharField(blank=False, max_length=250)
+    staff = models.BooleanField(default=False)
+    forename = models.CharField(blank=False, max_length=255)
+    surname = models.CharField(blank=False, max_length=255)
 
     objects = UserManager()
 

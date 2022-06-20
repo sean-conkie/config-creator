@@ -6,6 +6,7 @@ User = settings.AUTH_USER_MODEL
 
 class ConnectionType(models.Model):
     description = models.CharField(blank=False, unique=True, max_length=250)
+    svg = models.FileField(upload_to=f"admin/", blank=True, null=True)
 
     def __str__(self) -> str:
         return self.description

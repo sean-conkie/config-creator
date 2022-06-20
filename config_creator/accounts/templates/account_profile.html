@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Profile{% endblock %}
+
+
+{% block content %}
+  <style>
+    main {
+      display: flex;
+      flex-wrap: nowrap;
+      height: 100vh;
+      max-height: 100vh;
+      overflow-x: auto;
+      overflow-y: hidden;
+    }</style>
+  <main>
+    {% include "account_nav.html" %}
+      <div class="container">
+        {% block profile %}
+        <div class="py-5 text-center">
+          <h2>User Profile</h2>
+          <p class="lead">View or change your user data.</p>
+        </div>
+        <form method="post" action="{% url 'profile' %}">
+          {% csrf_token %}
+          <div class="row g-5">
+            <div class="col-md-7 col-lg-8">
+              <div class="row g-3">
+    
+                <div class="col-12">
+                  <div class="form-floating">
+                    <input type="email" class="form-control" name="email" maxlength="255" required="" id="id_email" value="{{form.email.value}}">
+                    <label for="id_email">Email</label>
+                  </div>
+                </div>
+                
+                <div class="col-sm-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="id_forename" placeholder="name" autofocus autocapitalize="none" name="forename" value="{{form.forename.value}}">
+                    <label for="id_forename">First Name</label>
+                </div>
+                </div>
+    
+                <div class="col-sm-6">
+                  <div class="form-floating">
+                    <input type="text" class="form-control" id="id_surname" placeholder="name" autofocus autocapitalize="none" name="surname" value="{{form.surname.value}}">
+                    <label for="id_surname">Last Name</label>
+                </div>
+                </div>
+
+              </div>
+            </div>
+            <div class="col-md-5 col-lg-4">
+              <button class="w-100 btn btn-lg btn-primary" type="submit">Save</button>
+            </div>
+          </div>  
+          
+        </form>
+        {% endblock %}
+      </div>
+    </div>
+  </main>
+  <div class="container-fluid">
+  {% include "./footer.html" %}
+  </div>
+{% endblock %}
