@@ -2,16 +2,6 @@
 {% block title %}Home{% endblock %}
 
 {% block content %}
-
-<style>
-  main {
-    display: flex;
-    flex-wrap: nowrap;
-    height: 100vh;
-    max-height: 100vh;
-    overflow-x: auto;
-    overflow-y: hidden;
-  }</style>
 <main>
   {% include "nav.html" %}
   <div class="d-flex flex-column container-lg py-4">
@@ -19,7 +9,7 @@
       <div class="container-fluid py-5">
         <h1 class="display-5 fw-bold">Create new job config</h1>
         <p class="col-md-8 fs-4">Using a series of utilities, you can create a new job and generate new tasks.</p>
-        <button class="btn btn-primary btn-lg" type="button">Create</button>
+        <a href="#" class="btn btn-primary btn-lg" type="button">Create</a>
       </div>
     </div>
     
@@ -27,7 +17,7 @@
       <div class="col-md-6">
         <div class="h-100 p-5 text-white bg-dark rounded-3">
           <h2>Edit an existing job</h2>
-          <p>Swap the background-color utility and add a `.text-*` color utility to mix up the jumbotron look. Then, mix and match with additional component themes and more.</p>
+          <p>Load an existing config file for a repository or your local directory.</p>
           <button class="btn btn-outline-light" type="button">Edit Job</button>
         </div>
       </div>

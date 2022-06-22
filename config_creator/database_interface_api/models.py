@@ -1,5 +1,6 @@
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 User = settings.AUTH_USER_MODEL
 
@@ -21,6 +22,10 @@ class Connection(models.Model):
         blank=False, unique=False, max_length=250, verbose_name="Connection String"
     )
     name = models.CharField(blank=False, unique=False, max_length=250)
+    secret_key = models.CharField(blank=True, unique=True, null=True, max_length=250)
 
     def __str__(self) -> str:
         return self.name
+
+    def get_absolute_url(self):
+        return reverse("connection-detail", kwargs={"pk": self.pk})

@@ -1,21 +1,6 @@
-{% extends "base.html" %}
-{% block title %}Profile{% endblock %}
+{% extends "account_base.html" %}
 
-
-{% block content %}
-  <style>
-    main {
-      display: flex;
-      flex-wrap: nowrap;
-      height: 100vh;
-      max-height: 100vh;
-      overflow-x: auto;
-      overflow-y: hidden;
-    }</style>
-  <main>
-    {% include "account_nav.html" %}
-    {% load svg %}
-      <div class="container">
+{% block title %}User Connections{% endblock %}
         {% block profile %}
         <div class="py-5 text-center">
           <h2>User Connections</h2>
@@ -27,12 +12,15 @@
               <tr>
                 <th scope="col">Connection Name</th>
                 <th scope="col">Connection Type</th>
+                <th></th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
+              {% load svg %}
               {% for conn in connections %}
                 <tr>
-                  <td><a href="">{{ conn.name }}</a></td>
+                  <td>{{ conn.name }}</td>
                   <td>
                     {% if conn.connectiontype.svg == "" %}
                       {{ conn.connectiontype.description }}
@@ -42,15 +30,12 @@
                       {% endwith %}
                     {% endif %}
                   </td>
+                  <td><a href="{% url 'connection-update' pk=conn.id %}" class="btn btn-lg btn-secondary">Edit</a></td>
+                  <td><a href="{% url 'connection-delete' pk=conn.id %}" class="btn btn-lg btn-danger">Delete</a></td>
                 </tr>
               {% endfor %}
             </tbody>
           </table>
         </div>
+        <a href="{% url 'connection-add' %}" class="btn btn-primary btn-lg" type="button">Add Connection</a>
         {% endblock %}
-      </div>
-    </div>
-  </main>
-  <div class="container-fluid">
-  {% include "./footer.html" %}
-{% endblock %}

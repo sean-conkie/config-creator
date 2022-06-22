@@ -1,18 +1,3 @@
-"""config_creator URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/4.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from accounts import views as account_views
 from core import views as core_views
 from database_interface_api import views as api_views
@@ -33,8 +18,28 @@ urlpatterns = [
     path("accounts/profile/", account_views.ProfileView.as_view(), name="profile"),
     path(
         "accounts/connections/",
+        account_views.connectionsview,
+        name="connections",
+    ),
+    path(
+        "accounts/connection/change",
+        account_views.editconnectionview,
+        name="connection-change",
+    ),
+    path(
+        "accounts/connection/",
         account_views.connectionview,
-        name="account_connections",
+        name="connection-add",
+    ),
+    path(
+        "accounts/connection/<int:pk>/",
+        account_views.connectionview,
+        name="connection-update",
+    ),
+    path(
+        "accounts/connection/<int:pk>/delete/",
+        account_views.ConnectionDeleteView.as_view(),
+        name="connection-delete",
     ),
     re_path(
         r"api\/schema\/(?P<connection_id>\d+)\/?$",
