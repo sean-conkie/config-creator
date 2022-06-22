@@ -25,6 +25,9 @@ class ProfileView(FormView):
 
     def form_valid(self, form):
         form.instance.user = self.request.user
+        form.instance.is_active = self.request.user.is_active
+        form.instance.admin = self.request.user.admin
+        form.instance.staff = self.request.user.staff
         form.save()
         return super().form_valid(form)
 
