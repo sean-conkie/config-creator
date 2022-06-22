@@ -6,18 +6,20 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0012_alter_join_task'),
+        ("core", "0012_alter_join_task"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='delta',
-            name='upper_bound',
-            field=models.IntegerField(help_text='Input seconds to add to lower_bound', null=True),
+            model_name="delta",
+            name="upper_bound",
+            field=models.IntegerField(
+                help_text="Input seconds to add to lower_bound", null=True
+            ),
         ),
         migrations.AlterField(
-            model_name='jobtask',
-            name='properties',
+            model_name="jobtask",
+            name="properties",
             field=models.JSONField(blank=True, null=True),
         ),
     ]

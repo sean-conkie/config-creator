@@ -5,12 +5,12 @@
 <div class="py-5 text-center">
   <h2>User Connections</h2>
   {% if form.id.value == "" %}
-    <p class="lead">Add a new connection.</p>
+    <p class="lead">Add a new repository.</p>
   {% else %}
-    <p class="lead">Change a connection.</p>
+    <p class="lead">Change a repository.</p>
   {% endif %}
 </div>
-<form action="{% url 'connection-change' %}" method="POST">
+<form action="{% url 'repository-change' %}" method="POST">
   {% csrf_token %}
   <div class="row g-5">
     <div class="col-md-7 col-lg-8">
@@ -20,26 +20,15 @@
           <div class="form-floating">
             <input class="form-control" type="text" name="name" maxlength="250" required="" id="id_name" 
             {% if form.name.value == None %} value="" {% else %} value="{{form.name.value}} {% endif %}">
-            <label for="id_name">Connection Name</label>
+            <label for="id_name">Repository Name</label>
           </div>
         </div>
-                
-        <div class="form-floating">
-          <select class="form-control" name="connectiontype" required="" id="id_connectiontype">
-            <option value="">---------</option>
-            {% for type in types%}
-              <option value="{{type.id}}"
-              {% if form.connectiontype.value == type.id %} selected="" {% endif %}>{{type.description}}</option>
-            {% endfor %}
-          </select>
-          <label for="id_connectiontype">Connection Type</label>
-        </div>  
 
         <div class="col-12">
           <div class="form-floating">
-            <input class="form-control" type="text" name="connectionstring" maxlength="250" id="id_connectionstring" 
-            {% if form.connectionstring.value == None %} value="" {% else %} value="{{form.connectionstring.value}} {% endif %}">
-            <label for="id_connectionstring">Connection String</label>
+            <input class="form-control" type="text" name="url" maxlength="250" id="id_url" 
+            {% if form.url.value == None %} value="" {% else %} value="{{form.url.value}} {% endif %}">
+            <label for="id_url">Repository URL</label>
           </div>
         </div>
 
@@ -52,7 +41,7 @@
           <button class="w-100 btn btn-lg btn-primary" type="submit">Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'connections' %}" class="w-100 btn btn-lg btn-secondary">Cancel</a>
+          <a href="{% url 'repositories' %}" class="w-100 btn btn-lg btn-secondary">Cancel</a>
         </div>
       </div>
     </div>

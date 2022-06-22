@@ -61,6 +61,7 @@ class User(AbstractBaseUser):
     staff = models.BooleanField(default=False)
     forename = models.CharField(blank=False, max_length=255)
     surname = models.CharField(blank=False, max_length=255)
+    git_username = models.CharField(blank=True, max_length=255)
 
     objects = UserManager()
 

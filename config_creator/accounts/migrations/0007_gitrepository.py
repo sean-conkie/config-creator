@@ -8,18 +8,37 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0006_alter_user_staff'),
+        ("accounts", "0006_alter_user_staff"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='GitRepository',
+            name="GitRepository",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('url', models.URLField(max_length=250, verbose_name='Repository URL')),
-                ('name', models.CharField(max_length=250)),
-                ('secret_key', models.CharField(blank=True, max_length=250, null=True, unique=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=settings.AUTH_USER_MODEL)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("url", models.URLField(max_length=250, verbose_name="Repository URL")),
+                ("name", models.CharField(max_length=250)),
+                (
+                    "secret_key",
+                    models.CharField(
+                        blank=True, max_length=250, null=True, unique=True
+                    ),
+                ),
+                (
+                    "user",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]

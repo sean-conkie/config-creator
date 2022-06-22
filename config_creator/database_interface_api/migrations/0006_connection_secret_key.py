@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('database_interface_api', '0005_alter_connectiontype_svg'),
+        ("database_interface_api", "0005_alter_connectiontype_svg"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='connection',
-            name='secret_key',
+            model_name="connection",
+            name="secret_key",
             field=models.CharField(blank=True, max_length=250, null=True, unique=True),
         ),
     ]

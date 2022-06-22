@@ -3,6 +3,7 @@ from core import views as core_views
 from database_interface_api import views as api_views
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth.decorators import login_required
 from django.urls import include, path, re_path
 from django.views.static import serve as staticserveview
 from rest_framework import routers
@@ -18,28 +19,53 @@ urlpatterns = [
     path("accounts/profile/", account_views.ProfileView.as_view(), name="profile"),
     path(
         "accounts/connections/",
-        account_views.connectionsview,
+        login_required(account_views.connectionsview),
         name="connections",
     ),
     path(
         "accounts/connection/change",
-        account_views.editconnectionview,
+        login_required(account_views.editconnectionview),
         name="connection-change",
     ),
     path(
         "accounts/connection/",
-        account_views.connectionview,
+        login_required(account_views.connectionview),
         name="connection-add",
     ),
     path(
         "accounts/connection/<int:pk>/",
-        account_views.connectionview,
+        login_required(account_views.connectionview),
         name="connection-update",
     ),
     path(
         "accounts/connection/<int:pk>/delete/",
-        account_views.ConnectionDeleteView.as_view(),
+        login_required(account_views.ConnectionDeleteView.as_view()),
         name="connection-delete",
+    ),
+    path(
+        "accounts/repositories/",
+        login_required(account_views.repositoriesview),
+        name="repositories",
+    ),
+    path(
+        "accounts/repository/change",
+        login_required(account_views.editrepositoryview),
+        name="repository-change",
+    ),
+    path(
+        "accounts/repository/",
+        login_required(account_views.repositoryview),
+        name="repository-add",
+    ),
+    path(
+        "accounts/repository/<int:pk>/",
+        login_required(account_views.repositoryview),
+        name="repository-update",
+    ),
+    path(
+        "accounts/repository/<int:pk>/delete/",
+        login_required(account_views.RepositoryDeleteView.as_view()),
+        name="repository-delete",
     ),
     re_path(
         r"api\/schema\/(?P<connection_id>\d+)\/?$",
