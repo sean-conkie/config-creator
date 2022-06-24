@@ -12,7 +12,7 @@ router = routers.DefaultRouter()
 
 
 urlpatterns = [
-    path("", core_views.index, name="home"),
+    path("", login_required(core_views.index), name="home"),
     path("admin/", admin.site.urls),
     path("accounts/", include("django.contrib.auth.urls")),
     path("api/", include(router.urls)),
@@ -23,7 +23,7 @@ urlpatterns = [
         name="connections",
     ),
     path(
-        "accounts/connection/change",
+        "accounts/connection/change/",
         login_required(account_views.editconnectionview),
         name="connection-change",
     ),
@@ -48,9 +48,24 @@ urlpatterns = [
         name="repositories",
     ),
     path(
-        "accounts/repository/change",
+        "repositories/",
+        login_required(core_views.repositoriesview),
+        name="repository-list",
+    ),
+    path(
+        "repositories/<int:pk>/pull/",
+        login_required(core_views.pullrepository),
+        name="repository-pull",
+    ),
+    path(
+        "accounts/repository/change/",
         login_required(account_views.editrepositoryview),
         name="repository-change",
+    ),
+    path(
+        "accounts/repository/new/pull/",
+        login_required(core_views.pullnewrepository),
+        name="repository-pull-new",
     ),
     path(
         "accounts/repository/",

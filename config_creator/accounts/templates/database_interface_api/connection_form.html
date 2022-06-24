@@ -25,7 +25,7 @@
         </div>
                 
         <div class="form-floating">
-          <select class="form-control" name="connectiontype" required="" id="id_connectiontype">
+          <select class="form-select" name="connectiontype" required="" id="id_connectiontype">
             <option value="">---------</option>
             {% for type in types%}
               <option value="{{type.id}}"

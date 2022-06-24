@@ -171,7 +171,7 @@ class RepositoryDeleteView(DeleteView):
     success_url = reverse_lazy("repositories")
 
 
-def repositoryview(request, pk=None):
+def repositoryview(request, pk=None, next=None):
     """
     If the user is requesting a specific repository, then get that repository and pass it to the form,
     otherwise just pass an empty form.
@@ -193,7 +193,10 @@ def repositoryview(request, pk=None):
     return render(
         request,
         "repository_form.html",
-        {"form": form},
+        {
+            "form": form,
+            "next": next,
+        },
     )
 
 

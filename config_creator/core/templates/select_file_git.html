@@ -1,0 +1,83 @@
+{% extends "core_base.html" %}
+
+{% block title %}Git Repositories{% endblock %}
+        {% block core-content %}
+        <style>
+          .tree-file {
+            display: inline-block;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #212529;
+            text-align: left;
+            text-decoration: none;
+            vertical-align: middle;
+            cursor: pointer;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            user-select: none;
+            background-color: transparent;
+            border: 1px solid transparent;
+            font-size: 1rem;
+            min-width: 20vw;
+          }
+
+          .tree-file:hover {
+            border-bottom: 1px solid #212529;
+          }
+          .tree-file-active {
+            border-radius: 1.3rem!important;
+            border: 1px solid #033e17;
+          }
+
+        </style>
+        {% autoescape off %}
+        <div class="container">
+          <div class="py-5 text-center">
+            <h2>{{repo.name}}</h2>
+          </div>
+          <div class="row g-5">
+            <div class="col-md-6 col-lg-6">
+              <div class="row g-3">
+                <div class="container py3">
+                  <p class="lead">Select a config file to load.</p>
+                  <ul>
+                  {% for file in files %}
+                    {{file}}
+                  {% endfor %}
+                  </ul>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-6">
+              <form action="." method="post">
+                <input name="path" id="id_path" type="text" hidden>
+                <div id="id_message_wrapper">
+                  <label id="id_message"></label>
+                </div>
+                <div class="container py-3">
+                  <a href="{% url 'repository-list' %}" id="id_cancel" class="btn btn-lg btn-secondary" >Cancel</a>
+                  <button id="id_load" class="btn btn-lg btn-primary" hidden type="submit">Load</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+        {% endautoescape %}
+        <script>
+          var elements = document.getElementsByClassName("tree-file");
+
+          var setActive = function() {
+            for (var i = 0; i < elements.length; i++) {
+                elements[i].classList.remove("tree-file-active")
+            }
+            this.classList.add("tree-file-active")
+            document.getElementById("id_path").value = this.dataset.path
+            document.getElementById("id_message").innerHTML = "Would you like to load file: " + this.dataset.path
+            document.getElementById("id_load").removeAttribute("hidden")
+          };
+
+          for (var i = 0; i < elements.length; i++) {
+              elements[i].addEventListener('click', setActive, false);
+          }
+        </script>
+        {% endblock %}
