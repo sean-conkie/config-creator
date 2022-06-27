@@ -61,6 +61,7 @@ class User(AbstractBaseUser):
     staff = models.BooleanField(default=False)
     forename = models.CharField(blank=False, max_length=255)
     surname = models.CharField(blank=False, max_length=255)
+    git_username = models.CharField(blank=True, max_length=255)
 
     objects = UserManager()
 
@@ -98,3 +99,12 @@ class User(AbstractBaseUser):
     def is_admin(self):
         "Is the user a admin member?"
         return self.admin
+
+
+class GitRepository(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    url = models.URLField(
+        blank=False, unique=False, max_length=250, verbose_name="Repository URL"
+    )
+    name = models.CharField(blank=False, unique=False, max_length=250)
+    secret_key = models.CharField(blank=True, unique=True, null=True, max_length=250)

@@ -12,8 +12,58 @@
     <!-- <link rel="icon" href="" type="image/x-icon"> -->
   </head>
   <body>
-    {% block content %}
-    {% endblock %}
+    <style>
+      main {
+        display: flex;
+        flex-wrap: nowrap;
+        height: 100vh;
+        max-height: 100vh;
+        overflow-x: auto;
+        overflow-y: hidden;
+      }
+      
+      .btn{
+        border-radius: 1.3rem!important;
+      }
+
+      .btn:active{
+        box-shadow: none!important;
+        transform: translateY(5px)!important;
+      }
+
+      .btn:focus {
+        outline: none!important;
+      }
+
+      .btn-primary, .btn-primary:hover, .btn-primary:focus {
+        box-shadow: 0 5px 0 #0a51bc;
+        background-color: #0d6efd!important;
+      }
+      
+      .btn-secondary, .btn-secondary:hover, .btn-secondary:focus {
+        box-shadow: 0 5px 0 #5c636a;
+        background-color: #6c757d!important;
+      }
+      
+      .btn-outline-dark, .btn-outline-dark:hover, .btn-outline-dark:focus {
+        box-shadow: 0 5px 0 #e5e6e7;
+        background-color: #f8f9fa!important;
+        color: #212529!important;
+      }
+      
+      .btn-danger, .btn-danger:focus, .btn-danger:hover {
+        box-shadow: 0 5px 0 #bb2d3b;
+        background-color: #dc3545!important;
+      }
+
+      .gradient-text {
+        background: linear-gradient(-70deg, #a2facf 0%, #64acff 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+      }
+    </style>
+      {% block content %}
+      {% endblock %}
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
     <script>
       var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))

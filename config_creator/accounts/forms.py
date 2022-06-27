@@ -1,3 +1,5 @@
+from .models import GitRepository
+from database_interface_api.models import Connection
 from django import forms
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
@@ -89,10 +91,39 @@ class UserAdminChangeForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["email", "forename", "surname", "password", "is_active", "admin"]
+        fields = [
+            "email",
+            "forename",
+            "surname",
+            "password",
+            "is_active",
+            "admin",
+            "git_username",
+        ]
 
     def clean_password(self):
         # Regardless of what the user provides, return the initial value.
         # This is done here, rather than on the field, because the
         # field does not have access to the initial value
         return self.initial["password"]
+
+
+class ConnectionForm(forms.ModelForm):
+    class Meta:
+        model = Connection
+        fields = [
+            "id",
+            "name",
+            "connectionstring",
+            "connectiontype",
+        ]
+
+
+class GitForm(forms.ModelForm):
+    class Meta:
+        model = GitRepository
+        fields = [
+            "id",
+            "name",
+            "url",
+        ]
