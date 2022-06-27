@@ -128,7 +128,16 @@ class Operator(models.Model):
         null=False,
         unique=True,
     )
-    description = models.TextField(blank=True, null=True)
+    symbol = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+        unique=True,
+    )
+    description = models.TextField(
+        blank=True,
+        null=True,
+    )
 
     def __str__(self):
         return self.name
@@ -168,7 +177,7 @@ class Job(models.Model):
         max_length=255,
         blank=False,
         null=False,
-        unique=True,
+        unique=False,
     )
     type = models.ForeignKey(JobType, on_delete=models.SET_NULL, blank=False, null=True)
     description = models.TextField(blank=True, null=True)
@@ -200,6 +209,7 @@ class JobTask(models.Model):
         blank=False,
         null=False,
         default=DEFAULT_TASK_ID,
+        verbose_name="Task Type",
     )
     table_type = models.ForeignKey(
         TableType,
@@ -207,6 +217,7 @@ class JobTask(models.Model):
         blank=False,
         null=False,
         default=DEFAULT_TABLE_ID,
+        verbose_name="Target Table Type",
     )
     write_disposition = models.ForeignKey(
         WriteDisposition,
@@ -214,6 +225,7 @@ class JobTask(models.Model):
         blank=False,
         null=False,
         default=DEFAULT_WRITE_DISPOSITION_ID,
+        verbose_name="Write Disposition",
     )
     destination_table = models.CharField(
         verbose_name="Destination Table",
@@ -224,20 +236,20 @@ class JobTask(models.Model):
     destination_dataset = models.CharField(
         verbose_name="Destination Dataset",
         max_length=255,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
     driving_table = models.CharField(
         verbose_name="Driving Table",
         max_length=255,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
     staging_dataset = models.CharField(
         verbose_name="Staging Dataset",
         max_length=255,
-        blank=False,
-        null=False,
+        blank=True,
+        null=True,
     )
     properties = models.JSONField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
@@ -255,6 +267,9 @@ class JobTask(models.Model):
 
 
 class History(models.Model):
+    class Meta:
+        verbose_name = "Historie"
+
     task = models.OneToOneField(
         JobTask, on_delete=models.CASCADE, blank=False, null=False
     )
@@ -298,6 +313,9 @@ class Field(models.Model):
 
 
 class Dependency(models.Model):
+    class Meta:
+        verbose_name = "Dependencie"
+
     predecessor = models.ForeignKey(
         JobTask, on_delete=models.CASCADE, null=False, related_name="predecessor"
     )

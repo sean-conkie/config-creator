@@ -137,6 +137,29 @@ class JobToTaskAdmin(admin.ModelAdmin):
     get_tasktype.short_description = "Task Type"
 
 
+@admin.register(Dependency)
+class DependencyAdmin(admin.ModelAdmin):
+
+    list_display = ["get_predecessor", "get_dependant"]
+    list_filter = ["predecessor", "dependant"]
+
+    search_fields = ["predecessor", "dependant"]
+    ordering = ["predecessor", "dependant"]
+    filter_horizontal = ()
+
+    def get_predecessor(self, obj):
+        return obj.predecessor.name
+
+    get_predecessor.admin_order_field = "predecessor"
+    get_predecessor.short_description = "Predecessor"
+
+    def get_dependant(self, obj):
+        return obj.dependant.name
+
+    get_dependant.admin_order_field = "dependant"
+    get_dependant.short_description = "Dependant"
+
+
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
 

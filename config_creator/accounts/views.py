@@ -1,10 +1,9 @@
 from .forms import ConnectionForm, GitForm, UserAdminChangeForm
 from .models import GitRepository, User
 from database_interface_api.models import Connection, ConnectionType
-from django.http import HttpResponseRedirect
 from django.shortcuts import redirect, render
-from django.urls import reverse_lazy, resolve
-from django.views.generic.edit import CreateView, DeleteView, FormView, UpdateView
+from django.urls import reverse_lazy
+from django.views.generic.edit import DeleteView, FormView
 
 
 class ProfileView(FormView):

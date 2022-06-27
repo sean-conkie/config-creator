@@ -1,8 +1,15 @@
+from webbrowser import Opera
 import git
+import hashlib
+import json
 import os
 import re
 
+from .forms import UploadFileForm
+from .models import *
 from accounts.models import GitRepository
+from django.core.files.uploadhandler import TemporaryFileUploadHandler
+from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 
@@ -24,7 +31,16 @@ def index(request):
 
 
 def loadfrom(request):
+    """
+    It renders the loadfrom.html template
 
+    Args:
+      request: This is the request object that is sent to the view. It contains all the information
+    about the request.
+
+    Returns:
+      The render function is being returned.
+    """
     return render(request, "loadfrom.html")
 
 
@@ -50,6 +66,16 @@ def repositoriesview(request):
 
 
 def pullrepository(request, pk):
+    """
+    It clones the repository into a folder, then creates a tree of the files in the repository
+
+    Args:
+      request: The request object.
+      pk: The primary key of the GitRepository object.
+
+    Returns:
+      A list of dictionaries.
+    """
 
     repo = GitRepository.objects.get(id=pk)
     target_path = os.path.join(os.getcwd(), f"repos/{request.user.id}/{repo.name}/")
@@ -63,12 +89,22 @@ def pullrepository(request, pk):
     }
     return render(
         request,
-        "select_file_git.html",
+        "fileselect_git.html",
         context,
     )
 
 
 def pullnewrepository(request):
+    """
+    It takes a POST request, creates a new GitRepository object, saves it, and redirects to the pull
+    page
+
+    Args:
+      request: The request object.
+
+    Returns:
+      A redirect to the repository-pull page.
+    """
     if request.method == "POST":
         repo = GitRepository()
 
@@ -84,10 +120,12 @@ def pullnewrepository(request):
 
 def createtree(treesource: list[dict], layers: int = 1) -> list[str]:
     """
-    It takes a list of files and folders and returns a list of HTML elements
+    It takes a list of dictionaries, and returns a list of strings
 
     Args:
-      treesource (lis): The source of the tree. This is a dictionary with the following keys:
+      treesource (list[dict]): This is the list of dictionaries that you want to create the tree from.
+      layers (int): This is the number of layers deep the current tree is. It's used to calculate the
+    padding of the tree. Defaults to 1
 
     Returns:
       A list of strings.
@@ -140,3 +178,233 @@ def crawler(path: str, ignore_hidden: bool = True) -> list[dict]:
             file["files"] = crawler(obj_path)
         files.append(file)
     return files
+
+
+def fileselect(request):
+    """
+    If the request is a POST request, then the form is valid, and the file is uploaded, then redirect to
+    the success URL.
+
+    If the request is a GET request, then the form is not valid, and the form is rendered.
+
+    Args:
+      request: The current request object.
+
+    Returns:
+      The form is being returned.
+    """
+    if request.method == "POST":
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            id = handle_uploaded_file(request)
+            return HttpResponseRedirect("/")
+    else:
+        form = UploadFileForm()
+    return render(request, "fileselect.html", {"form": form})
+
+
+def handle_uploaded_file(request):
+
+    upload = TemporaryFileUploadHandler(request)
+    upload.new_file(
+        request.FILES["file"].name,
+        request.FILES["file"].name,
+        "application/octet-stream",
+        -1,
+    )
+    hash = hashlib.sha256()
+
+    chunk = True
+    size = 0
+    while chunk:
+        chunk = request.FILES["file"].read(upload.chunk_size)
+        upload.receive_data_chunk(chunk, size)
+        hash.update(chunk)
+        size += len(chunk)
+    upload.file_complete(size)
+
+    filecontent = upload.file.read()
+    jscontent = json.loads(filecontent)
+
+    job = Job(
+        name=jscontent.get("name"),
+        type=JobType.objects.get(code=jscontent.get("type").upper()),
+        description=jscontent.get("description"),
+        properties=jscontent.get("properties"),
+        createdby=request.user,
+        updatedby=request.user,
+    )
+    job.save()
+
+    tasks = jscontent.get("tasks")
+    for task in tasks:
+        params = task.get("parameters", {})
+        t = JobTask(
+            name=task.get("task_id"),
+            job=job,
+            type=TaskType.objects.get(code=task.get("operator").upper()),
+            table_type=TableType.objects.get(
+                code=params.get("target_type", "TYPE1").upper()
+            ),
+            write_disposition=WriteDisposition.objects.get(
+                code=params.get("write_disposition", "WRITETRUNCATE").upper()
+            ),
+            destination_table=params.get("destination_table"),
+            destination_dataset=params.get("destination_dataset"),
+            driving_table=params.get("driving_table"),
+            staging_dataset=params.get("staging_dataset"),
+            description=params.get("description"),
+            createdby=request.user,
+            updatedby=request.user,
+        )
+        properties = {
+            k: params[k]
+            for k in params.keys()
+            if k
+            not in [
+                "operator",
+                "target_type",
+                "write_disposition",
+                "destination_table",
+                "destination_dataset",
+                "driving_table",
+                "staging_dataset",
+                "description",
+            ]
+        }
+        t.properties = properties
+        t.save()
+
+        for field in params.get("source_to_target", []):
+            f = Field(
+                name=field.get("name", field.get("source_column")),
+                source_column=field.get("source_column"),
+                source_name=field.get("source_name"),
+                transformation=field.get("transformation"),
+                is_source_to_target=True,
+                is_primary_key=field.get("is_primary_key", False),
+                is_history_key=field.get("is_history_key", False),
+                task=t,
+            )
+            f.save()
+
+        for where in params.get("where", []):
+            w = Condition(
+                operator=Operator.objects.get(symbol=where.get("operator", "=")),
+                logic_operator=LogicOperator.objects.get(
+                    code=where.get("condition", "AND").upper()
+                ),
+                where=t,
+            )
+            w.save()
+
+            fields = where.get("fields")
+            field = ConditionField(
+                left=fields[0],
+                right=fields[1],
+                condition=w,
+            )
+            field.save()
+
+        for join in params.get("joins", []):
+            j = Join(
+                right=join.get("right"),
+                type=JoinType.objects.get(code=join.get("type", "left").upper()),
+                task=t,
+            )
+            if join.get("left"):
+                j.left = join.get("left")
+
+            j.save()
+
+            for condition in join.get("on", []):
+                c = Condition(
+                    operator=Operator.objects.get(
+                        symbol=condition.get("operator", "=")
+                    ),
+                    logic_operator=LogicOperator.objects.get(
+                        code=condition.get("condition", "AND").upper()
+                    ),
+                    join=j,
+                )
+                c.save()
+
+                fields = condition.get("fields")
+                field = ConditionField(
+                    left=fields[0],
+                    right=fields[1],
+                    condition=c,
+                )
+                field.save()
+
+        history = params.get("history")
+
+        if history:
+            history_obj = History(
+                task=t,
+            )
+            history_obj.save()
+
+            for i, partition in enumerate(history.get("partition", [])):
+                partition_field = Field.objects.get(
+                    name=partition.get("name"),
+                    source_column=partition.get("source_column"),
+                    source_name=partition.get("source_name"),
+                    transformation=partition.get("transformation"),
+                )
+                partition_field.is_history_key = True
+                partition_field.save()
+
+                partition_obj = Partition(
+                    history=history_obj,
+                    position=i,
+                    field=partition_field,
+                )
+                partition_obj.save()
+
+            for i, driving_column in enumerate(history.get("driving_column", [])):
+                driving_column_field = Field.objects.get(
+                    name=driving_column.get("name"),
+                    source_column=driving_column.get("source_column"),
+                    source_name=driving_column.get("source_name"),
+                    transformation=driving_column.get("transformation"),
+                )
+
+                driving_column_obj = DrivingColumn(
+                    history=history_obj,
+                    position=i,
+                    field=driving_column_field,
+                )
+                driving_column_obj.save()
+
+            for i, order in enumerate(history.get("order", [])):
+                order_field = Field.objects.get(
+                    name=order.get("name"),
+                    source_column=order.get("source_column"),
+                    source_name=order.get("source_name"),
+                    transformation=order.get("transformation"),
+                )
+
+                order_obj = HistoryOrder(
+                    history=history_obj,
+                    position=i,
+                    field=order_field,
+                )
+                order_obj.save()
+
+        delta = params.get("delta")
+        if delta:
+            delta_obj = Delta(
+                task=t,
+                field=Field.objects.get(
+                    name=delta.get("name"),
+                    source_column=delta.get("source_column"),
+                    source_name=delta.get("source_name"),
+                    transformation=delta.get("transformation"),
+                ),
+                lower_bound=delta.get("lower_bound"),
+                upper_bound=delta.get("upper_bound"),
+            )
+            delta_obj.save()
+
+    return job.id
