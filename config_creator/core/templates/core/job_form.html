@@ -1,0 +1,73 @@
+{% extends 'core_base.html' %}
+{% block title %}Add Job{% endblock %}
+{% block core-content %}
+{% load static %}
+<div class="container">
+  <div class="py-5 text-center">
+    <h2>Job</h2>
+    <p class="lead">View or change your job detail.</p>
+    <div class="container">
+      {% if form.errors %}
+        {% for err in form.get_invalid_login_error %}
+          <div class="alert alert-danger" role="alert">
+            {{err}}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+  </div>
+  <form method="post" action="{% url 'job-add' %}">
+    {% csrf_token %}
+    <div class="row g-5">
+      <div class="col-md-7 col-lg-8">
+        <div class="row g-3">
+
+          <div class="col-6">
+            <div class="form-floating">
+              <input type="text" class="form-control" name="name" maxlength="255" required="" id="{{form.name.id_for_label}}" 
+              {% if form.name.value != None %} value="{{form.name.value}}" {% endif %}>
+              {{form.name.label_tag}}
+            </div>
+          </div>
+          
+          <div class="col-sm-6">
+            <div class="form-floating">
+              {{form.type}}
+              {{form.type.label_tag}}
+            </div>
+          </div>
+
+          <div class="col-sm-12">
+            <div class="form-floating">
+              <input type="text" class="form-control" name="description" maxlength="255" required="" id="{{form.description.id_for_label}}" 
+              {% if form.description.value != None %} value="{{form.description.value}}" {% endif %}>
+              {{form.description.label_tag}}
+            </div>
+          </div>
+          
+          <div class="col-sm-12">
+            <div class="form-floating">
+              <textarea  class="form-control" name="properties" maxlength="255" id="{{form.properties.id_for_label}}" 
+              {% if form.properties.value != None and form.properties.value != "null" %} value="{{form.properties.value}}" {% endif %}></textarea>
+              {{form.properties.label_tag}}
+            </div>
+          </div>
+
+        </div>
+      </div>
+      <div class="col-md-5 col-lg-4">
+        <div class="row g-3">
+          <button class="w-100 btn btn-lg btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+        </div>
+        <div class="row g-3 py-3">
+          <a href="{% url 'jobs' %}" class="w-100 btn btn-lg btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+        </div>
+      </div>
+    </div>  
+    
+  </form>
+  <script>
+    document.getElementById("{{form.type.id_for_label}}").classList.add("form-select");
+  </script>
+</div>
+{% endblock %}

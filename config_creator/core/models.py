@@ -3,6 +3,7 @@ from tkinter import CASCADE
 from turtle import position
 from django.db import models
 from django.conf import settings
+from django.urls import reverse
 
 User = settings.AUTH_USER_MODEL
 
@@ -193,6 +194,9 @@ class Job(models.Model):
 
     def __str__(self):
         return self.name
+
+    def get_absolute_url(self):
+        return reverse("job-change", kwargs={"pk": self.id})
 
 
 class JobTask(models.Model):

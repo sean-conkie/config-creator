@@ -12,6 +12,7 @@ from django.core.files.uploadhandler import TemporaryFileUploadHandler
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
+from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
 
 def index(request):
@@ -201,6 +202,58 @@ def fileselect(request):
     else:
         form = UploadFileForm()
     return render(request, "fileselect.html", {"form": form})
+
+
+class JobCreateView(CreateView):
+    model = Job
+    fields = ["name", "type", "description", "properties"]
+
+    def form_valid(self, form):
+        form.instance.createdby = self.request.user
+        form.instance.updatedby = self.request.user
+        self.object = form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+    def get_success_url(self):
+        return reverse("job-tasks", kwargs={"pk": self.pk})
+
+
+class JobUpdateView(UpdateView):
+    model = Job
+    fields = ["name", "type", "description", "properties"]
+
+    def form_valid(self, form):
+        form.instance.updatedby = self.request.user
+        self.object = form.save()
+        return HttpResponseRedirect(self.get_success_url())
+
+
+class JobDeleteView(DeleteView):
+    model = Job
+    success_url = reverse_lazy("jobs")
+
+
+def jobtasksview(request, pk):
+    job = Job.objects.select_related().get(id=pk)
+    context = {
+        "job": job,
+        "tasks": JobTask.objects.select_related().filter(job=job),
+    }
+    return render(
+        request,
+        "core/job_tasks.html",
+        context,
+    )
+
+
+def jobsview(request):
+
+    context = {"jobs": Job.objects.filter(createdby=request.user)}
+    return render(
+        request,
+        "core/jobs.html",
+        context,
+    )
 
 
 def handle_uploaded_file(request):

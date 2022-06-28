@@ -1,0 +1,35 @@
+{% extends 'core_base.html' %}
+{% block title %}Job Tasks{% endblock %}
+{% block core-content %}
+{% load static %}
+<div class="container">
+  <div class="py-5 text-center">
+    <h2>Jobs</h2>
+    <p class="lead">View or change your in progress jobs.</p>
+  </div>
+  <div class="row g-5">
+    <table class="table table-striped table-hover align-middle">
+      <thead>
+        <tr>
+          <th scope="col">Name</th>
+          <th scope="col">Type</th>
+          <th scope="col">Description</th>
+          <th></th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for job in jobs %}
+          <tr>
+            <td>{{ job.name }}</td>
+            <td>{{ job.type }}</td>
+            <td>{{ job.description }}</td>
+            <td><a href="{% url 'job-tasks' pk=job.id %}" class="btn btn-lg btn-secondary"><i class="bi bi-search"></i> View</a></td>
+            <td><a href="{% url 'job-delete' pk=job.id %}" class="btn btn-lg btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>  
+</div>
+{% endblock %}

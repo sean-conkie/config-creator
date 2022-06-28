@@ -4,19 +4,29 @@
 {% block profile %}    
 
 <form action="" method="post">{% csrf_token %}
-  <h1>Are you sure?</h1>
-  <p>Are you sure you want to delete the connection?</p> 
-  {{ form }}
-  <input type="hidden" name="action" value="cancel" />
-
-  <div class="col-md-5 col-lg-4">
-    <div class="row g-3">
-      <button class="w-100 btn btn-lg btn-primary" type="submit">Yes, I'm sure</button>
-    </div>
-    <div class="row g-3 py-3">
-  <a href="{% url 'connections' %}" class="w-100 btn btn-lg btn-secondary">No, take me back</a>
+  <div class="container">
+    <div class="row g-5">
+      <div class="col-md-7 col-lg-8">
+        <div class="row g-3">
+          <form action="" method="post">{% csrf_token %}
+            <div class="py-5 text-center">
+              <h2>Are you sure?</h2>
+              <p class="lead">Are you sure you want to delete the connetion?</p>
+            </div>
+            <input type="hidden" name="action" value="cancel" />
+  
+            <div class="container">
+              <div class="row g-3">
+                <button class="w-100 btn btn-lg btn-primary" type="submit">Yes, I'm sure</button>
+              </div>
+              <div class="row g-3 py-3">
+                <a href="{% url 'connections' %}" class="w-100 btn btn-lg btn-secondary">No, take me back</a>
+              </div>
+            </div>
+  
+          </form>
+        </div>
+      </div>
     </div>
   </div>
-
-</form>
 {% endblock %}
