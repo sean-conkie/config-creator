@@ -1,0 +1,38 @@
+
+    <div class="row g-3 py-1">
+      <div class="lead">Where Conditions</div>
+      <div class="row g-3 py-1">
+        <div class="col-lg-12 col-md-12">
+          <table class="table table-striped table-hover">
+            <thead>
+              <th scope="col"></th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+            </thead>
+            <tbody class="text-center align-middle">
+              {% for condition in where %}
+                {% for field in condition.fields %}
+                  <tr>
+                    <td>{{ condition.condition.logic_operator }}</td>
+                    <td>{{ field.left }}</td>
+                    <td>{{ condition.condition.operator }}</td>
+                    <td>{{ field.right }}</td>
+                    <td><a href="{% url 'job-task-where-condition-update' job_id=job.id task_id=task.id pk=condition.condition.id %}" class="btn  btn-secondary"><i class="bi bi-pencil"></i> Edit</a></td>
+                    <td><a href="{% url 'job-task-where-condition-delete' job_id=job.id task_id=task.id pk=condition.condition.id %}" class="btn  btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
+                  </tr>
+                {% endfor %}
+              {% endfor %}
+              {% if where|length == 0 %}
+                <tr><td class="text-center" colspan="6">No conditions linked to task!</td></tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+        <div class="col-md-5 col-lg-4">
+          <a href="{% url 'job-task-where-condition-add' job_id=job.id task_id=task.id %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Condition</a> 
+        </div>
+      </div>
+    </div>

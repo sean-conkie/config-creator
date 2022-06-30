@@ -39,10 +39,10 @@
     </div>
     <div class="col-md-5 col-lg-4">
       <div class="row g-3">
-        <a href="{% url 'job-update' pk=job.id %}" class="w-100 btn btn-lg btn-secondary" type="submit"><i class="bi bi-pencil"></i> Edit Job</a>
+        <a href="{% url 'job-update' pk=job.id %}" class="w-100 btn  btn-secondary" type="submit"><i class="bi bi-pencil"></i> Edit Job</a>
       </div>
       <div class="row g-3 py-3">
-        <a href="{% url 'jobs' %}" class="w-100 btn btn-lg btn-outline-dark" type="submit"><i class="bi bi-arrow-left"></i> Back to Jobs</a>
+        <a href="{% url 'jobs' %}" class="w-100 btn  btn-outline-dark" type="submit"><i class="bi bi-arrow-left"></i> Back to Jobs</a>
       </div>
     </div>
 
@@ -64,14 +64,14 @@
               <td>{{ task.name }}</td>
               <td>{{ task.type }}</td>
               <td>{{ task.description }}</td>
-              <td><a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="btn btn-lg btn-secondary"><i class="bi bi-search"></i> View</a></td>
-              <td><a href="{% url 'job-task-delete' job_id=job.id pk=task.id %}" class="btn btn-lg btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
+              <td><a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="btn  btn-secondary"><i class="bi bi-search"></i> View</a></td>
+              <td><a href="{% url 'job-task-delete' job_id=job.id pk=task.id %}" class="btn  btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
       <div class="col-md-5 col-lg-4">
-        <a href="{% url 'job-task-add' job_id=job.id %}" class="btn btn-primary btn-lg" type="button"><i class="bi bi-plus"></i> Add Task</a> 
+        <a href="{% url 'job-task-add' job_id=job.id %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Task</a> 
       </div>
     </div> 
     

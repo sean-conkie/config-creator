@@ -437,7 +437,7 @@ class Condition(models.Model):
     where = models.ForeignKey(JobTask, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.join.task.name if self.join else (self.where.task.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
+        return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
 
 
 class ConditionField(models.Model):

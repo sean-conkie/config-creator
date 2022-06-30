@@ -29,4 +29,9 @@ urlpatterns = [
         login_required(JobTaskDeleteView.as_view()),
         name="job-task-delete",
     ),
+    path(
+        "task/<int:task_id>/condition/<int:pk>/delete/",
+        login_required(conditiondeleteview),
+        name="job-task-condition-delete",
+    ),
 ]

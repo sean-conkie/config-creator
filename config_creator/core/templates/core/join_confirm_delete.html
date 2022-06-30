@@ -1,0 +1,5 @@
+{% extends "core/confirm_delete.html" %}
+{% block title %}Delete Join{% endblock %}
+
+{% block object %}join{% endblock %}
+{% block form-action %}action="{% url 'job-task-join-delete' job_id=job_id task_id=task_id pk=pk %}"{% endblock %}

@@ -8,4 +8,6 @@ urlpatterns = [
     path("", include("core.file_upload_urls")),
     path("job/<int:job_id>/", include("core.jobtask_urls")),
     path("job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_field_urls")),
+    path("job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_join_urls")),
+    path("job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_where_urls")),
 ]

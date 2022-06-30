@@ -6,15 +6,6 @@
   <div class="py-5 text-center">
     <h2>Task</h2>
     <p class="lead">View or change your task details.</p>
-    <div class="container">
-      {% if form.errors %}
-        {% for err in form.get_invalid_login_error %}
-          <div class="alert alert-danger" role="alert">
-            {{err}}
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
   </div>
   <form method="post" action="{% url 'job-task-add' job_id=job.id %}">
     {% csrf_token %}
@@ -56,10 +47,10 @@
       </div>
       <div class="col-md-5 col-lg-4">
         <div class="row g-3">
-          <button class="w-100 btn btn-lg btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a {% if task_id != None %}  href="{% url 'job-task' job_id=job.id pk=task_id %}" {% else %} href="{% url 'job-tasks' pk=job.id %}" {% endif %} class="w-100 btn btn-lg btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a {% if task_id != None %}  href="{% url 'job-task' job_id=job.id pk=task_id %}" {% else %} href="{% url 'job-tasks' pk=job.id %}" {% endif %} class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
       <div class="row g-3 py-1">

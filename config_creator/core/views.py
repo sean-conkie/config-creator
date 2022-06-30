@@ -4,7 +4,7 @@ import json
 import os
 import re
 
-from .forms import FieldForm, JobTaskForm, UploadFileForm
+from .forms import ConditionForm, FieldForm, JobTaskForm, JoinForm, UploadFileForm
 from .models import *
 from accounts.models import GitRepository
 from django.contrib import messages
@@ -217,8 +217,8 @@ def jobtaskview(request, job_id, pk):
     task = JobTask.objects.select_related().get(id=pk)
     job = Job.objects.get(id=job_id)
     fields = Field.objects.filter(task_id=pk, is_source_to_target=True)
-    joins = Join.objects.select_related().filter(task_id=pk)
-    where = Condition.objects.select_related().filter(where=pk)
+    joins = get_joins(pk)
+    where = get_where(pk)
     history = History.objects.filter(task_id=pk)
     if history:
         partition = Partition.objects.filter(history_id=history.id)
@@ -420,7 +420,243 @@ def fieldview(request, job_id, task_id, pk):
 
 # endregion
 
+# region join views
+def editjoinview(request, job_id, task_id, pk=None):
+    if request.method == "POST":
+        if request.POST["id"]:
+            join = Join.objects.get(id=request.POST["id"])
+        else:
+            join = Join()
+
+        join.left = request.POST["left"]
+        if join.left == "":
+            task = JobTask.objects.get(id=task_id)
+            join.left = task.driving_table
+        join.right = request.POST["right"]
+        join.task_id = task_id
+        join.save()
+        messages.success(request, f"Join created successfully.")
+
+        return redirect(
+            reverse(
+                "job-task-join",
+                kwargs={"job_id": job_id, "task_id": task_id, "pk": join.id},
+            ),
+        )
+    else:
+        if pk:
+            join = Join.objects.select_related().get(id=pk)
+            form = JoinForm(instance=join)
+        else:
+            form = JoinForm()
+
+        job = Job.objects.get(id=job_id)
+        task = JobTask.objects.get(id=task_id)
+
+        return render(
+            request,
+            "core/join_form.html",
+            {
+                "form": form,
+                "task": task,
+                "job": job,
+                "join_id": pk,
+            },
+        )
+
+
+def joinview(request, job_id, task_id, pk):
+
+    join = Join.objects.select_related().get(id=pk)
+    job = Job.objects.get(id=job_id)
+    task = JobTask.objects.get(id=task_id)
+
+    return render(
+        request,
+        "core/join.html",
+        {
+            "join": join,
+            "task": task,
+            "job": job,
+            "field_id": pk,
+        },
+    )
+
+
+def joindeleteview(request, job_id, task_id, pk):
+    if request.method == "POST":
+        try:
+            Join.objects.get(id=pk).delete()
+            messages.success(request, "Join deleted successfully.")
+        except:
+            pass
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/condition_confirm_delete.html",
+            {
+                "job_id": job_id,
+                "task_id": task_id,
+                "pk": pk,
+            },
+        )
+
+# endregion
+
+# region condition views
+
+
+def editconditionview(request, job_id, task_id, join_id=None, pk=None):
+
+    if request.method == "POST":
+        if request.POST["id"]:
+            condition = Condition.objects.get(id=request.POST["id"])
+            field = ConditionField.objects.get(condition_id=request.POST["id"])
+        else:
+            condition = Condition()
+            field = ConditionField()
+
+        condition.operator = Operator.objects.get(
+            id=request.POST.get("operator", DEFAULT_OPERATOR_ID)
+        )
+        condition.logic_operator = LogicOperator.objects.get(
+            id=request.POST.get("logic_operator", DEFAULT_LOGIC_OPERATOR_ID)
+        )
+        condition.join_id = join_id
+        condition.where_id = task_id if not join_id else None
+        condition.save()
+
+        field.left = request.POST["left"]
+        field.right = request.POST["right"]
+        field.condition = condition
+        field.save()
+
+        messages.success(request, f"Condition created successfully.")
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={"job_id": job_id, "pk": task_id},
+            ),
+        )
+    else:
+        if pk:
+            condition = Condition.objects.get(id=pk)
+            form = ConditionForm(instance=condition)
+            fields = ConditionField.objects.filter(condition_id=condition.id)
+        else:
+            form = ConditionForm()
+            fields = []
+
+        job = Job.objects.get(id=job_id)
+        task = JobTask.objects.get(id=task_id)
+
+        return render(
+            request,
+            "core/condition_form.html",
+            {
+                "form": form,
+                "task": task,
+                "job": job,
+                "join_id": join_id,
+                "condition_id": pk,
+                "fields": fields,
+            },
+        )
+
+
+def conditiondeleteview(request, job_id, task_id, pk):
+    if request.method == "POST":
+        try:
+            Condition.objects.get(id=pk).delete()
+            messages.success(request, "Condition deleted successfully.")
+        except:
+            pass
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/condition_confirm_delete.html",
+            {
+                "job_id": job_id,
+                "task_id": task_id,
+                "pk": pk,
+            },
+        )
+
+
+# endregion
+
 # region methods
+def get_joins(task_id: str) -> list[dict]:
+    """
+    It returns a list of dictionaries, where each dictionary contains a join object and a list of
+    dictionaries, where each dictionary contains a condition object and a list of condition field
+    objects
+
+    Args:
+      task_id (str): The id of the task you want to get the joins for.
+
+    Returns:
+      A list of dictionaries.
+    """
+    join_objects = Join.objects.select_related().filter(task_id=task_id)
+    if len(join_objects) == 0:
+        return []
+    return [
+        {
+            "join": j,
+            "conditions": [
+                {
+                    "condition": condition,
+                    "fields": ConditionField.objects.filter(condition_id=condition.id),
+                }
+                for condition in Condition.objects.filter(join_id=j.id)
+            ],
+        }
+        for j in join_objects
+    ]
+
+
+def get_where(task_id: str) -> list[dict]:
+    """
+    It returns a list of dictionaries, where each dictionary contains a condition and the fields
+    associated with that condition
+
+    Args:
+      task_id (str): The ID of the task you want to get the conditions for.
+
+    Returns:
+      A list of dictionaries.
+    """
+    return [
+        {
+            "condition": condition,
+            "fields": ConditionField.objects.filter(condition_id=condition.id),
+        }
+        for condition in Condition.objects.filter(where_id=task_id)
+    ]
+
+
 def handle_uploaded_file(request):
 
     upload = TemporaryFileUploadHandler(request)

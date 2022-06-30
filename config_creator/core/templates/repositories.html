@@ -19,13 +19,13 @@
                 {% for repo in repositories %}
                   <tr>
                     <td>{{ repo.name }}</td>
-                    <td><a href="{% url 'repository-pull' pk=repo.id %}" class="btn btn-lg btn-secondary">Pull</a></td>
+                    <td><a href="{% url 'repository-pull' pk=repo.id %}" class="btn  btn-secondary">Pull</a></td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-          <button class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#changeForm">Pull from new repository</button>
+          <button class="btn btn-primary " type="button" data-bs-toggle="modal" data-bs-target="#changeForm">Pull from new repository</button>
         </div>
 
         <div class="modal" id="changeForm" tabindex="-1">

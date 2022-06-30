@@ -47,3 +47,22 @@ class FieldForm(forms.ModelForm):
             "transformation",
             "is_primary_key",
         ]
+
+
+class JoinForm(forms.ModelForm):
+    class Meta:
+        model = Join
+        fields = [
+            "type",
+            "left",
+            "right",
+        ]
+
+
+class ConditionForm(forms.ModelForm):
+    class Meta:
+        model = Condition
+        fields = [
+            "operator",
+            "logic_operator",
+        ]
