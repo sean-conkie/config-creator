@@ -1,15 +1,16 @@
 {% extends "core_base.html" %}
-{% block title %}Delete Job{% endblock %}
+{% block title %}Delete Field{% endblock %}
 
 {% block core-content %}    
 <div class="container">
   <div class="row g-5">
     <div class="col-md-7 col-lg-8">
       <div class="row g-3">
-        <form action="" method="post">{% csrf_token %}
+        <form action="{% url 'job-task-field-delete' job_id=job_id task_id=task_id pk=pk %}" method="post">
+          {% csrf_token %}
           <div class="py-5 text-center">
             <h2>Are you sure?</h2>
-            <p class="lead">Are you sure you want to delete the job?</p>
+            <p class="lead">Are you sure you want to delete the field?</p>
           </div>
           <input type="hidden" name="action" value="cancel" />
 
@@ -18,7 +19,7 @@
               <button class="w-100 btn btn-lg btn-primary" type="submit">Yes, I'm sure</button>
             </div>
             <div class="row g-3 py-3">
-              <a href="{% url 'jobs' %}" class="w-100 btn btn-lg btn-secondary">No, take me back</a>
+              <a href="{% url 'job-task' job_id=job_id pk=task_id %}" class="w-100 btn btn-lg btn-secondary">No, take me back</a>
             </div>
           </div>
 

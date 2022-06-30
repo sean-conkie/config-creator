@@ -1,20 +1,20 @@
-from webbrowser import Opera
 import git
 import hashlib
 import json
 import os
 import re
 
-from .forms import UploadFileForm
+from .forms import FieldForm, JobTaskForm, UploadFileForm
 from .models import *
 from accounts.models import GitRepository
+from django.contrib import messages
 from django.core.files.uploadhandler import TemporaryFileUploadHandler
 from django.http import HttpResponseRedirect
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
 
-
+# region core views
 def index(request):
     """
     "When the user visits the root URL, render the index.html template."
@@ -45,6 +45,9 @@ def loadfrom(request):
     return render(request, "loadfrom.html")
 
 
+# endregion
+
+# region repo views
 def repositoriesview(request):
     """
     It gets all the repositories for the current user and passes them to the template
@@ -119,68 +122,9 @@ def pullnewrepository(request):
         return redirect(redirect_url)
 
 
-def createtree(treesource: list[dict], layers: int = 1) -> list[str]:
-    """
-    It takes a list of dictionaries, and returns a list of strings
+# endregion
 
-    Args:
-      treesource (list[dict]): This is the list of dictionaries that you want to create the tree from.
-      layers (int): This is the number of layers deep the current tree is. It's used to calculate the
-    padding of the tree. Defaults to 1
-
-    Returns:
-      A list of strings.
-    """
-    outp = []
-    padding = f"{layers * 10}"
-    for n in treesource:
-        if n.get("type") == "file":
-            outp.append(
-                f'<div style="padding-left: {padding}px;"><button class="tree-file" data-path="{n.get("path")}"><i class="bi bi-file-earmark-text"></i> {n.get("name")}</button></div>'
-            )
-        else:
-            outp.append(
-                f'<details  style="padding-left: {padding}px;"><summary class="tree-dir"><i class="bi bi-folder"></i> {n.get("name")}</summary>'
-            )
-            outp.extend(createtree(n.get("files"), layers=layers + 1))
-            outp.append("</details>")
-
-    return outp
-
-
-def crawler(path: str, ignore_hidden: bool = True) -> list[dict]:
-    """
-    It crawls a directory and returns a list of dictionaries, each dictionary representing a file or
-    directory
-
-    Args:
-      path (str): The path to the directory you want to crawl.
-      ignore_hidden (bool): If True, ignore hidden files and directories. Defaults to True
-
-    Returns:
-      A list of dictionaries.
-    """
-
-    files = []
-    for obj in os.listdir(path):
-        obj_path = os.path.normpath(os.path.join(path, obj))
-        file = {
-            "name": obj,
-            "path": os.path.relpath(obj_path),
-        }
-        pattern = r"^\.\w+$"
-        match = re.search(pattern, obj, re.IGNORECASE)
-        if match and ignore_hidden:
-            continue
-        if os.path.isfile(obj_path):
-            file["type"] = "file"
-        else:
-            file["type"] = "dir"
-            file["files"] = crawler(obj_path)
-        files.append(file)
-    return files
-
-
+# region local file views
 def fileselect(request):
     """
     If the request is a POST request, then the form is valid, and the file is uploaded, then redirect to
@@ -204,6 +148,9 @@ def fileselect(request):
     return render(request, "fileselect.html", {"form": form})
 
 
+# endregion
+
+# region job views
 class JobCreateView(CreateView):
     model = Job
     fields = ["name", "type", "description", "properties"]
@@ -233,8 +180,21 @@ class JobDeleteView(DeleteView):
     success_url = reverse_lazy("jobs")
 
 
-def jobtasksview(request, pk):
-    job = Job.objects.select_related().get(id=pk)
+def jobsview(request):
+
+    context = {"jobs": Job.objects.filter(createdby=request.user)}
+    return render(
+        request,
+        "core/jobs.html",
+        context,
+    )
+
+
+# endregion
+
+# region task views
+def jobtasksview(request, job_id):
+    job = Job.objects.select_related().get(id=job_id)
     context = {
         "job": job,
         "tasks": JobTask.objects.select_related().filter(job=job),
@@ -246,16 +206,221 @@ def jobtasksview(request, pk):
     )
 
 
-def jobsview(request):
+class JobTaskDeleteView(DeleteView):
+    model = JobTask
 
-    context = {"jobs": Job.objects.filter(createdby=request.user)}
+    def get_success_url(self):
+        return reverse("job-tasks", kwargs={"pk": self.job_id})
+
+
+def jobtaskview(request, job_id, pk):
+    task = JobTask.objects.select_related().get(id=pk)
+    job = Job.objects.get(id=job_id)
+    fields = Field.objects.filter(task_id=pk, is_source_to_target=True)
+    joins = Join.objects.select_related().filter(task_id=pk)
+    where = Condition.objects.select_related().filter(where=pk)
+    history = History.objects.filter(task_id=pk)
+    if history:
+        partition = Partition.objects.filter(history_id=history.id)
+        history_order = HistoryOrder.objects.filter(history_id=history.id)
+
     return render(
         request,
-        "core/jobs.html",
-        context,
+        "core/jobtask.html",
+        {
+            "task": task,
+            "job": job,
+            "fields": fields,
+            "joins": joins,
+            "where": where,
+            "history": history,
+            "partition": partition if history else [],
+            "history_order": history_order if history else [],
+        },
     )
 
 
+def editjobtaskview(request, job_id, pk=None):
+    if request.method == "POST":
+        if request.POST["id"]:
+            task = JobTask.objects.get(id=request.POST["id"])
+        else:
+            task = JobTask()
+
+        task.name = request.POST["name"]
+        task.description = request.POST["description"]
+        task.destination_dataset = request.POST["destination_dataset"]
+        task.destination_table = request.POST["destination_table"]
+        task.driving_table = request.POST["driving_table"]
+        task.table_type = TableType.objects.get(id=request.POST["table_type"])
+        task.write_disposition = WriteDisposition.objects.get(
+            id=request.POST["write_disposition"]
+        )
+        task.properties = request.POST["properties"]
+        task.staging_dataset = request.POST["staging_dataset"]
+        task.type = TaskType.objects.get(id=request.POST["type"])
+        task.createdby = request.user
+        task.updatedby = request.user
+        task.job_id = request.POST["job_id"]
+        task.save()
+        return redirect(
+            reverse("job-task"),
+            kwargs={
+                "job_id": task.job_id,
+                "pk": task.id,
+            },
+        )
+    else:
+        if pk:
+            task = JobTask.objects.select_related().get(id=pk)
+            form = JobTaskForm(instance=task)
+        else:
+            form = JobTaskForm()
+
+        types = TaskType.objects.all()
+        table_types = TableType.objects.all()
+        write_dispositions = WriteDisposition.objects.all()
+        job = Job.objects.get(id=job_id)
+
+        return render(
+            request,
+            "core/jobtask_form.html",
+            {
+                "form": form,
+                "types": types,
+                "table_types": table_types,
+                "write_dispositions": write_dispositions,
+                "job": job,
+                "task_id": pk,
+            },
+        )
+
+
+# endregion
+
+# region field views
+def editfieldview(
+    request,
+    job_id,
+    task_id,
+    pk=None,
+):
+    if request.method == "POST":
+        if request.POST["id"]:
+            field = Field.objects.get(id=request.POST["id"])
+        else:
+            field = Field()
+
+        field.name = request.POST["name"]
+        field.source_name = request.POST["source_name"]
+        field.source_column = request.POST["source_column"]
+        field.transformation = request.POST["transformation"]
+        field.is_primary_key = (
+            True if request.POST.get("is_primary_key", "off") == "on" else False
+        )
+        field.task_id = task_id
+        task = JobTask.objects.get(id=task_id)
+        if field.source_name == "":
+            field.source_name = task.driving_table
+
+        if field.source_column == "":
+            field.source_column = field.name
+
+        field.save()
+        messages.success(request, f"{field.name} created successfully.")
+
+        if request.POST.get("action") == "return":
+            return redirect(
+                reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": field.task_id,
+                    },
+                ),
+            )
+        else:
+            return redirect(
+                reverse(
+                    "job-task-field-add",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": field.task_id,
+                    },
+                ),
+            )
+    else:
+        if pk:
+            field = Field.objects.select_related().get(id=pk)
+            form = FieldForm(instance=field)
+        else:
+            form = FieldForm()
+
+        job = Job.objects.get(id=job_id)
+        task = JobTask.objects.get(id=task_id)
+
+        return render(
+            request,
+            "core/field_form.html",
+            {
+                "form": form,
+                "task": task,
+                "job": job,
+                "field_id": pk,
+            },
+        )
+
+
+def fielddeleteview(request, job_id, task_id, pk):
+    if request.method == "POST":
+        try:
+            Field.objects.get(id=pk).delete()
+            messages.success(request, "Field deleted successfully.")
+        except:
+            pass
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/field_confirm_delete.html",
+            {
+                "job_id": job_id,
+                "task_id": task_id,
+                "pk": pk,
+            },
+        )
+
+
+def fieldview(request, job_id, task_id, pk):
+
+    field = Field.objects.select_related().get(id=pk)
+    job = Job.objects.get(id=job_id)
+    task = JobTask.objects.get(id=task_id)
+
+    return render(
+        request,
+        "core/field.html",
+        {
+            "field": field,
+            "task": task,
+            "job": job,
+            "field_id": pk,
+        },
+    )
+
+
+# endregion
+
+# region methods
 def handle_uploaded_file(request):
 
     upload = TemporaryFileUploadHandler(request)
@@ -461,3 +626,68 @@ def handle_uploaded_file(request):
             delta_obj.save()
 
     return job.id
+
+
+def createtree(treesource: list[dict], layers: int = 1) -> list[str]:
+    """
+    It takes a list of dictionaries, and returns a list of strings
+
+    Args:
+      treesource (list[dict]): This is the list of dictionaries that you want to create the tree from.
+      layers (int): This is the number of layers deep the current tree is. It's used to calculate the
+    padding of the tree. Defaults to 1
+
+    Returns:
+      A list of strings.
+    """
+    outp = []
+    padding = f"{layers * 10}"
+    for n in treesource:
+        if n.get("type") == "file":
+            outp.append(
+                f'<div style="padding-left: {padding}px;"><button class="tree-file" data-path="{n.get("path")}"><i class="bi bi-file-earmark-text"></i> {n.get("name")}</button></div>'
+            )
+        else:
+            outp.append(
+                f'<details  style="padding-left: {padding}px;"><summary class="tree-dir"><i class="bi bi-folder"></i> {n.get("name")}</summary>'
+            )
+            outp.extend(createtree(n.get("files"), layers=layers + 1))
+            outp.append("</details>")
+
+    return outp
+
+
+def crawler(path: str, ignore_hidden: bool = True) -> list[dict]:
+    """
+    It crawls a directory and returns a list of dictionaries, each dictionary representing a file or
+    directory
+
+    Args:
+      path (str): The path to the directory you want to crawl.
+      ignore_hidden (bool): If True, ignore hidden files and directories. Defaults to True
+
+    Returns:
+      A list of dictionaries.
+    """
+
+    files = []
+    for obj in os.listdir(path):
+        obj_path = os.path.normpath(os.path.join(path, obj))
+        file = {
+            "name": obj,
+            "path": os.path.relpath(obj_path),
+        }
+        pattern = r"^\.\w+$"
+        match = re.search(pattern, obj, re.IGNORECASE)
+        if match and ignore_hidden:
+            continue
+        if os.path.isfile(obj_path):
+            file["type"] = "file"
+        else:
+            file["type"] = "dir"
+            file["files"] = crawler(obj_path)
+        files.append(file)
+    return files
+
+
+# endregion

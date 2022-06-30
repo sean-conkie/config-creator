@@ -1,5 +1,5 @@
 {% extends "core_base.html" %}
-{% block title %}Delete Job{% endblock %}
+{% block title %}Delete Task{% endblock %}
 
 {% block core-content %}    
 <div class="container">
@@ -9,7 +9,7 @@
         <form action="" method="post">{% csrf_token %}
           <div class="py-5 text-center">
             <h2>Are you sure?</h2>
-            <p class="lead">Are you sure you want to delete the job?</p>
+            <p class="lead">Are you sure you want to delete the task?</p>
           </div>
           <input type="hidden" name="action" value="cancel" />
 

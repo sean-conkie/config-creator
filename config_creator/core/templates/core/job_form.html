@@ -1,5 +1,5 @@
 {% extends 'core_base.html' %}
-{% block title %}Add Job{% endblock %}
+{% block title %}Change Job{% endblock %}
 {% block core-content %}
 {% load static %}
 <div class="container">
@@ -60,7 +60,7 @@
           <button class="w-100 btn btn-lg btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'jobs' %}" class="w-100 btn btn-lg btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a {% if job.id != None %}  href="{% url 'job-tasks' pk=job.id %}" {% else %} href="{% url 'jobs' %}" {% endif %} class="w-100 btn btn-lg btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
     </div>  
