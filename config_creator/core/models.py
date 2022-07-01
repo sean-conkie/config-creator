@@ -171,7 +171,7 @@ class JobToTaskType(models.Model):
 
 
 class Job(models.Model):
-    name = models.CharField(
+    name = models.SlugField(
         verbose_name="Job Name",
         max_length=255,
         blank=False,

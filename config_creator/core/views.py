@@ -9,6 +9,7 @@ import tempfile
 from .forms import (
     ConditionForm,
     DeltaForm,
+    DependencyForm,
     FieldForm,
     JobTaskForm,
     JoinForm,
@@ -255,13 +256,14 @@ def jobtaskdeleteview(request, job_id, pk):
         )
 
 
-def jobtaskview(request, job_id, pk):
+def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
     task = JobTask.objects.select_related().get(id=pk)
     job = Job.objects.get(id=job_id)
     fields = Field.objects.filter(task_id=pk, is_source_to_target=True)
     joins = get_joins(pk)
     where = get_where(pk)
     delta = Delta.objects.select_related().filter(task_id=pk)
+    dependencies = Dependency.objects.select_related().filter(dependant=pk)
     history = History.objects.filter(task_id=pk)
     if history:
         partition = Partition.objects.filter(history_id=history.id)
@@ -277,6 +279,9 @@ def jobtaskview(request, job_id, pk):
             "joins": joins,
             "where": where,
             "delta": delta,
+            "dependencies": dependencies,
+            "dependency_id": dependency_id,
+            "task_id": task_id,
             "history": history,
             "partition": partition if history else [],
             "history_order": history_order if history else [],
@@ -756,6 +761,74 @@ def deltadeleteview(request, job_id, task_id, pk):
         return render(
             request,
             "core/delta_confirm_delete.html",
+            {
+                "job_id": job_id,
+                "task_id": task_id,
+                "pk": pk,
+            },
+        )
+
+
+# endregion
+
+# region dependency views
+
+
+def adddependencyview(request, job_id, task_id):
+
+    if request.method == "POST":
+        Dependency(dependant_id=task_id, predecessor_id=request.POST.get("predecessor"))
+        Dependency.save()
+        messages.success(request, f"Dependency condition created successfully.")
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            ),
+        )
+    else:
+        form = DependencyForm()
+        job = Job.objects.get(id=job_id)
+        task = JobTask.objects.get(id=task_id)
+        tasks = JobTask.objects.filter(~Q(id=task_id), job_id=job_id)
+
+        return render(
+            request,
+            "core/dependency_form.html",
+            {
+                "form": form,
+                "task": task,
+                "job": job,
+                "tasks": tasks,
+            },
+        )
+
+
+def dependencydeleteview(request, job_id, task_id, pk):
+    if request.method == "POST":
+        try:
+            Dependency.objects.get(id=pk).delete()
+            messages.success(request, "Dependency deleted successfully.")
+        except:
+            pass
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/dependency_confirm_delete.html",
             {
                 "job_id": job_id,
                 "task_id": task_id,

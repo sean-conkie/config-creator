@@ -43,7 +43,11 @@
         <a href="{% url 'job-task-update' job_id=job.id pk=task.id %}" class="w-100 btn  btn-secondary" type="submit"><i class="bi bi-pencil"></i> Edit Task</a>
       </div>
       <div class="row g-3 py-3">
-        <a href="{% url 'job-tasks' job_id=job.id %}" class="w-100 btn  btn-outline-dark" type="submit"><i class="bi bi-arrow-left"></i> Back to Job</a>
+        {% if dependency_id != None %}
+          <a href="{% url 'job-task' job_id=job.id pk=task_id %}" class="w-100 btn  btn-outline-dark" type="submit"><i class="bi bi-arrow-left"></i> Back to Dependant Task</a>
+        {% else %}
+          <a href="{% url 'job-tasks' job_id=job.id %}" class="w-100 btn  btn-outline-dark" type="submit"><i class="bi bi-arrow-left"></i> Back to Job</a>
+        {% endif %}
       </div>
     </div>
     <div class="row g-3 py-1">
@@ -98,6 +102,7 @@
       {% include 'core/jobtask_where.html' %}
       {% if task.table_type.code != 'TYPE1' %} {% include 'core/jobtask_history.html' %} {% endif %}
       {% include 'core/jobtask_delta.html' %}
+      {% include 'core/jobtask_dependency.html' %}
     </div>
   </div>  
 </div>

@@ -1,0 +1,41 @@
+{% extends 'core_base.html' %}
+{% block title %}Add Dependency{% endblock %}
+{% block core-content %}
+{% load static %}
+<div class="container">
+  <div class="py-5 text-center">
+    <h2>Predecessorn</h2>
+    <p class="lead">Add a predecessor to {{ task.name }}.</p>
+  </div>
+  <form id="id_form" method="post" action="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}">
+    <input hidden {% if delta_id != None %} value="{{ delta_id }}" {% endif %} name="id" id="id_id">
+    {% csrf_token %}
+    <div class="row g-5">
+      <div class="col-md-7 col-lg-8">
+        <div class="row g-3">
+          <div class="lead">Select Predecessor Task</div>
+          <div class="col-6">
+            <div class="form-floating">
+              <select class="form-select" name="field" id="{{ form.predecessor.id_for_label }}">
+                <option selected>---------</option>
+                {% for task in tasks %}
+                  <option value="{{ task.id }}">{{ task.name }}</option>
+                {% endfor %}
+              </select>
+              {{ form.predecessor.label_tag }}
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-5 col-lg-4">
+        <div class="row g-3">
+          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+        </div>
+        <div class="row g-3 py-3">
+          <a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+        </div>
+      </div>
+    </div>  
+  </form>
+</div>
+{% endblock %}

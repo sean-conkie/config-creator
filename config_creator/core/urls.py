@@ -11,4 +11,7 @@ urlpatterns = [
     path("job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_join_urls")),
     path("job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_where_urls")),
     path("job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_delta_urls")),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/", include("core.jobtask_dependency_urls")
+    ),
 ]

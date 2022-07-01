@@ -76,3 +76,12 @@ class DeltaForm(forms.ModelForm):
             "lower_bound",
             "upper_bound",
         ]
+
+
+class DependencyForm(forms.ModelForm):
+    class Meta:
+        model = Dependency
+        fields = [
+            "predecessor",
+            "dependant",
+        ]
