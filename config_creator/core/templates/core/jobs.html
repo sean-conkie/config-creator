@@ -14,6 +14,8 @@
           <th scope="col">Name</th>
           <th scope="col">Type</th>
           <th scope="col">Description</th>
+          <th scope="col">Last Update</th>
+          <th></th>
           <th></th>
           <th></th>
         </tr>
@@ -24,8 +26,10 @@
             <td>{{ job.name }}</td>
             <td>{{ job.type }}</td>
             <td>{{ job.description }}</td>
-            <td><a href="{% url 'job-tasks' job_id=job.id %}" class="btn  btn-secondary"><i class="bi bi-search"></i> View</a></td>
-            <td><a href="{% url 'job-delete' pk=job.id %}" class="btn  btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
+            <td>{{ job.lastupdate }}</td>
+            <td class="btn-column"><a href="{% url 'job-tasks' job_id=job.id %}" class="btn  btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+            <td class="btn-column"><a href="{% url 'job-download' pk=job.id %}" class="btn  btn-info" aria-current="page" title="Download" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
+            <td class="btn-column"><a href="{% url 'job-delete' pk=job.id %}" class="btn  btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
           </tr>
         {% endfor %}
       </tbody>

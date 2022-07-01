@@ -31,7 +31,7 @@
         </div>
         <div class="col-sm-12">
           <div class="form-floating">
-            <textarea  class="form-control" name="properties" maxlength="255" id="id_properties" value="{{job.properties}}" disabled></textarea>
+            <textarea  class="form-control" name="properties" id="id_properties" disabled>{{ job.properties|pprint }}</textarea>
             <label for="id_properties">Properties:</label>
           </div>
         </div>
@@ -44,6 +44,9 @@
       <div class="row g-3 py-3">
         <a href="{% url 'jobs' %}" class="w-100 btn  btn-outline-dark" type="submit"><i class="bi bi-arrow-left"></i> Back to Jobs</a>
       </div>
+      <div class="row g-3">
+        <a href="{% url 'job-download' pk=job.id %}" class="btn btn-info"><i class="bi bi-box-arrow-down"></i> Download Config</a>
+      </div>
     </div>
 
     <div class="row g-3 py-5">
@@ -54,6 +57,7 @@
             <th scope="col">Name</th>
             <th scope="col">Type</th>
             <th scope="col">Description</th>
+            <th scope="col">Last Update</th>
             <th></th>
             <th></th>
           </tr>
@@ -64,8 +68,9 @@
               <td>{{ task.name }}</td>
               <td>{{ task.type }}</td>
               <td>{{ task.description }}</td>
-              <td><a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="btn  btn-secondary"><i class="bi bi-search"></i> View</a></td>
-              <td><a href="{% url 'job-task-delete' job_id=job.id pk=task.id %}" class="btn  btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
+              <td>{{ task.lastupdate }}</td>
+              <td class="btn-column"><a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="btn  btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+              <td class="btn-column"><a href="{% url 'job-task-delete' job_id=job.id pk=task.id %}" class="btn  btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
             </tr>
           {% endfor %}
         </tbody>
@@ -79,5 +84,11 @@
   <script>
     document.getElementById("{{job.type.id_for_label}}").classList.add("form-select");
   </script>
+<script>
+  let ta = document.getElementById("id_properties");
+  let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
+  let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
+  ta.style.height = newHeight + "px";
+</script>
 </div>
 {% endblock %}

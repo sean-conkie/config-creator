@@ -1,0 +1,8 @@
+{% extends "core/confirm_delete.html" %}
+{% block title %}Delete Delta Condition{% endblock %}
+
+{% block object %}Delta condition{% endblock %}
+{% block form-action %}action="{% url 'job-task-delta-delete' job_id=job_id task_id=task_id pk=pk %}"{% endblock %}
+{% block return-url %}href="{% url 'job-task' job_id=job_id task_id=task_id %}"{% endblock %}
+
+ 

@@ -38,8 +38,7 @@
           </div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <textarea  class="form-control" name="properties" maxlength="255" id="{{form.properties.id_for_label}}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.properties.help_text}}"
-              {% if form.properties.value != None and form.properties.value != "null" %} value="{{form.properties.value}}" {% endif %}></textarea>
+              <textarea  class="form-control" name="properties" id="{{form.properties.id_for_label}}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.properties.help_text}}">{% if form.properties.value != None and form.properties.value != "null" %}{{ form.properties.value|pprint }}{% endif %}</textarea>
               {{form.properties.label_tag}}
             </div>
           </div>
@@ -118,8 +117,13 @@
     for (var i = 0; i < el.length; i++) {
       el[i].classList.add("form-select");
     }
-    
-    
   </script>
+  
+<script>
+  let ta = document.getElementById("id_properties");
+  let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
+  let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
+  ta.style.height = newHeight + "px";
+</script>
 </div>
 {% endblock %}

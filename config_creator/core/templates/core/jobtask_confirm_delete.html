@@ -3,3 +3,4 @@
 
 {% block object %}task{% endblock %}
 {% block form-action %}action="{% url 'job-task-delete' job_id=job_id pk=pk %}"{% endblock %}
+{% block return-url %}href="{% url 'job-tasks' job_id=job_id %}"{% endblock %}

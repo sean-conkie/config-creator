@@ -22,7 +22,7 @@
                 <button class="w-100 btn  btn-danger" type="submit">Yes, I'm sure</button>
               </div>
               <div class="col-md-5 col-lg-4 py-5">
-                <a href="{% url 'job-task' job_id=job_id pk=task_id %}" class="w-100 btn  btn-secondary">No, take me back</a>
+                <a {% block return-url %}href=""{% endblock %} class="w-100 btn  btn-secondary">No, take me back</a>
               </div>
             </div>
           </div>

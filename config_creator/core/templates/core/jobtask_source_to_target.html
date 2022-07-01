@@ -5,7 +5,7 @@
         Source to Target
       </button>
     </div>
-    <div id="collapse-source-to-target" class="accordion-collapse collapse" aria-labelledby="heading-source-to-target" >
+    <div id="collapse-source-to-target" class="accordion-collapse collapse show" aria-labelledby="heading-source-to-target" >
       <div class="row g-3 py-3">
         <table class="table table-hover table-striped">
           <thead>
@@ -21,10 +21,10 @@
             {% for field in fields %}
               <tr class="align-middle">
                 <td>{% if field.is_primary_key %}<i class="bi bi-key"></i> {% endif %}{% if field.is_history_key %}<i class="bi bi-clock-history"></i> {% endif %}{{ field.name}} </td>
-                <td>{% if field.source_name != "" %}<span>{{ field.source_name }}.</span><strong>{{ field.source_column }}</strong>{% else %}{{ field.source_column }}{% endif %}</td>
+                <td>{% if field.source_name != "" and field.source_name != None %}<span>{{ field.source_name }}.</span><strong>{{ field.source_column }}</strong>{% else %}{{ field.source_column }}{% endif %}</td>
                 <td>{{ field.transformation }}</td>
-                <td><a href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field.id %}" class="btn  btn-secondary"><i class="bi bi-search"></i> View</a></td>
-                <td><a href="{% url 'job-task-field-delete' job_id=job.id task_id=task.id pk=field.id %}" class="btn  btn-danger"><i class="bi bi-trash3"></i> Delete</a></td>
+                <td class="btn-column"><a href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field.id %}" class="btn  btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+                <td class="btn-column"><a href="{% url 'job-task-field-delete' job_id=job.id task_id=task.id pk=field.id %}" class="btn  btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
               </tr>
             {% endfor %}
             {% if fields|length == 0 %}

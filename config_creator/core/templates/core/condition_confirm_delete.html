@@ -3,4 +3,6 @@
 
 {% block object %}condition{% endblock %}
 {% block form-action %}action="{% url 'job-task-condition-delete' job_id=job_id task_id=task_id pk=pk %}"{% endblock %}
+{% block return-url %}href="{% url 'job-task' job_id=job_id task_id=task_id %}"{% endblock %}
+
  

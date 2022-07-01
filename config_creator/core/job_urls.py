@@ -19,8 +19,13 @@ urlpatterns = [
         name="job-delete",
     ),
     path(
-        "jobs/",
+        "",
         login_required(jobsview),
         name="jobs",
+    ),
+    path(
+        "<int:pk>/download/",
+        login_required(jobdownload),
+        name="job-download",
     ),
 ]

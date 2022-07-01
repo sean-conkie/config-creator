@@ -1,8 +1,6 @@
-from asyncio import Task
-from tkinter import CASCADE
-from turtle import position
 from django.db import models
 from django.conf import settings
+from django.db.models import Q
 from django.urls import reverse
 
 User = settings.AUTH_USER_MODEL
@@ -330,7 +328,15 @@ class Field(models.Model):
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        return self.name
+        outp = []
+        if self.source_name:
+            outp.append(self.source_name)
+        if self.source_column:
+            outp.append(self.source_column)
+        else:
+            outp.append(self.name)
+
+        return ".".join(outp)
 
 
 class Dependency(models.Model):
@@ -389,9 +395,16 @@ class Delta(models.Model):
         max_length=255,
         blank=False,
         null=False,
+        help_text="""Input a function that returns a date value or use preset;
+$YESTERDAY = today's date minus one day
+    $TODAY = today's date
+ $THISWEEK = start date of current week, start date = MONDAY
+$THISMONTH = date of first day of current month
+""",
     )
     upper_bound = models.IntegerField(
-        null=True, help_text="Input seconds to add to lower_bound"
+        null=True,
+        help_text="Input seconds to add to lower_bound, 86400 represents one day",
     )
 
 

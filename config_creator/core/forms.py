@@ -66,3 +66,13 @@ class ConditionForm(forms.ModelForm):
             "operator",
             "logic_operator",
         ]
+
+
+class DeltaForm(forms.ModelForm):
+    class Meta:
+        model = Delta
+        fields = [
+            "field",
+            "lower_bound",
+            "upper_bound",
+        ]

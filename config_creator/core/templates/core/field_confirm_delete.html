@@ -3,3 +3,4 @@
 
 {% block object %}column{% endblock %}
 {% block form-action %}action="{% url 'job-task-field-delete' job_id=job_id task_id=task_id pk=pk %}"{% endblock %}
+{% block return-url %}href="{% url 'job-task' job_id=job_id task_id=task_id %}"{% endblock %}

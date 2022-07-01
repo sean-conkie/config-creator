@@ -1,15 +1,24 @@
 import git
 import hashlib
 import json
+import mimetypes
 import os
 import re
+import tempfile
 
-from .forms import ConditionForm, FieldForm, JobTaskForm, JoinForm, UploadFileForm
+from .forms import (
+    ConditionForm,
+    DeltaForm,
+    FieldForm,
+    JobTaskForm,
+    JoinForm,
+    UploadFileForm,
+)
 from .models import *
 from accounts.models import GitRepository
 from django.contrib import messages
 from django.core.files.uploadhandler import TemporaryFileUploadHandler
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from django.views.generic.edit import CreateView, DeleteView, UpdateView
@@ -190,6 +199,19 @@ def jobsview(request):
     )
 
 
+def jobdownload(request, pk):
+    filecontent = get_filecontent(pk)
+    c = json.dumps(filecontent, indent=2).encode("utf-8")
+
+    # file = tempfile.NamedTemporaryFile(suffix=".json")
+    # file.write(c)
+    file_name = f"{filecontent.get('name', 'config')}.json"
+    mime_type, _ = mimetypes.guess_type(file_name)
+    response = HttpResponse(c, content_type=mime_type)
+    response["Content-Disposition"] = "attachment; filename=%s" % file_name
+    return response
+
+
 # endregion
 
 # region task views
@@ -206,11 +228,31 @@ def jobtasksview(request, job_id):
     )
 
 
-class JobTaskDeleteView(DeleteView):
-    model = JobTask
+def jobtaskdeleteview(request, job_id, pk):
+    if request.method == "POST":
+        try:
+            JobTask.objects.get(id=pk).delete()
+            messages.success(request, "Task deleted successfully.")
+        except:
+            pass
 
-    def get_success_url(self):
-        return reverse("job-tasks", kwargs={"pk": self.job_id})
+        return redirect(
+            reverse(
+                "job-tasks",
+                kwargs={
+                    "job_id": job_id,
+                },
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/jobtask_confirm_delete.html",
+            {
+                "job_id": job_id,
+                "pk": pk,
+            },
+        )
 
 
 def jobtaskview(request, job_id, pk):
@@ -219,6 +261,7 @@ def jobtaskview(request, job_id, pk):
     fields = Field.objects.filter(task_id=pk, is_source_to_target=True)
     joins = get_joins(pk)
     where = get_where(pk)
+    delta = Delta.objects.select_related().filter(task_id=pk)
     history = History.objects.filter(task_id=pk)
     if history:
         partition = Partition.objects.filter(history_id=history.id)
@@ -233,6 +276,7 @@ def jobtaskview(request, job_id, pk):
             "fields": fields,
             "joins": joins,
             "where": where,
+            "delta": delta,
             "history": history,
             "partition": partition if history else [],
             "history_order": history_order if history else [],
@@ -511,6 +555,7 @@ def joindeleteview(request, job_id, task_id, pk):
             },
         )
 
+
 # endregion
 
 # region condition views
@@ -596,6 +641,121 @@ def conditiondeleteview(request, job_id, task_id, pk):
         return render(
             request,
             "core/condition_confirm_delete.html",
+            {
+                "job_id": job_id,
+                "task_id": task_id,
+                "pk": pk,
+            },
+        )
+
+
+# endregion
+
+# region delta
+
+
+def editdeltaview(request, job_id, task_id, pk=None):
+
+    if request.method == "POST":
+        if request.POST.get("id"):
+            delta = Delta.objects.get(id=request.POST.get("id"))
+        else:
+            delta = Delta()
+
+        if request.POST.get("field"):
+            delta.field_id = request.POST.get("field")
+        elif request.POST.get("source_column"):
+            delta.field = Field(
+                name=request.POST.get("source_column"),
+                source_column=request.POST.get("source_column"),
+                source_name=request.POST.get(
+                    "source_name", JobTask.objects.get(id=task_id).driving_table
+                ),
+            )
+        elif request.POST.get("transformation"):
+            delta.field = Field(
+                name="f01",
+                transformation=request.POST.get("transformation"),
+            )
+        else:
+            messages.error(
+                request,
+                "A field is required, either select an existing field or add a new one.",
+            )
+
+            fields = Field.objects.filter(task_id=task_id)
+            return render(
+                request,
+                "core/delta_form.html",
+                {
+                    "form": DeltaForm(request.POST),
+                    "task": task,
+                    "job": job,
+                    "fields": fields,
+                    "delta_id": pk,
+                },
+            )
+
+        delta.lower_bound = request.POST.get("lower_bound")
+        delta.upper_bound = request.POST.get("upper_bound")
+        delta.task_id = task_id
+        delta.save()
+        messages.success(request, f"Delta condition created successfully.")
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            ),
+        )
+    else:
+        if pk:
+            delta = Delta.objects.select_related().get(id=pk)
+            form = DeltaForm(instance=delta)
+        else:
+            form = DeltaForm()
+
+        job = Job.objects.get(id=job_id)
+        task = JobTask.objects.get(id=task_id)
+        fields = Field.objects.filter(task_id=task_id)
+
+        return render(
+            request,
+            "core/delta_form.html",
+            {
+                "form": form,
+                "task": task,
+                "job": job,
+                "fields": fields,
+                "delta_id": pk,
+            },
+        )
+
+
+def deltadeleteview(request, job_id, task_id, pk):
+    if request.method == "POST":
+        try:
+            Delta.objects.get(id=pk).delete()
+            messages.success(request, "Delta conditions deleted successfully.")
+        except:
+            pass
+
+        return redirect(
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": job_id,
+                    "pk": task_id,
+                },
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/delta_confirm_delete.html",
             {
                 "job_id": job_id,
                 "task_id": task_id,
@@ -924,6 +1084,93 @@ def crawler(path: str, ignore_hidden: bool = True) -> list[dict]:
             file["files"] = crawler(obj_path)
         files.append(file)
     return files
+
+
+def get_filecontent(pk: int) -> dict:
+    """
+    It takes a job id, and returns a dictionary containing the job's name, description, type,
+    properties, and a list of tasks
+
+    Args:
+      pk (int): the primary key of the job
+
+    Returns:
+      A dictionary with the job name, description, type, properties, and tasks.
+    """
+    job = Job.objects.select_related().get(id=pk)
+    tasks = JobTask.objects.select_related().filter(job=job)
+
+    task_list = []
+    for task in tasks:
+        t = {
+            "task_id": task.name,
+            "operator": task.type.code,
+            "parameters": json.loads(
+                task.properties
+                if task.properties != "" and not task.properties is None
+                else "{}"
+            ),
+            "description": job.description,
+            "dependencies": [],
+        }
+
+        t["parameters"]["source_to_target"] = [
+            {
+                "name": f.name,
+                "source_column": f.source_column,
+                "source_name": f.source_name,
+                "transformation": f.transformation,
+                "pk": f.is_primary_key,
+                "hk": f.is_history_key,
+            }
+            for f in Field.objects.select_related().filter(
+                task_id=task.id, is_source_to_target=True
+            )
+        ]
+
+        t["parameters"]["where"] = [
+            {
+                "logic_operator": c.logic_operator.code,
+                "operator": c.operator.symbol,
+                "fields": [
+                    [cf.left, cf.right]
+                    for cf in ConditionField.objects.filter(condition_id=c.id)
+                ][0],
+            }
+            for c in Condition.objects.select_related().filter(where_id=task.id)
+        ]
+
+        t["parameters"]["joins"] = [
+            {
+                "left": j.left,
+                "right": j.right,
+                "type": j.type.code,
+                "on": [
+                    {
+                        "logic_operator": c.logic_operator.code,
+                        "operator": c.operator.symbol,
+                        "fields": [
+                            [cf.left, cf.right]
+                            for cf in ConditionField.objects.filter(condition_id=c.id)
+                        ][0],
+                    }
+                    for c in Condition.objects.select_related().filter(join_id=j.id)
+                ],
+            }
+            for j in Join.objects.select_related().filter(task_id=task.id)
+        ]
+
+        task_list.append(t)
+
+    filecontent = {
+        "name": job.name,
+        "description": job.description,
+        "type": job.type.code,
+        "properties": job.properties,
+        "tasks": task_list,
+    }
+
+    return filecontent
 
 
 # endregion

@@ -26,7 +26,7 @@ urlpatterns = [
     ),
     path(
         "task/<int:pk>/delete/",
-        login_required(JobTaskDeleteView.as_view()),
+        login_required(jobtaskdeleteview),
         name="job-task-delete",
     ),
     path(

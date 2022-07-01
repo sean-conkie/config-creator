@@ -32,7 +32,7 @@
         </div>
         <div class="col-sm-12">
           <div class="form-floating">
-            <textarea  class="form-control" name="properties" maxlength="255" id="id_properties" value="{{task.properties}}" disabled></textarea>
+            <textarea  class="form-control" name="properties" id="id_properties" disabled>{{ task.properties|pprint }}</textarea>
             <label for="id_properties">Properties:</label>
           </div>
         </div>
@@ -101,5 +101,11 @@
     </div>
   </div>  
 </div>
+<script>
+  let ta = document.getElementById("id_properties");
+  let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
+  let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
+  ta.style.height = newHeight + "px";
+</script>
 {% endblock %}
 
