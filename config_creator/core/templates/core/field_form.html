@@ -10,7 +10,7 @@
   <form id="id_form" method="post" action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
     {% csrf_token %}
     <div class="row g-5">
-      <div class="col-md-7 col-lg-8">
+      <div class="col-md-8 col-lg-9">
         <input hidden {% if field_id != None %} value="{{ field_id }}" {% endif %} name="id" id="id_id">
         <input hidden value="return" name="action" id="id_action">
         <div class="row g-3">
@@ -33,7 +33,7 @@
           <div class="lead">Source Column</div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_source_column_tree"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" type="button" id="id_source_column_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 <input type="text" class="form-control" name="source_column" maxlength="255" id="{{ form.source_column.id_for_label }}" 
                 {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.source_column.help_text }}" {% endif %}
@@ -44,7 +44,7 @@
           </div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_source_name_tree"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" type="button" id="id_source_name_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 <input type="text" class="form-control" name="source_name" maxlength="255" id="{{ form.source_name.id_for_label }}" 
                 {% if form.source_name.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.source_name.help_text }}" {% endif %}
@@ -65,7 +65,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-5 col-lg-4">
+      <div class="col-md-4 col-lg-3">
         <div class="row g-3">
           <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
@@ -93,4 +93,6 @@
     }
   </script>
 </div>
+
+{% include 'core/connection_selector.html' %}
 {% endblock %}

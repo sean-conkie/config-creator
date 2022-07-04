@@ -19,7 +19,7 @@
   <form id="id_form" method="post" action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
     {% csrf_token %}
     <div class="row g-5">
-      <div class="col-md-7 col-lg-8">
+      <div class="col-md-8 col-lg-9">
         <input hidden value="{{ field.id }}" name="id" id="id_id">
         <input hidden value="return" name="action" id="id_action">
         <div class="row g-3">
@@ -72,7 +72,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-5 col-lg-4">
+      <div class="col-md-4 col-lg-3">
         <div class="row g-3">
           <a href="{% url 'job-task-field-update' job_id=job.id task_id=task.id pk=field.id %}" class="w-100 btn  btn-primary" type="submit"><i class="bi bi-pencil"></i> Edit</a>
         </div>

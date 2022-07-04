@@ -17,6 +17,7 @@ from .forms import (
 )
 from .models import *
 from accounts.models import GitRepository
+from database_interface_api.models import Connection, ConnectionType
 from django.contrib import messages
 from django.core.files.uploadhandler import TemporaryFileUploadHandler
 from django.http import HttpResponseRedirect, HttpResponse
@@ -313,11 +314,13 @@ def editjobtaskview(request, job_id, pk=None):
         task.job_id = request.POST["job_id"]
         task.save()
         return redirect(
-            reverse("job-task"),
-            kwargs={
-                "job_id": task.job_id,
-                "pk": task.id,
-            },
+            reverse(
+                "job-task",
+                kwargs={
+                    "job_id": task.job_id,
+                    "pk": task.id,
+                },
+            ),
         )
     else:
         if pk:

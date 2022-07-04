@@ -30,9 +30,11 @@
               </table>
             {% endif %}
           </div>
-          <div class="col-md-5 col-lg-4">
-            <a href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Delta Condition</a> 
-          </div>
+          {% if delta|length == 0 %}
+            <div class="col-md-4 col-lg-3">
+              <a href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Delta Condition</a> 
+            </div>
+          {% endif %}
         </div>
       </div>
     </div>

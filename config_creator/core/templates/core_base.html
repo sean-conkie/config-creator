@@ -19,6 +19,26 @@
         </div>
         {% endfor %}
       {% endif %}
+      
+      {% if form.errors %}
+        {% for field in form %}
+          {% for error in field.errors %}
+          <div aria-live="polite" aria-atomic="true" class="bg-dark position-relative bd-example-toasts">
+            <div class="toast-container position-absolute top-0 end-0 p-3 p-3" id="toastPlacement">
+              <div class="toast alert-warning">
+                <div class="toast-header">
+                  <strong class="me-auto">{{ field.label_tag }}</strong>
+                  <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                </div>
+                <div class="toast-body">
+                  {{ error }}
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endfor %}
+        {% endfor %}
+      {% endif %}
       <main>
         {% include "nav.html" %}
         {% block core-content %}

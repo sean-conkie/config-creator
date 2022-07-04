@@ -24,24 +24,30 @@
         </div>
         <div class="row g-3 py-3">
           <div class="col-6">
-            <div class="form-floating">
-              <input type="text" class="form-control" name="left" maxlength="255" id="{{ form.left.id_for_label }}" 
-              {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.left.help_text }}" {% endif %}
-              {% if form.left.value != None %} value="{{ form.left.value }}" {% endif %}>
-              {{ form.left.label_tag }}
+            <div class="input-group mb-3">
+              <button class="input-group-text" type="button" id="id_destination_dataset_tree" onclick="setReturnType('table', null, null, '{{ form.left.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <div class="form-floating flex-grow-1">
+                <input type="text" class="form-control" name="left" maxlength="255" id="{{ form.left.id_for_label }}" 
+                {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.left.help_text }}" {% endif %}
+                {% if form.left.value != None %} value="{{ form.left.value }}" {% endif %}>
+                {{ form.left.label_tag }}
+              </div>
             </div>
           </div>
           <div class="col-6">
-            <div class="form-floating">
-              <input type="text" class="form-control" name="right" maxlength="255" required="" id="{{ form.right.id_for_label }}" 
-              {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.right.help_text }}" {% endif %}
-              {% if form.right.value != None %} value="{{ form.right.value }}" {% endif %}>
-              {{ form.right.label_tag }}
+            <div class="input-group mb-3">
+              <button class="input-group-text" type="button" id="id_destination_dataset_tree" onclick="setReturnType('table', null, null, '{{ form.right.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <div class="form-floating flex-grow-1">
+                <input type="text" class="form-control" name="right" maxlength="255" required="" id="{{ form.right.id_for_label }}" 
+                {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.right.help_text }}" {% endif %}
+                {% if form.right.value != None %} value="{{ form.right.value }}" {% endif %}>
+                {{ form.right.label_tag }}
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div class="col-md-5 col-lg-4">
+      <div class="col-md-4 col-lg-3">
         <div class="row g-3">
           <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
@@ -55,5 +61,6 @@
   <script>
     document.getElementById("{{form.type.id_for_label}}").classList.add("form-select");
   </script>
+  {% include 'core/connection_selector.html' %}
 </div>
 {% endblock %}

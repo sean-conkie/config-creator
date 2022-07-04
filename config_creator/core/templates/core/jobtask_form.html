@@ -10,7 +10,7 @@
   <form method="post" action="{% url 'job-task-add' job_id=job.id %}">
     {% csrf_token %}
     <div class="row g-5">
-      <div class="col-md-7 col-lg-8">
+      <div class="col-md-8 col-lg-9">
         <div class="row g-3">
           <div class="lead">Task Details</div>
           <input hidden value="{{form.id.value}}" name="id" id="id_id">
@@ -44,7 +44,7 @@
           </div>
         </div>
       </div>
-      <div class="col-md-5 col-lg-4">
+      <div class="col-md-4 col-lg-3">
         <div class="row g-3">
           <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
@@ -67,16 +67,19 @@
           </div>
         </div>
         <div class="col-6">
-          <div class="form-floating">
-            <input type="text" class="form-control" name="destination_table" maxlength="255" required="" id="{{form.destination_table.id_for_label}}" 
-            {% if form.destination_table.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_table.help_text}}" {% endif %}
-            {% if form.destination_table.value != None %} value="{{form.destination_table.value}}" {% endif %}>
-            {{form.destination_table.label_tag}}
+          <div class="input-group mb-3">
+            <button class="input-group-text" type="button" id="id_destination_table_tree" onclick="setReturnType('table', null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', true)"><i class="fa-solid fa-folder-tree"></i></button>
+            <div class="form-floating flex-grow-1">
+              <input type="text" class="form-control" name="destination_table" maxlength="255" required="" id="{{form.destination_table.id_for_label}}" 
+              {% if form.destination_table.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_table.help_text}}" {% endif %}
+              {% if form.destination_table.value != None %} value="{{form.destination_table.value}}" {% endif %}>
+              {{form.destination_table.label_tag}}
+            </div>
           </div>
         </div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_destination_dataset_tree"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" type="button" id="id_destination_dataset_tree" onclick="setReturnType('dataset', null, null, null, null, '{{form.destination_dataset.id_for_label}}', true)"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
               <input type="text" class="form-control" name="destination_dataset" maxlength="255" required="" id="{{form.destination_dataset.id_for_label}}" 
               {% if form.destination_dataset.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_dataset.help_text}}" {% endif %}
@@ -88,7 +91,7 @@
         <div class="lead">Source Table</div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_driving_table_tree"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" type="button" id="id_driving_table_tree" onclick="setReturnType('dataset', null, null, '{{form.driving_table.id_for_label}}', 'tableFull', null, true)"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
               <input type="text" class="form-control" name="driving_table" maxlength="255" required="" id="{{form.driving_table.id_for_label}}" 
               {% if form.driving_table.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.driving_table.help_text}}" {% endif %}
@@ -99,7 +102,7 @@
         </div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_staging_dataset_tree"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" type="button" id="id_staging_dataset_tree" onclick="setReturnType('dataset', null, null, null, null, '{{form.staging_dataset.id_for_label}}', true)"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
               <input type="text" class="form-control" name="staging_dataset" maxlength="255" required="" id="{{form.staging_dataset.id_for_label}}" 
               {% if form.destination_dataset.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_dataset.help_text}}" {% endif %}
@@ -112,6 +115,8 @@
     </div>  
     
   </form>
+
+  {{ connections }}
   <script>
     const el = document.getElementsByTagName("select");
     for (var i = 0; i < el.length; i++) {
@@ -119,11 +124,12 @@
     }
   </script>
   
-<script>
-  let ta = document.getElementById("id_properties");
-  let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
-  let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
-  ta.style.height = newHeight + "px";
-</script>
+  <script>
+    let ta = document.getElementById("id_properties");
+    let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
+    let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
+    ta.style.height = newHeight + "px";
+  </script>
+  {% include 'core/connection_selector.html' %}
 </div>
 {% endblock %}
