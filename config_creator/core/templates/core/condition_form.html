@@ -11,7 +11,7 @@
     {% csrf_token %}
     <div class="row g-5">
       <div class="col-md-12 col-lg-12">
-        <input hidden value="{{ form.id.value }}" name="id" id="id_id">
+        <input hidden {% if condition_id != None %} value="{{ condition_id }}" {% endif %} name="id" id="id_id">
         <div class="row g-3">
           <div class="lead">Condition Details</div>
           <div class="col-sm-1">

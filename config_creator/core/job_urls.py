@@ -5,17 +5,17 @@ from django.urls import path
 urlpatterns = [
     path(
         "add/",
-        login_required(JobCreateView.as_view()),
+        login_required(editjobview),
         name="job-add",
     ),
     path(
         "<int:pk>/update/",
-        login_required(JobUpdateView.as_view()),
+        login_required(editjobview),
         name="job-update",
     ),
     path(
         "<int:pk>/delete/",
-        login_required(JobDeleteView.as_view()),
+        login_required(jobdeleteview),
         name="job-delete",
     ),
     path(

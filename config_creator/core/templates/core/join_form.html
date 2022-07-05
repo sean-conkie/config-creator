@@ -11,7 +11,7 @@
     {% csrf_token %}
     <div class="row g-5">
       <div class="col-md-7 col-lg-8">
-        <input hidden value="{{ form.id.value }}" name="id" id="id_id">
+        <input hidden {% if join_id != None %} value="{{ join_id }}" {% endif %} name="id" id="id_id">
         <input hidden value="return" name="action" id="id_action">
         <div class="row g-3">
           <div class="lead">Join Details</div>

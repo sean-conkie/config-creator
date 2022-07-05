@@ -11,6 +11,7 @@ from .forms import (
     DeltaForm,
     DependencyForm,
     FieldForm,
+    JobForm,
     JobTaskForm,
     JoinForm,
     UploadFileForm,
@@ -162,33 +163,66 @@ def fileselect(request):
 # endregion
 
 # region job views
-class JobCreateView(CreateView):
-    model = Job
-    fields = ["name", "type", "description", "properties"]
+def editjobview(request, pk=None):
+    if request.method == "POST":
+        if request.POST["id"]:
+            job = Job.objects.get(id=request.POST["id"])
+        else:
+            job = Job()
 
-    def form_valid(self, form):
-        form.instance.createdby = self.request.user
-        form.instance.updatedby = self.request.user
-        self.object = form.save()
-        return HttpResponseRedirect(self.get_success_url())
+        job.name = request.POST["name"]
+        job.description = request.POST["description"]
+        job.properties = request.POST["properties"]
+        job.type = JobType.objects.get(id=request.POST["type"])
+        job.createdby = request.user
+        job.updatedby = request.user
+        job.save()
+        return redirect(
+            reverse(
+                "job-tasks",
+                kwargs={
+                    "job_id": job.id,
+                },
+            ),
+        )
+    else:
+        if pk:
+            job = Job.objects.select_related().get(id=pk)
+            form = JobForm(instance=job)
+        else:
+            form = JobForm()
 
-    def get_success_url(self):
-        return reverse("job-tasks", kwargs={"pk": self.pk})
+        return render(
+            request,
+            "core/job_form.html",
+            {
+                "form": form,
+                "job_id": pk,
+            },
+        )
 
 
-class JobUpdateView(UpdateView):
-    model = Job
-    fields = ["name", "type", "description", "properties"]
+def jobdeleteview(request, pk):
+    if request.method == "POST":
+        try:
+            Job.objects.get(id=pk).delete()
+            messages.success(request, "Job deleted successfully.")
+        except:
+            pass
 
-    def form_valid(self, form):
-        form.instance.updatedby = self.request.user
-        self.object = form.save()
-        return HttpResponseRedirect(self.get_success_url())
-
-
-class JobDeleteView(DeleteView):
-    model = Job
-    success_url = reverse_lazy("jobs")
+        return redirect(
+            reverse(
+                "jobs",
+            )
+        )
+    else:
+        return render(
+            request,
+            "core/job_confirm_delete.html",
+            {
+                "pk": pk,
+            },
+        )
 
 
 def jobsview(request):
@@ -1174,6 +1208,9 @@ def get_filecontent(pk: int) -> dict:
       A dictionary with the job name, description, type, properties, and tasks.
     """
     job = Job.objects.select_related().get(id=pk)
+    if job.properties and job.properties != "":
+        job_properties = json.loads(job.properties)
+
     tasks = JobTask.objects.select_related().filter(job=job)
 
     task_list = []
@@ -1190,7 +1227,9 @@ def get_filecontent(pk: int) -> dict:
             "dependencies": [],
         }
 
-        t["parameters"]["source_to_target"] = [
+        params = t["parameters"]
+
+        params["source_to_target"] = [
             {
                 "name": f.name,
                 "source_column": f.source_column,
@@ -1204,7 +1243,7 @@ def get_filecontent(pk: int) -> dict:
             )
         ]
 
-        t["parameters"]["where"] = [
+        params["where"] = [
             {
                 "logic_operator": c.logic_operator.code,
                 "operator": c.operator.symbol,
@@ -1216,7 +1255,7 @@ def get_filecontent(pk: int) -> dict:
             for c in Condition.objects.select_related().filter(where_id=task.id)
         ]
 
-        t["parameters"]["joins"] = [
+        params["joins"] = [
             {
                 "left": j.left,
                 "right": j.right,
@@ -1236,13 +1275,22 @@ def get_filecontent(pk: int) -> dict:
             for j in Join.objects.select_related().filter(task_id=task.id)
         ]
 
+        params["destination_table"] = task.destination_table
+        params["destination_dataset"] = task.destination_dataset
+        params["write_disposition"] = task.write_disposition.code
+        params["driving_table"] = task.driving_table
+        params["staging_dataset"] = task.staging_dataset
+        params["target_type"] = task.table_type.code
+
+        dependencies = [dependant.name for dependant in Dependency.objects.select_related().filter(dependant_id=task.id)]
+
         task_list.append(t)
 
     filecontent = {
         "name": job.name,
         "description": job.description,
         "type": job.type.code,
-        "properties": job.properties,
+        "properties": job_properties,
         "tasks": task_list,
     }
 

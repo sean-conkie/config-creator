@@ -13,7 +13,7 @@
       <div class="col-md-8 col-lg-9">
         <div class="row g-3">
           <div class="lead">Task Details</div>
-          <input hidden value="{{form.id.value}}" name="id" id="id_id">
+          <input hidden {% if task_id != None %} value="{{ task_id }}" {% endif %} name="id" id="id_id">
           <input hidden value="{{job.id}}" name="job_id" id="id_job_id">
           <div class="col-6">
             <div class="form-floating">
@@ -38,7 +38,7 @@
           </div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <textarea  class="form-control" name="properties" id="{{form.properties.id_for_label}}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.properties.help_text}}">{% if form.properties.value != None and form.properties.value != "null" %}{{ form.properties.value|pprint }}{% endif %}</textarea>
+              <textarea  class="form-control" name="properties" id="{{form.properties.id_for_label}}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.properties.help_text}}">{% if form.properties.value != None and form.properties.value != "null" %}{{ form.properties.value }}{% endif %}</textarea>
               {{form.properties.label_tag}}
             </div>
           </div>

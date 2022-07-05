@@ -85,3 +85,15 @@ class DependencyForm(forms.ModelForm):
             "predecessor",
             "dependant",
         ]
+
+
+class JobForm(forms.ModelForm):
+    class Meta:
+        model = Job
+        fields = [
+            "name",
+            "type",
+            "description",
+            "properties",
+            "id",
+        ]

@@ -4,7 +4,7 @@ from django.urls import path
 
 
 urlpatterns = [
-    path("profile/", ProfileView.as_view(), name="profile"),
+    path("profile/", login_required(ProfileView.as_view()), name="profile"),
     path(
         "connections/",
         login_required(connectionsview),
