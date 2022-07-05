@@ -66,7 +66,11 @@ class IBQClient(bigquery.Client):
             return {}
 
 
-def get_schema(connection: str, connection_type: ConnectionType) -> dict:
+def get_schema(
+    connection_id: int,
+    connection: str,
+    connection_type: ConnectionType,
+) -> dict:
     """
     > This function returns a list of schemas for a given connection
 
@@ -90,13 +94,26 @@ def get_schema(connection: str, connection_type: ConnectionType) -> dict:
 
     rs = client.to_json()
 
-    outp = {connection: [{r.get("schema_name"): []} for r in rs.get("result", [])]}
+    outp = {
+        "result": [
+            {
+                "name": r.get("schema_name"),
+                "content": [],
+                "type": "dataset",
+                "connection_id": connection_id,
+            }
+            for r in rs.get("result", [])
+        ],
+    }
 
     return outp
 
 
 def get_database_schema(
-    connection: str, connection_type: ConnectionType, database: str
+    connection_id: int,
+    connection: str,
+    connection_type: ConnectionType,
+    database: str,
 ) -> dict:
     """
     > This function takes a connection string, connection type and database name as input and returns a
@@ -115,25 +132,39 @@ def get_database_schema(
     query = None
     if connection_type == ConnectionType.BIGQUERY:
         client = IBQClient(connection)
-        query = f"select table_name, column_name, data_type, ordinal_position, is_nullable from {connection}.`region-eu`.INFORMATION_SCHEMA.COLUMNS where table_schema = '{database}'"
+        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection}.`region-eu`.INFORMATION_SCHEMA.COLUMNS where table_schema = '{database}' order by 2, 5"
 
     client.get_data(query).sort_values(by=["table_name", "ordinal_position"])
     tables = []
     for table in client.data["table_name"].unique():
-        cols = []
-        for r in client.data[client.data.table_name.eq(table)].index.to_list():
-            col = {
+        cols = [
+            {
+                "dataset": client.data.iloc[r]["table_schema"],
+                "table_name": client.data.iloc[r]["table_name"],
                 "column_name": client.data.iloc[r]["column_name"],
                 "data_type": client.data.iloc[r]["data_type"],
                 "ordinal_position": client.data.iloc[r]["ordinal_position"],
                 "is_nullable": True
-                if client.data.iloc[r]["is_nullable"] == "Yes"
+                if client.data.iloc[r]["is_nullable"] == "YES"
                 else False,
+                "type": "column",
+                "connection_id": connection_id,
             }
-            cols.append(col)
+            for r in client.data[client.data.table_name.eq(table)].index.to_list()
+        ]
 
-        tables.append({table: cols})
+        tables.append(
+            {
+                "name": table,
+                "dataset": client.data.iloc[0]["table_schema"],
+                "content": cols,
+                "type": "table",
+                "connection_id": connection_id,
+            }
+        )
 
-    outp = {database: tables}
+    outp = {
+        "result": tables,
+    }
 
     return outp

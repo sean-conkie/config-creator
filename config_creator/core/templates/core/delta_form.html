@@ -1,0 +1,86 @@
+{% extends 'core_base.html' %}
+{% block title %}Change Delta Condition{% endblock %}
+{% block core-content %}
+{% load static %}
+<div class="container">
+  <div class="py-5 text-center">
+    <h2>Delta Condition</h2>
+    <p class="lead">Add or change your Delta condition.</p>
+  </div>
+  <form id="id_form" method="post" action="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}">
+    <input hidden {% if delta_id != None %} value="{{ delta_id }}" {% endif %} name="id" id="id_id">
+    {% csrf_token %}
+    <div class="row g-5">
+      <div class="col-md-8 col-lg-9">
+        <div class="row g-3">
+          <div class="lead">Condition Details</div>
+          <div class="col-6">
+              <div class="form-floating">
+                <input type="text" class="form-control" name="lower_bound" required maxlength="255" id="{{ form.lower_bound.id_for_label }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.lower_bound.help_text }}" >
+                {{ form.lower_bound.label_tag }}
+              </div>
+          </div>
+          <div class="col-6">
+              <div class="form-floating">
+                <input type="number" class="form-control" name="upper_bound" step="86400" id="{{ form.upper_bound.id_for_label }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.upper_bound.help_text }}" >
+                {{ form.upper_bound.label_tag }}
+              </div>
+          </div>
+          <div class="col-6">
+            <div class="form-floating">
+              <select class="form-select" name="field" id="{{ form.field.id_for_label }}">
+                <option selected>---------</option>
+                {% for field in fields %}
+                  <option value="{{ field.id }}">{{ field }}</option>
+                {% endfor %}
+              </select>
+              {{ form.field.label_tag }}
+            </div>
+          </div>
+        </div>
+        <div class="row g-3 py-3">
+          <div class="lead">Or create new column for condition</div>
+          <div class="row g-3">
+            <div class="col-6">
+              <div class="input-group mb-3">
+                <button class="input-group-text" type="button" id="id_source_column_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                <div class="form-floating flex-grow-1">
+                  <input type="text" class="form-control" name="source_column" maxlength="255" id="id_field_source_column" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" >
+                  <label for="id_field_source_column">Source Column:</label>
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="input-group mb-3">
+                <button class="input-group-text" type="button" id="id_source_name_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                <div class="form-floating flex-grow-1">
+                  <input type="text" class="form-control" name="source_name" maxlength="255" id="id_field_source_name" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" >
+                  <label for="id_field_source_name">Source Table:</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="lead">Transformation</div>
+            <div class="col-sm-12">
+              <div class="form-floating">
+                <textarea  class="form-control" name="transformation" maxlength="255" id="id_field_transformation" ></textarea>
+                {{ form.transformation.label_tag }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-3">
+        <div class="row g-3">
+          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+        </div>
+        <div class="row g-3 py-3">
+          <a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+        </div>
+      </div>
+    </div>  
+  </form>
+</div>
+{% include 'core/connection_selector.html' %}
+{% endblock %}

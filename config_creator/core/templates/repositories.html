@@ -19,13 +19,13 @@
                 {% for repo in repositories %}
                   <tr>
                     <td>{{ repo.name }}</td>
-                    <td><a href="{% url 'repository-pull' pk=repo.id %}" class="btn btn-lg btn-secondary">Pull</a></td>
+                    <td><a href="{% url 'repository-pull' pk=repo.id %}" class="btn  btn-secondary" aria-current="page" title="Pull from repository" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fa-solid fa-code-pull-request"></i></a></td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-          <button class="btn btn-primary btn-lg" type="button" data-bs-toggle="modal" data-bs-target="#changeForm">Pull from new repository</button>
+          <button class="btn btn-primary " type="button" data-bs-toggle="modal" data-bs-target="#changeForm"><i class="fa-solid fa-code-pull-request"></i> Pull from new repository</button>
         </div>
 
         <div class="modal" id="changeForm" tabindex="-1">
@@ -58,8 +58,8 @@
                   </div>
                 </div> 
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                  <button type="submit" class="btn btn-primary">Pull</button>
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancel</button>
+                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-code-pull-request"></i> Pull</button>
                 </div>
               </form>
             </div>

@@ -1,8 +1,7 @@
-from asyncio import Task
-from tkinter import CASCADE
-from turtle import position
 from django.db import models
 from django.conf import settings
+from django.db.models import Q
+from django.urls import reverse
 
 User = settings.AUTH_USER_MODEL
 
@@ -172,7 +171,7 @@ class JobToTaskType(models.Model):
 
 
 class Job(models.Model):
-    name = models.CharField(
+    name = models.SlugField(
         verbose_name="Job Name",
         max_length=255,
         blank=False,
@@ -194,9 +193,12 @@ class Job(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        return reverse("job-change", kwargs={"pk": self.id})
+
 
 class JobTask(models.Model):
-    name = models.CharField(
+    name = models.SlugField(
         verbose_name="Task Name",
         max_length=255,
         blank=False,
@@ -210,6 +212,7 @@ class JobTask(models.Model):
         null=False,
         default=DEFAULT_TASK_ID,
         verbose_name="Task Type",
+        help_text="Select task type.",
     )
     table_type = models.ForeignKey(
         TableType,
@@ -218,6 +221,7 @@ class JobTask(models.Model):
         null=False,
         default=DEFAULT_TABLE_ID,
         verbose_name="Target Table Type",
+        help_text="Select desired SCD table type.",
     )
     write_disposition = models.ForeignKey(
         WriteDisposition,
@@ -226,32 +230,41 @@ class JobTask(models.Model):
         null=False,
         default=DEFAULT_WRITE_DISPOSITION_ID,
         verbose_name="Write Disposition",
+        help_text="Select type of update to be performed on target table.",
     )
     destination_table = models.CharField(
         verbose_name="Destination Table",
         max_length=255,
         blank=False,
         null=False,
+        help_text="Enter the destination table name.",
     )
     destination_dataset = models.CharField(
         verbose_name="Destination Dataset",
         max_length=255,
         blank=True,
         null=True,
+        help_text="Enter the dataset containing the target table.",
     )
     driving_table = models.CharField(
         verbose_name="Driving Table",
         max_length=255,
         blank=True,
         null=True,
+        help_text="Enter the driving table and dataset in format: <driving dataset name>.<driving table name>",
     )
     staging_dataset = models.CharField(
         verbose_name="Staging Dataset",
         max_length=255,
         blank=True,
         null=True,
+        help_text="Enter a staging dataset to be used for any pre-processing, can be left blank to default to Job value.",
     )
-    properties = models.JSONField(blank=True, null=True)
+    properties = models.JSONField(
+        blank=True,
+        null=True,
+        help_text="Enter additional task properties in JSON format.",
+    )
     description = models.TextField(blank=True, null=True)
     created = models.DateTimeField(auto_now_add=True)
     createdby = models.ForeignKey(
@@ -294,7 +307,7 @@ class Field(models.Model):
         max_length=255,
         blank=True,
         null=True,
-        help_text="",
+        help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
     )
     transformation = models.CharField(
         verbose_name="Column Transformation",
@@ -304,12 +317,26 @@ class Field(models.Model):
         help_text="",
     )
     is_source_to_target = models.BooleanField(default=True)
-    is_primary_key = models.BooleanField(verbose_name="Primary Key Field")
-    is_history_key = models.BooleanField(verbose_name="History Key Field")
+    is_primary_key = models.BooleanField(
+        verbose_name="Primary Key Field",
+        default=False,
+        help_text="Indictes the field is part of the table key.",
+    )
+    is_history_key = models.BooleanField(
+        verbose_name="History Key Field", default=False
+    )
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        return self.name
+        outp = []
+        if self.source_name:
+            outp.append(self.source_name)
+        if self.source_column:
+            outp.append(self.source_column)
+        else:
+            outp.append(self.name)
+
+        return ".".join(outp)
 
 
 class Dependency(models.Model):
@@ -368,9 +395,16 @@ class Delta(models.Model):
         max_length=255,
         blank=False,
         null=False,
+        help_text="""Input a function that returns a date value or use preset;
+$YESTERDAY = today's date minus one day
+    $TODAY = today's date
+ $THISWEEK = start date of current week, start date = MONDAY
+$THISMONTH = date of first day of current month
+""",
     )
     upper_bound = models.IntegerField(
-        null=True, help_text="Input seconds to add to lower_bound"
+        null=True,
+        help_text="Input seconds to add to lower_bound, 86400 represents one day",
     )
 
 
@@ -416,7 +450,7 @@ class Condition(models.Model):
     where = models.ForeignKey(JobTask, on_delete=models.SET_NULL, null=True, blank=True)
 
     def __str__(self):
-        return f"{self.join.task.name if self.join else (self.where.task.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
+        return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
 
 
 class ConditionField(models.Model):
