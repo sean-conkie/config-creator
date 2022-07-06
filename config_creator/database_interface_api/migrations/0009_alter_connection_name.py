@@ -6,13 +6,16 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('database_interface_api', '0008_connection_schema_alter_connection_credentials'),
+        (
+            "database_interface_api",
+            "0008_connection_schema_alter_connection_credentials",
+        ),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='connection',
-            name='name',
-            field=models.CharField(max_length=250, verbose_name='Connection Name'),
+            model_name="connection",
+            name="name",
+            field=models.CharField(max_length=250, verbose_name="Connection Name"),
         ),
     ]

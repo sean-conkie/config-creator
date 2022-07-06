@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('database_interface_api', '0009_alter_connection_name'),
+        ("database_interface_api", "0009_alter_connection_name"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='connection',
-            name='port',
-            field=models.IntegerField(blank=True, default=0, null=True, verbose_name='Port'),
+            model_name="connection",
+            name="port",
+            field=models.IntegerField(
+                blank=True, default=0, null=True, verbose_name="Port"
+            ),
         ),
     ]

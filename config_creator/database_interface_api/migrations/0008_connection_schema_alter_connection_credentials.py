@@ -6,18 +6,28 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('database_interface_api', '0007_connection_credentials_connection_host_and_more'),
+        (
+            "database_interface_api",
+            "0007_connection_credentials_connection_host_and_more",
+        ),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='connection',
-            name='schema',
-            field=models.FileField(blank=True, null=True, upload_to='schema/', verbose_name='Schema File'),
+            model_name="connection",
+            name="schema",
+            field=models.FileField(
+                blank=True, null=True, upload_to="schema/", verbose_name="Schema File"
+            ),
         ),
         migrations.AlterField(
-            model_name='connection',
-            name='credentials',
-            field=models.FileField(blank=True, null=True, upload_to='credential/', verbose_name='Credentials File'),
+            model_name="connection",
+            name="credentials",
+            field=models.FileField(
+                blank=True,
+                null=True,
+                upload_to="credential/",
+                verbose_name="Credentials File",
+            ),
         ),
     ]

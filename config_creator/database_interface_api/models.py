@@ -62,11 +62,7 @@ class Connection(models.Model):
         null=True,
     )
     port = models.IntegerField(
-        blank=True,
-        unique=False,
-        verbose_name="Port",
-        null=True,
-        default=0
+        blank=True, unique=False, verbose_name="Port", null=True, default=0
     )
 
     schema = models.FileField(
