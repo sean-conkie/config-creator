@@ -19,43 +19,27 @@
     {% endif %}
   </div>
 </div>
-<form action="{% url 'connection-change' %}" method="POST">
+<form action="{% url 'connection-change' %}"  enctype="multipart/form-data" method="POST">
   {% csrf_token %}
   <div class="row g-5">
     <div class="col-md-8 col-lg-9">
       <div class="row g-3">
         <input hidden value="{{form.id.value}}" name="id" id="id_id">
-        <div class="col-12">
+        <div class="col-6">
           <div class="form-floating">
-            <input class="form-control" type="text" name="name" maxlength="250" required="" id="id_name" 
-            {% if form.name.value == None %} value="" {% else %} value="{{form.name.value}} {% endif %}">
-            <label for="id_name">Connection Name</label>
+            {{ form.name }}
+            {{ form.name.label_tag }}
           </div>
         </div>
-                
-        <div class="form-floating">
-          <select class="form-select" name="connectiontype" required="" id="id_connectiontype">
-            <option value="">---------</option>
-            {% for type in types%}
-              <option value="{{type.id}}"
-              {% if form.connectiontype.value == type.id %} selected="" {% endif %}>{{type.description}}</option>
-            {% endfor %}
-          </select>
-          <label for="id_connectiontype">Connection Type</label>
-        </div>  
-
-        <div class="col-12">
+        <div class="col-6">
           <div class="form-floating">
-            <input class="form-control" type="text" name="connectionstring" maxlength="250" id="id_connectionstring" 
-            {% if form.connectionstring.value == None %} value="" {% else %} value="{{form.connectionstring.value}} {% endif %}">
-            <label for="id_connectionstring">Connection String</label>
-          </div>
+            {{ form.connectiontype }}
+            {{ form.connectiontype.label_tag }}
+          </div>  
         </div>
-
       </div>
     </div>
     <div class="col-md-4 col-lg-3">
-      
       <div class="col-12">
         <div class="row g-3">
           <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
@@ -66,6 +50,144 @@
       </div>
     </div>
   </div>  
+  <div class="row py-3 visually-hidden" id="bigquery">
+    <p id="id_connectionstring_head" class="lead">Enter Project Name</p>
+    <div class="col-12">
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="form-floating">
+            {{ form.connectionstring }}
+            {{ form.connectionstring.label_tag }}
+          </div>
+        </div>
+        <div class="col-6">
+          {{ form.credentials.label_tag }}
+          {{ form.credentials }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row py-3 visually-hidden" id="csv">
+    <p class="lead">Upload schema file</p>
+    <div class="col-12">
+      <div class="row g-3">
+        <div class="col-6">
+          {{ form.schema }}
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="row py-3 visually-hidden" id="database">
+    <p class="lead">Enter connection details</p>
+    <div class="col-12">
+      <div class="row g-3">
+        <div class="col-6">
+          <div class="form-floating">
+            {{ form.user_name }}
+            {{ form.user_name.label_tag }}
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-floating">
+            <input id="id_password" type="password" name="password">
+            <label for="id_password">Password:</label>
+          </div>
+        </div>
+      </div>
+      <div class="row g-3 py-3">
+        <div class="col-6">
+          <div class="form-floating">
+            {{ form.host }}
+            {{ form.host.label_tag }}
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-floating">
+            {{ form.port }}
+            {{ form.port.label_tag }}
+          </div>
+        </div>
+      </div>
+      <div class="row g-3 visually-hidden" id="id_sid">
+        <div class="col-6">
+          <div class="form-floating">
+            {{ form.sid }}
+            {{ form.sid.label_tag }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </form>
-    
+<script>
+  let inputs = document.getElementsByTagName("input");
+  for (var i = 0; i < inputs.length; i++) {
+    inputs[i].classList.add("form-control");
+  }
+  let labels = document.getElementsByTagName("label");
+  for (var i = 0; i < labels.length; i++) {
+    labels[i].classList.add("form-label");
+  }
+  
+  let selects = document.getElementsByTagName("select");
+  for (var i = 0; i < selects.length; i++) {
+    selects[i].classList.add("form-select");
+  }
+
+  function updateView(element) {
+      let childNodes = element.childNodes;
+      let selected;
+      for (var i = 0; i < childNodes.length; i++) {
+        let item = childNodes[i];
+        if (item.nodeName == "OPTION") {
+          if (item.selected) {
+            selected = item;
+          }
+        }
+      }
+
+      let active = document.getElementsByClassName("active");
+      for (var i = 0; i < active.length; i++) {
+        active[i].classList.add("visually-hidden")
+        active[i].classList.remove("active")
+      }
+
+      let div = document.getElementById(string_to_slug(selected.textContent));
+      
+      if (!div && selected.textContent != "---------") {
+        div = document.getElementById("database");
+      }
+      div.classList.add("active");
+      div.classList.remove("visually-hidden");
+
+      if (selected.textContent == "Oracle") {
+        document.getElementById("id_sid").classList.add("active");
+        document.getElementById("id_sid").classList.remove("visually-hidden");
+      }
+
+
+    }
+
+  document.getElementById("{{ form.connectiontype.id_for_label }}").addEventListener("change", function(){updateView(this)})
+  updateView(document.getElementById("{{ form.connectiontype.id_for_label }}"))
+
+  function string_to_slug (str) {
+    str = str.replace(/^\s+|\s+$/g, ''); // trim
+    str = str.toLowerCase();
+  
+    // remove accents, swap ñ for n, etc
+    var from = "àáäâèéëêìíïîòóöôùúüûñç·/_,:;";
+    var to   = "aaaaeeeeiiiioooouuuunc------";
+    for (var i=0, l=from.length ; i<l ; i++) {
+        str = str.replace(new RegExp(from.charAt(i), 'g'), to.charAt(i));
+    }
+
+    str = str.replace(/[^a-z0-9 -]/g, '') // remove invalid chars
+        .replace(/\s+/g, '-') // collapse whitespace and replace by -
+        .replace(/-+/g, '-'); // collapse dashes
+
+    return str;
+  } 
+</script>
+
 {% endblock %}

@@ -1,6 +1,7 @@
 from .models import GitRepository
 from database_interface_api.models import Connection
 from django import forms
+from django.contrib.admin.widgets import AdminFileWidget
 from django.contrib.auth import get_user_model
 from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
@@ -116,7 +117,18 @@ class ConnectionForm(forms.ModelForm):
             "name",
             "connectionstring",
             "connectiontype",
+            "credentials",
+            "user_name",
+            "schema",
+            "host",
+            "port",
+            "sid",
         ]
+
+        widgets = {
+            "credentials": forms.ClearableFileInput(),
+            "schema": AdminFileWidget(),
+        }
 
 
 class GitForm(forms.ModelForm):

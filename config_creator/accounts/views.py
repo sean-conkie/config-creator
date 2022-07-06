@@ -1,6 +1,7 @@
 from .forms import ConnectionForm, GitForm, UserAdminChangeForm
 from .models import GitRepository, User
 from database_interface_api.models import Connection, ConnectionType
+from django.core.files import File
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic.edit import DeleteView, FormView
@@ -72,18 +73,20 @@ def editconnectionview(request, pk=None):
       The view is returning a redirect to the url specified in the redirect_url variable.
     """
     if request.method == "POST":
-        if request.POST["id"]:
-            connection = Connection.objects.get(id=request.POST["id"])
-        else:
-            connection = Connection()
+        form = ConnectionForm(request.POST, request.FILES)
+        form.instance.user = request.user
+        if form.is_valid():
+            if "schema" in request.FILES.keys():
+                form.instance.schema.save(
+                    request.FILES.get("schema").name, File(request.FILES.get("schema"))
+                )
+            if "credentials" in request.FILES.keys():
+                form.instance.credentials.save(
+                    request.FILES.get("credentials").name,
+                    File(request.FILES.get("credentials")),
+                )
+            form.save()
 
-        connection.name = request.POST["name"]
-        connection.connectionstring = request.POST["connectionstring"]
-        connection.connectiontype = ConnectionType.objects.get(
-            id=request.POST["connectiontype"]
-        )
-        connection.user = request.user
-        connection.save()
         return redirect(reverse_lazy("connections"))
     else:
         redirect_url = (

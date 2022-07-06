@@ -1,4 +1,3 @@
-from requests import ConnectTimeout
 from .dbhelper import get_database_schema, get_schema
 from .models import Connection, ConnectionType
 from django import views

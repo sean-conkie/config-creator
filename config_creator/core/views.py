@@ -1,10 +1,8 @@
 import git
-import hashlib
 import json
 import mimetypes
 import os
 import re
-import tempfile
 
 from .forms import (
     ConditionForm,
@@ -18,13 +16,12 @@ from .forms import (
 )
 from .models import *
 from accounts.models import GitRepository
-from database_interface_api.models import Connection, ConnectionType
 from django.contrib import messages
 from django.core.files.uploadhandler import TemporaryFileUploadHandler
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
-from django.views.generic.edit import CreateView, DeleteView, UpdateView
+from lib.file_helper import file_upload
 
 # region core views
 def index(request):
@@ -138,6 +135,29 @@ def pullnewrepository(request):
 
 # region local file views
 def fileselect(request):
+    """
+    If the request is a POST request, then the form is valid, and the file is uploaded, then redirect to
+    the success URL.
+
+    If the request is a GET request, then the form is not valid, and the form is rendered.
+
+    Args:
+      request: The current request object.
+
+    Returns:
+      The form is being returned.
+    """
+    if request.method == "POST":
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            id = handle_uploaded_file(request)
+            return HttpResponseRedirect("/")
+    else:
+        form = UploadFileForm()
+    return render(request, "fileselect.html", {"form": form})
+
+
+def schema_fileselect(request):
     """
     If the request is a POST request, then the form is valid, and the file is uploaded, then redirect to
     the success URL.
@@ -929,25 +949,7 @@ def get_where(task_id: str) -> list[dict]:
 
 def handle_uploaded_file(request):
 
-    upload = TemporaryFileUploadHandler(request)
-    upload.new_file(
-        request.FILES["file"].name,
-        request.FILES["file"].name,
-        "application/octet-stream",
-        -1,
-    )
-    hash = hashlib.sha256()
-
-    chunk = True
-    size = 0
-    while chunk:
-        chunk = request.FILES["file"].read(upload.chunk_size)
-        upload.receive_data_chunk(chunk, size)
-        hash.update(chunk)
-        size += len(chunk)
-    upload.file_complete(size)
-
-    filecontent = upload.file.read()
+    filecontent = file_upload(request).file.read()
     jscontent = json.loads(filecontent)
 
     job = Job(
@@ -1282,7 +1284,12 @@ def get_filecontent(pk: int) -> dict:
         params["staging_dataset"] = task.staging_dataset
         params["target_type"] = task.table_type.code
 
-        dependencies = [dependant.name for dependant in Dependency.objects.select_related().filter(dependant_id=task.id)]
+        dependencies = [
+            dependant.name
+            for dependant in Dependency.objects.select_related().filter(
+                dependant_id=task.id
+            )
+        ]
 
         task_list.append(t)
 

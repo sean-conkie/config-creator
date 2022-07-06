@@ -1,4 +1,4 @@
-_all_ = ["isnullorwhitespace"]
+_all_ = ["isnullorwhitespace", "isnullorempty", "ifnull"]
 
 
 def isnullorwhitespace(string: str) -> bool:
