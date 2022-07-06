@@ -12,35 +12,35 @@ class SchemaView(views.APIView):
     def get(
         self, request: request, connection_id: int = None, database: str = None
     ) -> response.Response:
-        if connection_id:
-            c, t = get_connection(request, connection_id)
 
         if database:
-            outp = get_database_schema(c.id, c.connectionstring, t, database)
+            outp = get_database_schema(get_connection(request, connection_id), database)
         elif connection_id:
-            outp = get_schema(c.id, c.connectionstring, t)
+            outp = get_schema(get_connection(request, connection_id))
         else:
             outp = get_connections(request)
 
         return response.Response(data=outp, status=status.HTTP_200_OK)
 
 
-def get_connection(request, connection_id: int) -> tuple:
-    """
-    > This function returns a tuple of the connection object and the connection type object for the
-    given connection id
-
-    Args:
-      request: The request object that was sent to the view.
-      connection_id (int): The id of the connection you want to get.
-
-    Returns:
-      A tuple of the connection and the connection type.
-    """
+def get_connection(request, connection_id: int) -> dict:
 
     connection = Connection.objects.get(id=connection_id, user=request.user)
     connection_type = eConnectionType(connection.connectiontype.id)
-    return (connection, connection_type)
+
+    return {
+        "id": connection.id,
+        "name": connection.name,
+        "credentials": connection.credentials,
+        "connection_string": connection.connectionstring,
+        "user_name": connection.user_name,
+        "host": connection.host,
+        "sid": connection.sid,
+        "port": connection.port,
+        "schema": connection.schema,
+        "secret_key": connection.secret_key,
+        "connection_type": connection_type,
+    }
 
 
 def get_connections(request: request) -> dict:

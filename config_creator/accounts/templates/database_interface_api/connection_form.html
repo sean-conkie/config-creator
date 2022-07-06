@@ -2,6 +2,22 @@
 {% block title %}Connection{% endblock %}
 
 {% block profile %}    
+<style>
+  .clearable-file-input {
+    display: inline;
+    min-height: 1.5rem;
+    padding-left: 1.5em;
+    margin-bottom: 0.125rem;
+  }
+
+  .clearable-file-input[type=checkbox] {
+    border-radius: 0.25em;
+  }
+
+  .clearable-file-input .form-check-input {
+    margin-left: -1.5em;
+  }
+</style>
 <div class="py-5 text-center">
   <h2>User Connections</h2>
   {% if form.id.value == "" %}
@@ -19,7 +35,8 @@
     {% endif %}
   </div>
 </div>
-<form action="{% url 'connection-change' %}"  enctype="multipart/form-data" method="POST">
+<form action="{% url 'connection-update' pk=pk %}"  enctype="multipart/form-data" method="POST">
+  <input hidden {% if delta_id != None %} value="{{ delta_id }}" {% endif %} name="id" id="id_id">
   {% csrf_token %}
   <div class="row g-5">
     <div class="col-md-8 col-lg-9">
@@ -51,7 +68,7 @@
     </div>
   </div>  
   <div class="row py-3 visually-hidden" id="bigquery">
-    <p id="id_connectionstring_head" class="lead">Enter Project Name</p>
+    <p class="lead">Enter Project Name</p>
     <div class="col-12">
       <div class="row g-3">
         <div class="col-6">
@@ -75,6 +92,18 @@
           {{ form.schema }}
         </div>
       </div>
+      <p>File should contain the following information;
+        <ul>
+          <li>table_schema     - The name of the source database</li>
+          <li>table_name       - The name of the source table</li>
+          <li>column_name      - The name of the source column</li>
+          <li>data_type        - The data type of the source column</li>
+          <li>ordinal_position - A number representing the columns position in the source table</li>
+          <li>is_nullable      - YES or NO representing if the source column is nullable</li>
+        </ul>
+      </p>
+      <p>It is recommended to limit the length of files to 1000 rows.</p>
+      <p>No header rows are required but columns should be in the order above.</p>
     </div>
   </div>
   <div class="row py-3 visually-hidden" id="database">
@@ -122,8 +151,14 @@
 <script>
   let inputs = document.getElementsByTagName("input");
   for (var i = 0; i < inputs.length; i++) {
-    inputs[i].classList.add("form-control");
+    if (inputs[i].type == "checkbox") {
+      inputs[i].classList.add("form-check-input");
+    }
+    else {
+      inputs[i].classList.add("form-control");
+    }
   }
+
   let labels = document.getElementsByTagName("label");
   for (var i = 0; i < labels.length; i++) {
     labels[i].classList.add("form-label");
