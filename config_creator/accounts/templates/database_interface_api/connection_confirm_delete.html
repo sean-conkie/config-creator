@@ -13,14 +13,14 @@
               <h2>Are you sure?</h2>
               <p class="lead">Are you sure you want to delete the connetion?</p>
             </div>
-            <input type="hidden" name="action" value="cancel" />
+            <input name="action" type="hidden" value="cancel" />
   
             <div class="container">
               <div class="row g-3">
-                <button class="w-100 btn  btn-primary" type="submit">Yes, I'm sure</button>
+                <button class="w-100 btn btn-primary" type="submit">Yes, I'm sure</button>
               </div>
               <div class="row g-3 py-3">
-                <a href="{% url 'connections' %}" class="w-100 btn  btn-secondary">No, take me back</a>
+                <a class="w-100 btn btn-secondary" href="{% url 'connections' %}" title="">No, take me back</a>
               </div>
             </div>
   

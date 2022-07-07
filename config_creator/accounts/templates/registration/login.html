@@ -57,21 +57,21 @@
         <h1 class="h3 mb-3 fw-normal text-white">Please sign in</h1>
 
         <div class="form-floating">
-          <input type="email" class="form-control" id="id_username" placeholder="name@example.com" autofocus autocapitalize="none" name="username">
+          <input class="form-control" id="id_username" name="username" type="email" placeholder="name@example.com" autofocus autocapitalize="none"/>
           <label for="id_username">Email</label>
         </div>
         <div class="form-floating">
-          <input type="password" class="form-control" id="id_password" placeholder="Password" name="password">
+          <input class="form-control" id="id_password" name="password" type="password" placeholder="Password"/>
           <label for="id_password">Password</label>
         </div>
 
         <div class="checkbox mb-3">
           <label class="text-light">
-            <input type="checkbox" value="remember-me"> Remember me
+            <input type="checkbox" value="remember-me"/> Remember me
           </label>
         </div>
-        <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-door-open"></i> Sign in</button>
-        <input type="hidden" name="next" value="{{ next }}">
+        <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-door-open"></i> Sign in</button>
+        <input name="next" type="hidden" value="{{ next }}"/>
       </form>
     </div>
   </div>

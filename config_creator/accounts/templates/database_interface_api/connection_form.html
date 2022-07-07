@@ -36,12 +36,11 @@
   </div>
 </div>
 <form action="{% url 'connection-update' pk=pk %}"  enctype="multipart/form-data" method="POST">
-  <input hidden {% if delta_id != None %} value="{{ delta_id }}" {% endif %} name="id" id="id_id">
+  <input id="id_id" name="id" {% if delta_id != None %} value="{{ delta_id }}" {% endif %} hidden/>
   {% csrf_token %}
   <div class="row g-5">
     <div class="col-md-8 col-lg-9">
       <div class="row g-3">
-        <input hidden value="{{form.id.value}}" name="id" id="id_id">
         <div class="col-6">
           <div class="form-floating">
             {{ form.name }}
@@ -59,10 +58,10 @@
     <div class="col-md-4 col-lg-3">
       <div class="col-12">
         <div class="row g-3">
-          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+          <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'connections' %}" class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a class="w-100 btn btn-secondary" href="{% url 'connections' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
     </div>
@@ -118,7 +117,7 @@
         </div>
         <div class="col-6">
           <div class="form-floating">
-            <input id="id_password" type="password" name="password">
+            <input id="id_password" name="password" type="password" />
             <label for="id_password">Password:</label>
           </div>
         </div>
