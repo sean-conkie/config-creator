@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     "database_interface_api",
     "rest_framework",
     "core",
+    "core_api",
     "svg",
 ]
 

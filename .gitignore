@@ -4,7 +4,7 @@ __pycache__/
 *data/*
 /.vscode/
 logs/*
-media/*
+*/media/*
 
 # files
 *.zip

@@ -11,18 +11,13 @@ urlpatterns = [
         name="connections",
     ),
     path(
-        "connection/change/",
-        login_required(editconnectionview),
-        name="connection-change",
-    ),
-    path(
         "connection/",
-        login_required(connectionview),
+        login_required(editconnectionview),
         name="connection-add",
     ),
     path(
         "connection/<int:pk>/",
-        login_required(connectionview),
+        login_required(editconnectionview),
         name="connection-update",
     ),
     path(

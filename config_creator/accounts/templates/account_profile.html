@@ -28,44 +28,41 @@
     
                 <div class="col-12">
                   <div class="form-floating">
-                    <input type="email" class="form-control" name="email" maxlength="255" required="" id="id_email" value="{{form.email.value}}">
-                    <label for="id_email">Email</label>
+                    {{form.email}}
+                    {{form.email.label_tag}}
                   </div>
                 </div>
                 
                 <div class="col-sm-6">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="id_forename" placeholder="name" autofocus autocapitalize="none" name="forename" value="{{form.forename.value}}">
-                    <label for="id_forename">First Name</label>
+                    {{form.forename}}
+                    {{form.forename.label_tag}}
                   </div>
                 </div>
     
                 <div class="col-sm-6">
                   <div class="form-floating">
-                    <input type="text" class="form-control" id="id_surname" placeholder="name" autofocus autocapitalize="none" name="surname" value="{{form.surname.value}}">
-                    <label for="id_surname">Last Name</label>
+                    {{form.surname}}
+                    {{form.surname.label_tag}}
                   </div>
                 </div>
                 
                 <div class="col-sm-6">
                   <div class="form-floating">
-                    <input type="text" class="form-control" name="git_username" maxlength="255" required="" id="id_git_username" value="{{form.git_username.value}}">
-                    <label for="id_git_username">Git Username</label>
+                    {{form.git_username}}
+                    {{form.git_username.label_tag}}
                   </div>
                 </div>
 
               </div>
             </div>
             <div class="col-md-4 col-lg-3">
-              <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+              <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
             </div>
           </div>  
           
         </form>
         {% endblock %}
       </div>
-    </div>
   </main>
-  <div class="container-fluid">
-  {% include "./footer.html" %}
 {% endblock %}

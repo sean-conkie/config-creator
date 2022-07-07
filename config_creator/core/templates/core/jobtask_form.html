@@ -46,10 +46,10 @@
       </div>
       <div class="col-md-4 col-lg-3">
         <div class="row g-3">
-          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+          <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a {% if task_id != None %}  href="{% url 'job-task' job_id=job.id pk=task_id %}" {% else %} href="{% url 'job-tasks' job_id=job.id %}" {% endif %} class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a {% if task_id != None %}  href="{% url 'job-task' job_id=job.id pk=task_id %}" {% else %} href="{% url 'job-tasks' job_id=job.id %}" {% endif %} class="w-100 btn btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
       <div class="row g-3 py-1">

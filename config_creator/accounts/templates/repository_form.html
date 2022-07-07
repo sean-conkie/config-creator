@@ -15,20 +15,18 @@
   <div class="row g-5">
     <div class="col-md-8 col-lg-9">
       <div class="row g-3">
-        <input hidden value="{{form.id.value}}" name="id" id="id_id">
+        <input  id="id_id" name="id" value="{{form.id.value}}" hidden />
         <div class="col-12">
           <div class="form-floating">
-            <input class="form-control" type="text" name="name" maxlength="250" required="" id="id_name" 
-            {% if form.name.value == None %} value="" {% else %} value="{{form.name.value}} {% endif %}">
-            <label for="id_name">Repository Name</label>
+            {{form.name}}
+            {{form.name.label_tag}}
           </div>
         </div>
 
         <div class="col-12">
           <div class="form-floating">
-            <input class="form-control" type="text" name="url" maxlength="250" id="id_url" 
-            {% if form.url.value == None %} value="" {% else %} value="{{form.url.value}} {% endif %}">
-            <label for="id_url">Repository URL</label>
+            {{form.url}}
+            {{form.url.label_tag}}
           </div>
         </div>
 
@@ -38,10 +36,10 @@
       
       <div class="col-12">
         <div class="row g-3">
-          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+          <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'repositories' %}" class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a class="w-100 btn btn-secondary" href="{% url 'repositories' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
     </div>

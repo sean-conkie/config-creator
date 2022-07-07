@@ -1,6 +1,7 @@
 from .forms import ConnectionForm, GitForm, UserAdminChangeForm
 from .models import GitRepository, User
-from database_interface_api.models import Connection, ConnectionType
+from database_interface_api.models import Connection
+from django.core.files import File
 from django.shortcuts import redirect, render
 from django.urls import reverse_lazy
 from django.views.generic.edit import DeleteView, FormView
@@ -72,56 +73,35 @@ def editconnectionview(request, pk=None):
       The view is returning a redirect to the url specified in the redirect_url variable.
     """
     if request.method == "POST":
-        if request.POST["id"]:
-            connection = Connection.objects.get(id=request.POST["id"])
-        else:
-            connection = Connection()
+        form = ConnectionForm(request.POST, request.FILES)
+        form.instance.user = request.user
+        form.instance.id = pk
+        if form.is_valid():
+            if "schema" in request.FILES.keys():
+                form.instance.schema.save(
+                    request.FILES.get("schema").name, File(request.FILES.get("schema"))
+                )
+            if "credentials" in request.FILES.keys():
+                form.instance.credentials.save(
+                    request.FILES.get("credentials").name,
+                    File(request.FILES.get("credentials")),
+                )
+            form.save()
 
-        connection.name = request.POST["name"]
-        connection.connectionstring = request.POST["connectionstring"]
-        connection.connectiontype = ConnectionType.objects.get(
-            id=request.POST["connectiontype"]
-        )
-        connection.user = request.user
-        connection.save()
         return redirect(reverse_lazy("connections"))
     else:
-        redirect_url = (
-            reverse_lazy("connection-update", kwargs={"pk": pk})
-            if pk
-            else reverse_lazy("connections-add")
+
+        if pk:
+            connection = Connection.objects.select_related().get(id=pk)
+            form = ConnectionForm(instance=connection)
+        else:
+            form = ConnectionForm()
+
+        return render(
+            request,
+            "database_interface_api/connection_form.html",
+            {"form": form, "pk": pk},
         )
-        return redirect(redirect_url)
-
-
-def connectionview(request, pk=None):
-    """
-    It takes a request and a primary key (pk) as arguments, and if the pk is not None, it gets the
-    connection object with the given pk, and creates a form with that connection object as the instance.
-    If the pk is None, it creates a blank form. It then gets all the connection types, and renders the
-    connection form template with the form and types as context
-
-    Args:
-      request: The request object.
-      pk: The primary key of the connection to edit. If it's None, we're creating a new connection.
-
-    Returns:
-      A form to create a new connection.
-    """
-
-    if pk:
-        connection = Connection.objects.select_related().get(id=pk)
-        form = ConnectionForm(instance=connection)
-    else:
-        form = ConnectionForm()
-
-    types = ConnectionType.objects.all()
-
-    return render(
-        request,
-        "database_interface_api/connection_form.html",
-        {"form": form, "types": types},
-    )
 
 
 class ConnectionDeleteView(DeleteView):

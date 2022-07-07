@@ -26,8 +26,8 @@
                 <td>{{ dependency.predecessor.type }}</td>
                 <td>{{ dependency.predecessor.description }}</td>
                 <td>{{ dependency.predecessor.lastupdate }}</td>
-                <td class="btn-column"><a href="{% url 'job-task' job_id=job.id pk=task.predecessor.id dependency_id=dependency.id task_id=task_id %}" class="btn  btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-                <td class="btn-column"><a href="{% url 'job-task-dependency-delete' job_id=job.id task_id=task_id pk=dependency.id %}" class="btn  btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+                <td class="btn-column"><a href="{% url 'job-task' job_id=job.id pk=task.predecessor.id dependency_id=dependency.id task_id=task_id %}" class="btn btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+                <td class="btn-column"><a href="{% url 'job-task-dependency-delete' job_id=job.id task_id=task_id pk=dependency.id %}" class="btn btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
               </tr>
             {% endfor %}
           </tbody>

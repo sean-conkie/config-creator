@@ -1,98 +1,93 @@
 {% extends 'core_base.html' %}
 {% block title %}Change Column{% endblock %}
 {% block core-content %}
-{% load static %}
-<div class="container">
-  <div class="py-5 text-center">
-    <h2>Column</h2>
-    <p class="lead">Add or change your column.</p>
-  </div>
-  <form id="id_form" method="post" action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
-    {% csrf_token %}
-    <div class="row g-5">
-      <div class="col-md-8 col-lg-9">
-        <input hidden {% if field_id != None %} value="{{ field_id }}" {% endif %} name="id" id="id_id">
-        <input hidden value="return" name="action" id="id_action">
-        <div class="row g-3">
-          <div class="lead">Target Column</div>
-          <div class="col-6">
-            <div class="form-floating">
-              <input type="text" class="form-control" name="name" maxlength="255" required="" id="{{ form.name.id_for_label }}" 
-              {% if form.name.value != None %} value="{{ form.name.value }}" {% endif %}>
-              {{ form.name.label_tag }}
+  {% load static %}
+  <div class="container">
+    <div class="py-5 text-center">
+      <h2>Column</h2>
+      <p class="lead">Add or change your column.</p>
+    </div>
+    <form id="id_form" method="post" action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
+      {% csrf_token %}
+      <div class="row g-5">
+        <div class="col-md-8 col-lg-9">
+          {% if field_id != None %}
+            <input id="id_id" name="id" value="{{ field_id }}" hidden />
+          {% else %}
+            <input id="id_empty_id" name="id" hidden />
+          {% endif %}
+          <input id="id_action" name="action" value="return" hidden />
+          <div class="row g-3">
+            <div class="lead">Target Column</div>
+            <div class="col-6">
+              <div class="form-floating">
+                {{ form.name }}
+                {{ form.name.label_tag }}
+              </div>
             </div>
-          </div>
-          <div class="col-6">
-            <div class="form-check">
-              {{ form.is_primary_key }}
-              {{ form.is_primary_key.label_tag }}
-            </div>
-          </div>
-        </div>
-        <div class="row g-3 py-1">
-          <div class="lead">Source Column</div>
-          <div class="col-6">
-            <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_source_column_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
-              <div class="form-floating flex-grow-1">
-                <input type="text" class="form-control" name="source_column" maxlength="255" id="{{ form.source_column.id_for_label }}" 
-                {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.source_column.help_text }}" {% endif %}
-                {% if form.source_column.value != None %} value="{{ form.source_column.value }}" {% endif %}>
-                {{ form.source_column.label_tag }}
+            <div class="col-6">
+              <div class="form-check">
+                {{ form.is_primary_key }}
+                {{ form.is_primary_key.label_tag }}
               </div>
             </div>
           </div>
-          <div class="col-6">
-            <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_source_name_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
-              <div class="form-floating flex-grow-1">
-                <input type="text" class="form-control" name="source_name" maxlength="255" id="{{ form.source_name.id_for_label }}" 
-                {% if form.source_name.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.source_name.help_text }}" {% endif %}
-                {% if form.source_name.value != None %} value="{{ form.source_name.value }}" {% endif %}>
-                {{ form.source_name.label_tag }}
+          <div class="row g-3 py-1">
+            <div class="lead">Source Column</div>
+            <div class="col-6">
+              <div class="input-group mb-3">
+                <button class="input-group-text" id="id_source_column_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                <div class="form-floating flex-grow-1">
+                  {{ form.source_column }}
+                  {{ form.source_column.label_tag }}
+                </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="input-group mb-3">
+                <button class="input-group-text" id="id_source_name_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                <div class="form-floating flex-grow-1">
+                  {{ form.source_name }}
+                  {{ form.source_name.label_tag }}
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="row g-3 py-1">
+            <div class="lead">Transformation</div>
+            <div class="col-sm-12">
+              <div class="form-floating">
+                {{ form.transformation }}
+                {{ form.transformation.label_tag }}
               </div>
             </div>
           </div>
         </div>
-        <div class="row g-3 py-1">
-          <div class="lead">Transformation</div>
-          <div class="col-sm-12">
-            <div class="form-floating">
-              <textarea  class="form-control" name="transformation" maxlength="255" id="{{ form.transformation.id_for_label }}" 
-              {% if form.transformation.value != None and form.transformation.value != "null" %} value="{{ form.transformation.value }}" {% endif %}></textarea>
-              {{ form.transformation.label_tag }}
-            </div>
+        <div class="col-md-4 col-lg-3">
+          <div class="row g-3">
+            <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+          </div>
+          <div class="row g-3 py-3">
+            <button class="w-100 btn btn-info" id="id_save" type="button" onclick="saveAnother()"><i class="bi bi-check-lg"></i> Save and add another</button>
+          </div>
+          <div class="row g-3 py-3">
+            {% if field_id != None %} 
+              <a class="w-100 btn btn-secondary" href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field_id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+            {% else %}
+              <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+            {% endif %}
           </div>
         </div>
-      </div>
-      <div class="col-md-4 col-lg-3">
-        <div class="row g-3">
-          <button class="w-100 btn  btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
-        </div>
-        <div class="row g-3 py-3">
-          <button id="id_save" onclick="saveAnother()" class="w-100 btn  btn-info" type="button"><i class="bi bi-check-lg"></i> Save and add another</button>
-        </div>
-        <div class="row g-3 py-3">
-          <a {% if field_id != None %} href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field_id %}" {% else %} href="{% url 'job-task' job_id=job.id pk=task.id %}" {% endif %} class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
-        </div>
-      </div>
-    </div>  
-    
-  </form>
-  <script>
-    const labels = document.getElementsByTagName("label");
-    for (var i = 0; i < labels.lebth; i++) {
-      if (labels[i].htmlFor != '') {
-        labels[i].classList.add("input-check-label");
+      </div>  
+      
+    </form>
+    <script>
+      function saveAnother() {
+        document.getElementById("id_action").value = "";
+        document.getElementById("id_form").submit();
       }
-    }
+    </script>
+  </div>
 
-    function saveAnother() {
-      document.getElementById("id_action").value = "";
-      document.getElementById("id_form").submit();
-    }
-  </script>
-</div>
-
-{% include 'core/connection_selector.html' %}
+  {% include 'core/connection_selector.html' %}
 {% endblock %}

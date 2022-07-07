@@ -22,8 +22,8 @@
                   {% for d in delta %}
                     <tr>
                       <td class="lead">select records where {{ d.field }} is {% if d.upper_bound != None and d.upper_bound > 0 %}between{% else %}greater than or equal to{% endif %} {{ d.lower_bound }} {% if d.upper_bound != None and d.upper_bound > 0 %} and {{ d.lower_bound }} plus {{d.upper_bound}}{% endif %}</td>
-                      <td class="btn-column"><a href="{% url 'job-task-delta-update' job_id=job.id task_id=task.id pk=d.id %}" class="btn  btn-secondary" aria-current="page" title="Edit" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
-                      <td class="btn-column"><a href="{% url 'job-task-delta-delete' job_id=job.id task_id=task.id pk=d.id %}" class="btn  btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+                      <td class="btn-column"><a href="{% url 'job-task-delta-update' job_id=job.id task_id=task.id pk=d.id %}" class="btn btn-secondary" aria-current="page" title="Edit" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
+                      <td class="btn-column"><a href="{% url 'job-task-delta-delete' job_id=job.id task_id=task.id pk=d.id %}" class="btn btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
                     </tr>
                   {% endfor %}
                 </tbody>
