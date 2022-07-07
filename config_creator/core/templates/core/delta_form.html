@@ -8,7 +8,11 @@
     <p class="lead">Add or change your Delta condition.</p>
   </div>
   <form id="id_form" method="post" action="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}">
-    <input hidden {% if delta_id != None %} value="{{ delta_id }}" {% endif %} name="id" id="id_id">
+    {% if delta_id != None %}
+      <input id="id_id" name="id" value="{{ delta_id }}" hidden />
+    {% else %}
+      <input id="id_empty_id" name="id" hidden />
+    {% endif %}
     {% csrf_token %}
     <div class="row g-5">
       <div class="col-md-8 col-lg-9">
@@ -16,19 +20,19 @@
           <div class="lead">Condition Details</div>
           <div class="col-6">
               <div class="form-floating">
-                <input type="text" class="form-control" name="lower_bound" required maxlength="255" id="{{ form.lower_bound.id_for_label }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.lower_bound.help_text }}" >
-                {{ form.lower_bound.label_tag }}
+                {{form.lower_bound}}
+                {{form.lower_bound.label_tag}}
               </div>
           </div>
           <div class="col-6">
               <div class="form-floating">
-                <input type="number" class="form-control" name="upper_bound" step="86400" id="{{ form.upper_bound.id_for_label }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.upper_bound.help_text }}" >
+                <input class="form-control" id="{{ form.upper_bound.id_for_label }}" name="upper_bound" type="number" step="86400" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.upper_bound.help_text }}" />
                 {{ form.upper_bound.label_tag }}
               </div>
           </div>
           <div class="col-6">
             <div class="form-floating">
-              <select class="form-select" name="field" id="{{ form.field.id_for_label }}">
+              <select class="form-select" id="{{ form.field.id_for_label }}" name="field">
                 <option selected>---------</option>
                 {% for field in fields %}
                   <option value="{{ field.id }}">{{ field }}</option>
@@ -43,18 +47,18 @@
           <div class="row g-3">
             <div class="col-6">
               <div class="input-group mb-3">
-                <button class="input-group-text" type="button" id="id_source_column_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                <button class="input-group-text" id="id_source_column_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
                 <div class="form-floating flex-grow-1">
-                  <input type="text" class="form-control" name="source_column" maxlength="255" id="id_field_source_column" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" >
+                  <input class="form-control" id="id_field_source_column" name="source_column" type="text" maxlength="255" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" />
                   <label for="id_field_source_column">Source Column:</label>
                 </div>
               </div>
             </div>
             <div class="col-6">
               <div class="input-group mb-3">
-                <button class="input-group-text" type="button" id="id_source_name_tree" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                <button class="input-group-text" id="id_source_name_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
                 <div class="form-floating flex-grow-1">
-                  <input type="text" class="form-control" name="source_name" maxlength="255" id="id_field_source_name" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" >
+                  <input class="form-control" id="id_field_source_name" name="source_name" type="text"  maxlength="255" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" />
                   <label for="id_field_source_name">Source Table:</label>
                 </div>
               </div>
@@ -64,8 +68,7 @@
             <div class="lead">Transformation</div>
             <div class="col-sm-12">
               <div class="form-floating">
-                <textarea  class="form-control" name="transformation" maxlength="255" id="id_field_transformation" ></textarea>
-                {{ form.transformation.label_tag }}
+                <textarea class="form-control" id="id_field_transformation" name="transformation" maxlength="255" ></textarea>
               </div>
             </div>
           </div>
@@ -76,7 +79,7 @@
           <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="w-100 btn btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
     </div>  

@@ -36,7 +36,11 @@
   </div>
 </div>
 <form action="{% url 'connection-update' pk=pk %}"  enctype="multipart/form-data" method="POST">
-  <input id="id_id" name="id" {% if delta_id != None %} value="{{ delta_id }}" {% endif %} hidden/>
+  {% if delta_id != None %}
+    <input id="id_id" name="id" value="{{ delta_id }}" hidden />
+  {% else %}
+    <input id="id_empty_id" name="id" hidden />
+  {% endif %}
   {% csrf_token %}
   <div class="row g-5">
     <div class="col-md-8 col-lg-9">
@@ -148,25 +152,6 @@
   </div>
 </form>
 <script>
-  let inputs = document.getElementsByTagName("input");
-  for (var i = 0; i < inputs.length; i++) {
-    if (inputs[i].type == "checkbox") {
-      inputs[i].classList.add("form-check-input");
-    }
-    else {
-      inputs[i].classList.add("form-control");
-    }
-  }
-
-  let labels = document.getElementsByTagName("label");
-  for (var i = 0; i < labels.length; i++) {
-    labels[i].classList.add("form-label");
-  }
-  
-  let selects = document.getElementsByTagName("select");
-  for (var i = 0; i < selects.length; i++) {
-    selects[i].classList.add("form-select");
-  }
 
   function updateView(element) {
       let childNodes = element.childNodes;

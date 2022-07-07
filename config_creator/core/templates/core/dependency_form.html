@@ -15,7 +15,7 @@
           <div class="lead">Select Predecessor Task</div>
           <div class="col-6">
             <div class="form-floating">
-              <select class="form-select" name="field" id="{{ form.predecessor.id_for_label }}">
+              <select class="form-select" id="{{ form.predecessor.id_for_label }}" name="field">
                 <option selected>---------</option>
                 {% for task in tasks %}
                   <option value="{{ task.id }}">{{ task.name }}</option>
@@ -31,7 +31,7 @@
           <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="w-100 btn btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
         </div>
       </div>
     </div>  

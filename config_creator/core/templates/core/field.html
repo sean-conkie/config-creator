@@ -20,19 +20,19 @@
     {% csrf_token %}
     <div class="row g-5">
       <div class="col-md-8 col-lg-9">
-        <input hidden value="{{ field.id }}" name="id" id="id_id">
-        <input hidden value="return" name="action" id="id_action">
+        <input id="id_id" name="id" value="{{ field.id }}" hidden />
+        <input id="id_action" name="action" value="return" hidden />
         <div class="row g-3">
           <div class="lead">Target Column</div>
           <div class="col-6">
             <div class="form-floating">
-              <input type="text" class="form-control" name="name" maxlength="255" required="" id="id_name" value="{{ field.name }}" disabled>
+              <input class="form-control" id="id_name" name="name" type="text" value="{{ field.name }}" maxlength="255" required="" disabled />
               <label for="id_name">Name:</label>
             </div>
           </div>
           <div class="col-6">
             <div class="form-check">
-              <input type="checkbox" class="form-checkbox" name="is_primary_key" maxlength="255" required="" id="id_is_primary_key" {% if field.is_primary_key %} checked {% endif %} disabled>
+              <input class="form-checkbox" id="id_is_primary_key" name="is_primary_key" type="checkbox" maxlength="255" required="" {% if field.is_primary_key %} checked {% endif %} disabled />
               <label for="id_is_primary_key">Primary key Field</label>
             </div>
           </div>
@@ -41,22 +41,18 @@
           <div class="lead">Source Column</div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_source_column_tree"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_source_column_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
-                <input type="text" class="form-control" name="source_column" maxlength="255" id="{{ field.source_column.id_for_label }}" 
-                {% if field.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_column.help_text }}" {% endif %}
-                value="{{ field.source_column }}" disabled>
+                <input class="form-control" id="{{ field.source_column.id_for_label }}" name="source_column" type="text" value="{{ field.source_column }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_column.help_text }}"  maxlength="255" disabled />
                 <label for="id_staging_dataset">Source Column:</label>
               </div>
             </div>
           </div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_source_name_tree"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_source_name_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
-                <input type="text" class="form-control" name="source_name" maxlength="255" id="{{ field.source_name.id_for_label }}" 
-                {% if field.source_name.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" {% endif %}
-                value="{{ field.source_name }}" disabled>
+                <input class="form-control" id="{{ field.source_name.id_for_label }}" name="source_name" type="text" value="{{ field.source_name }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled />
                 <label for="id_staging_dataset">Source Table:</label>
               </div>
             </div>
@@ -66,7 +62,7 @@
           <div class="lead">Transformation</div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <textarea  class="form-control" name="transformation" maxlength="255" id="{{ field.transformation.id_for_label }}" value="{{ field.transformation }}" disabled></textarea>
+              <textarea  class="form-control" id="{{ field.transformation.id_for_label }}" name="transformation" value="{{ field.transformation }}" maxlength="255"  disabled></textarea>
               <label for="id_staging_dataset">Transformation:</label>
             </div>
           </div>
@@ -74,27 +70,14 @@
       </div>
       <div class="col-md-4 col-lg-3">
         <div class="row g-3">
-          <a href="{% url 'job-task-field-update' job_id=job.id task_id=task.id pk=field.id %}" class="w-100 btn btn-primary" type="submit"><i class="bi bi-pencil"></i> Edit</a>
+          <a class="w-100 btn btn-primary" type="submit" href="{% url 'job-task-field-update' job_id=job.id task_id=task.id pk=field.id %}" title=""><i class="bi bi-pencil"></i> Edit</a>
         </div>
         <div class="row g-3 py-3">
-          <a href="{% url 'job-task' job_id=job.id pk=task.id %}" class="w-100 btn btn-secondary"><i class="bi bi-arrow-left"></i> Back to Task</a>
+          <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-arrow-left"></i> Back to Task</a>
         </div>
       </div>
     </div>  
     
   </form>
-  <script>
-    const labels = document.getElementsByTagName("label");
-    for (var i = 0; i < labels.lebth; i++) {
-      if (labels[i].htmlFor != '') {
-        labels[i].classList.add("input-check-label");
-      }
-    }
-
-    function saveAnother() {
-      document.getElementById("id_action") = "";
-      document.getElementById("id_form").submit();
-    }
-  </script>
 </div>
 {% endblock %}
