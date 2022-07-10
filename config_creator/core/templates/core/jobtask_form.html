@@ -13,12 +13,15 @@
       <div class="col-md-8 col-lg-9">
         <div class="row g-3">
           <div class="lead">Task Details</div>
-          <input hidden {% if task_id != None %} value="{{ task_id }}" {% endif %} name="id" id="id_id">
-          <input hidden value="{{job.id}}" name="job_id" id="id_job_id">
+          {% if task_id != None %} 
+            <input id="id_id" name="id" value="{{ task_id }}" hidden />
+          {% else %}
+            <input id="id_empty_id" name="id" hidden />
+          {% endif %}
+          <input id="id_job_id" name="job_id" value="{{job.id}}" hidden />
           <div class="col-6">
             <div class="form-floating">
-              <input type="text" class="form-control" name="name" maxlength="255" required="" id="{{form.name.id_for_label}}" 
-              {% if form.name.value != None %} value="{{form.name.value}}" {% endif %}>
+              {{form.name}}
               {{form.name.label_tag}}
             </div>
           </div>
@@ -30,15 +33,13 @@
           </div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <input type="text" class="form-control" name="description" maxlength="255" required="" id="{{form.description.id_for_label}}" 
-              {% if form.description.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.properties.help_text}}" {% endif %}
-              {% if form.description.value != None %} value="{{form.description.value}}" {% endif %}>
+              {{form.description}}
               {{form.description.label_tag}}
             </div>
           </div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <textarea  class="form-control" name="properties" id="{{form.properties.id_for_label}}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.properties.help_text}}">{% if form.properties.value != None and form.properties.value != "null" %}{{ form.properties.value }}{% endif %}</textarea>
+              {{form.properties}}
               {{form.properties.label_tag}}
             </div>
           </div>
@@ -49,7 +50,11 @@
           <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a {% if task_id != None %}  href="{% url 'job-task' job_id=job.id pk=task_id %}" {% else %} href="{% url 'job-tasks' job_id=job.id %}" {% endif %} class="w-100 btn btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          {% if task_id != None %}
+            <a class="w-100 btn btn-secondary"  href="{% url 'job-task' job_id=job.id pk=task_id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+          {% else %}
+            <a class="w-100 btn btn-secondary" href="{% url 'job-tasks' job_id=job.id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+          {% endif %}
         </div>
       </div>
       <div class="row g-3 py-1">
@@ -68,22 +73,18 @@
         </div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_destination_table_tree" onclick="setReturnType('table', null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', true)"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" id="id_destination_table_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
-              <input type="text" class="form-control" name="destination_table" maxlength="255" required="" id="{{form.destination_table.id_for_label}}" 
-              {% if form.destination_table.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_table.help_text}}" {% endif %}
-              {% if form.destination_table.value != None %} value="{{form.destination_table.value}}" {% endif %}>
+              {{form.destination_table}}
               {{form.destination_table.label_tag}}
             </div>
           </div>
         </div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_destination_dataset_tree" onclick="setReturnType('dataset', null, null, null, null, '{{form.destination_dataset.id_for_label}}', true)"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" id="id_destination_dataset_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
-              <input type="text" class="form-control" name="destination_dataset" maxlength="255" required="" id="{{form.destination_dataset.id_for_label}}" 
-              {% if form.destination_dataset.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_dataset.help_text}}" {% endif %}
-              {% if form.destination_dataset.value != None %} value="{{form.destination_dataset.value}}" {% endif %}>
+              {{form.destination_dataset}}
               {{form.destination_dataset.label_tag}}
             </div>
           </div>
@@ -91,22 +92,18 @@
         <div class="lead">Source Table</div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_driving_table_tree" onclick="setReturnType('dataset', null, null, '{{form.driving_table.id_for_label}}', 'tableFull', null, true)"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" id="id_driving_table_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
-              <input type="text" class="form-control" name="driving_table" maxlength="255" required="" id="{{form.driving_table.id_for_label}}" 
-              {% if form.driving_table.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.driving_table.help_text}}" {% endif %}
-              {% if form.driving_table.value != None %} value="{{form.driving_table.value}}" {% endif %}>
+              {{form.driving_table}}
               {{form.driving_table.label_tag}}
             </div>
           </div>
         </div>
         <div class="col-6">
           <div class="input-group mb-3">
-            <button class="input-group-text" type="button" id="id_staging_dataset_tree" onclick="setReturnType('dataset', null, null, null, null, '{{form.staging_dataset.id_for_label}}', true)"><i class="fa-solid fa-folder-tree"></i></button>
+            <button class="input-group-text" id="id_staging_dataset_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
             <div class="form-floating flex-grow-1">
-              <input type="text" class="form-control" name="staging_dataset" maxlength="255" required="" id="{{form.staging_dataset.id_for_label}}" 
-              {% if form.destination_dataset.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{form.destination_dataset.help_text}}" {% endif %}
-              {% if form.destination_dataset.value != None %} value="{{form.staging_dataset.value}}" {% endif %}>
+              {{form.staging_dataset}}
               {{form.staging_dataset.label_tag}}
             </div>
           </div>
@@ -115,20 +112,21 @@
     </div>  
     
   </form>
-
-  {{ connections }}
-  <script>
-    const el = document.getElementsByTagName("select");
-    for (var i = 0; i < el.length; i++) {
-      el[i].classList.add("form-select");
-    }
-  </script>
   
+  {{ connections }}  
+  <script src="/static/js/lazy-listener.js" ></script>
   <script>
     let ta = document.getElementById("id_properties");
     let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
     let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
     ta.style.height = newHeight + "px";
+
+    new Map([
+      ["id_staging_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, '{{form.staging_dataset.id_for_label}}', null, true)", "type": "click"}],
+      ["id_driving_table_tree", {"function": "setReturnType('table', null, null, '{{form.driving_table.id_for_label}}', 'tableFull', null, null, true)", "type": "click"}],
+      ["id_destination_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, '{{form.destination_dataset.id_for_label}}', null, true)", "type": "click"}],
+      ["id_destination_table_tree", {"function": "setReturnType('table', null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', null, true)", "type": "click"}],
+    ]).forEach(addListener);
   </script>
   {% include 'core/connection_selector.html' %}
 </div>

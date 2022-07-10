@@ -25,7 +25,7 @@
           </div>
           <div class="col-sm-4">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_value_1_tree" type="button" onclick="setReturnType('column', 'id_left', 'columnFull', null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_value_1_tree" type="button" onclick="setReturnType('column', 'id_left', 'columnFull', null, null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 {% if fields|length > 0 %} 
                   <input class="form-control" id="id_left" name="left" type="text" value="{{ fields.0.left }}" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
@@ -44,7 +44,7 @@
           </div>
           <div class="col-sm-4">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_value_2_tree" type="button" onclick="setReturnType('column', 'id_right', 'columnFull', null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_value_2_tree" type="button" onclick="setReturnType('column', 'id_right', 'columnFull', null, null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 {% if fields|length > 0 %} 
                   <input class="form-control" id="id_right" name="right" type="text" value="{{ fields.0.right }}" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
