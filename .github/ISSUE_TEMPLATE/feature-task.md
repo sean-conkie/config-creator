@@ -1,5 +1,5 @@
 ---
-name: Feature Task
+name: Feature task
 about: Changes required to deliver a feature
 title: ''
 labels: feature task
