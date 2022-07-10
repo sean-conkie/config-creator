@@ -1,12 +1,12 @@
 
     <div class="dropdown border-top">
-      <a href="#" class="d-flex align-items-center justify-content-center p-3 link-dark text-decoration-none dropdown-toggle" id="dropdownUser3" data-bs-toggle="dropdown" aria-expanded="false">
+      <a class="d-flex align-items-center justify-content-center p-3 link-dark text-decoration-none dropdown-toggle" id="dropdownUser3" href="#" title="" data-bs-toggle="dropdown" aria-expanded="false">
         <i class="bi bi-person-circle"></i>
       </a>
       <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser3">
-        <li><a class="dropdown-item" href="/admin">Admin</a></li>
-        <li><a class="dropdown-item" href="{% url 'profile' %}">Profile</a></li>
-        <li><hr class="dropdown-divider"></li>
-        <li><a class="dropdown-item" href="{% url 'logout' %}?next=/">Sign out</a></li>
+        <li><a class="dropdown-item" href="/admin" title="">Admin</a></li>
+        <li><a class="dropdown-item" href="{% url 'profile' %}" title="">Profile</a></li>
+        <li><hr class="dropdown-divider"/></li>
+        <li><a class="dropdown-item" href="{% url 'logout' %}?next=/" title="">Sign out</a></li>
       </ul>
     </div>

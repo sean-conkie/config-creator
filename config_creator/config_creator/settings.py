@@ -26,6 +26,8 @@ SECRET_KEY = "django-insecure-i^!36rcgmue!2i1pvwam+8g@4f2_ay=dypocntfn$v#r@!1*03
 DEBUG = True
 
 ALLOWED_HOSTS = []
+CORS_ORIGIN_ALLOW_ALL = False
+CORS_ORIGIN_WHITELIST = ("http://localhost:8000",)
 
 AUTH_USER_MODEL = "accounts.User"
 LOGIN_URL = "/accounts/login"
@@ -40,6 +42,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "corsheaders",
     "accounts",
     "database_interface_api",
     "rest_framework",
@@ -49,6 +52,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
     "django.middleware.security.SecurityMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -126,7 +130,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.0/howto/static-files/
 
 STATIC_URL = "/static/"
-STATICFILES_DIRS = [os.path.join(BASE_DIR, "static")]
+
+# Add these new lines
+STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
+
+STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 
 MEDIA_ROOT = "config_creator/media/"
 MEDIA_URL = "media/"
