@@ -142,28 +142,34 @@ const HttpStatusEnum = new Map()
   });
 
   
-  /* Adding the class form-control to all the input elements in the document. */
-  let inputs = document.getElementsByTagName("input");
-  for (var i = 0; i < inputs.length; i++) {
-    if (inputs[i].type == "checkbox") {
-      inputs[i].classList.add("form-check-input");
-    }
-    else {
-      inputs[i].classList.add("form-control");
-    }
+/* Adding the class form-control to all the input elements in the document. */
+let inputs = document.getElementsByTagName("input");
+for (var i = 0; i < inputs.length; i++) {
+  if (inputs[i].type == "checkbox") {
+    inputs[i].classList.add("form-check-input");
   }
+  else {
+    inputs[i].classList.add("form-control");
+  }
+}
 
-  /* Adding the class form-label to all the label elements in the document. */
-  let labels = document.getElementsByTagName("label");
-  for (var i = 0; i < labels.length; i++) {
-    labels[i].classList.add("form-label");
-  }
-  
-  /* Adding the class form-select to all the select elements in the document. */
-  let selects = document.getElementsByTagName("select");
-  for (var i = 0; i < selects.length; i++) {
-    selects[i].classList.add("form-select");
-  }
+/* Adding the class "form-control" to all the labels in the form. */
+let textarea = document.getElementsByTagName("textarea");
+for (var i = 0; i < textarea.length; i++) {
+  textarea[i].classList.add("form-control");
+}
+
+/* Adding the class form-label to all the label elements in the document. */
+let labels = document.getElementsByTagName("label");
+for (var i = 0; i < labels.length; i++) {
+  labels[i].classList.add("form-label");
+}
+
+/* Adding the class form-select to all the select elements in the document. */
+let selects = document.getElementsByTagName("select");
+for (var i = 0; i < selects.length; i++) {
+  selects[i].classList.add("form-select");
+}
 
   
 /* Creating a tooltip for each element that has the attribute data-bs-toggle="tooltip" */
@@ -255,14 +261,7 @@ function createToast(message, type, show) {
 
   let doc = document.getElementsByTagName("body")[0];
 
-  let outer = document.createElement("div");
-  outer.setAttribute("aria-live", "polite");
-  outer.setAttribute("aria-atomic", "true");
-  outer.classList = ["bg-dark", "position-relative", "bd-example-toasts"];
-
-  let toast = document.createElement("div");
-  toast.setAttribute("id", "toastPlacement");
-  toast.classList = ["toast-container","position-absolute","top-0","end-0","p-3"];
+  let outer = document.getElementById("toastPlacement");
 
   let toastInner = document.createElement("div");
   toastInner.classList.add("toast");
@@ -291,9 +290,7 @@ function createToast(message, type, show) {
   toastInner.appendChild(toastHeader);
   toastInner.appendChild(toastBody);
 
-  toast.appendChild(toastInner);
-  outer.appendChild(toast);
-  doc.appendChild(outer);
+  outer.appendChild(toastInner);
 
   if (show) {
     const toastObj = new bootstrap.Toast(toastInner);
@@ -303,9 +300,8 @@ function createToast(message, type, show) {
 }
 
 /**
- * It takes a url, a method, and an element id as parameters, and then it creates a spinner element and
- * appends it to the element with the id that was passed in. Then it makes an ajax call to the url, and
- * when the call is complete, it removes the spinner element
+ * It makes an AJAX request to the server, and if the request is successful, it calls the callback
+ * function
  * 
  * Args:
  *   url: The url to call
@@ -325,6 +321,7 @@ function callModelApi(url, method, spinnerElementId) {
       parent.appendChild(createSpinner(spinnerId));
     }  
   }
+  xhttp.responseType = "json";
   xhttp.onload = function () {
     if (spinnerId) {
       let spinner = document.getElementById(spinnerId);
@@ -333,12 +330,13 @@ function callModelApi(url, method, spinnerElementId) {
         }
     }
 
+    data = xhttp.response;
     if ((xhttp.status == 200 || xhttp.status == 404) && "message" in data) {
-      createToast(data["message"], data["type"], true)
+      createToast(data["message"], data["type"], true);
     }
     else {
       message = HttpStatusEnum.get(xhttp.status);
-      createToast(message["desc"], message["name"], true)
+      createToast(message["desc"], message["name"], true);
     }
       
   }
@@ -351,15 +349,112 @@ function callModelApi(url, method, spinnerElementId) {
   xhttp.send();
 }
 
-function deleteModelObject(url, elementToRemoveId) {
+/**
+ * It deletes a model object, and if the element to remove is a table row, it adds a class to it to
+ * make it fade out
+ * 
+ * Args:
+ *   url: The url to call.
+ *   elementToRemoveId: The id of the element to remove from the DOM.
+ *   spinnerTargetId: The id of the element that will be the target of the spinner.
+ */
+function deleteModelObject(url, elementToRemoveId, spinnerTargetId) {
   if (confirm("Are you sure you want to delete this?")) {
-    callModelApi(url, 'DELETE', null);
+    callModelApi(url, 'DELETE', spinnerTargetId);
     let element = document.getElementById(elementToRemoveId);
-    if (element.tagName == "row") {
+    if (element.tagName == "TR") {
       element.classList.add("delete-row");
     }
     else {
       element.parentNode.removeChild(element);
     }
+  }
+}
+
+/**
+ * It takes in a classList, id, content, and value, and returns an object with the classList and id,
+ * and either the content or value
+ * 
+ * Args:
+ *   classList: an array of classes to be added to the row
+ *   id: the id of the row
+ *   content: an array of objects that will be used to create the row's cells.
+ *   value: The value of the input.
+ * 
+ * Returns:
+ *   An object with the properties classList, id, content, and value.
+ */
+function createRowObject(classList, id, content, value, object) {
+  let cL = [];
+  let i = "";
+  let c = [];
+  let v = "";
+
+  if (classList) {
+    cL = classList;
+  }
+  
+  if (id) {
+    i = id;
+  }
+  
+  if (content) {
+    c = content;
+  }
+  
+  if (value) {
+    v = value;
+  }
+  
+  if (object) {
+    o = object;
+  }
+  
+  let obj = {
+    "classList": cL,
+    "id": i
+  };
+
+  if (content) {
+    obj["content"] = c;
+  }
+  else if (value) {
+    obj["value"] = v;
+  }
+  else if (object) {
+    obj["object"] = o;
+  }
+  return obj;
+}
+
+/**
+ * It takes an array of objects, each object representing a row, and each object containing an array of
+ * objects, each object representing a cell, and each object containing a classList, id, and value, and
+ * it adds the rows and cells to the parent element
+ * 
+ * Args:
+ *   data: an array of objects, each object representing a row in the table.
+ *   parent: the parent element to append the row to
+ */
+function addRow(data, parent) {
+  for (var i = 0; i < data.length; i++) {
+    let row = createElement("tr", null, data[i]["classList"], null, data[i]["id"]);
+
+    let content = data[i]["content"];
+
+    for (var j = 0; j < content.length; j++) {
+      let td = createElement("td", null, content[j]["classList"], null, content[j]["id"]);
+
+      if ("value" in content[j]) {
+        td.textContent = content[j]["value"];
+      }
+      else if ("object" in content[j]) {
+        td.appendChild(content[j]["object"]);
+      }
+
+      row.appendChild(td);
+    }
+
+    parent.appendChild(row);
   }
 }

@@ -7,7 +7,7 @@ from lib.helper import isnullorwhitespace
 from pandas import DataFrame, read_csv
 
 
-_all_ = ["get_schema", "get_database_schema"]
+__all__ = ["get_schema", "get_database_schema", "get_table"]
 
 
 class IBQClient(bigquery.Client):
@@ -109,8 +109,13 @@ class CSVClient:
             if query == "schema":
                 unique_schemas = outp.table_schema.unique().tolist()
                 outp = DataFrame(unique_schemas, columns=["table_schema"])
+            elif "table_name" in query.keys():
+                outp = outp[
+                    (outp.table_schema == query.get("database"))
+                    & (outp.table_name == query.get("table_name"))
+                ]
             elif query:
-                outp = outp[outp.table_schema == query]
+                outp = outp[outp.table_schema == query.get("database")]
 
             self._data = outp
 
@@ -187,7 +192,9 @@ def get_database_schema(
         query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection}.`region-eu`.INFORMATION_SCHEMA.COLUMNS where table_schema = '{database}' order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
-        query = database
+        query = {
+            "database": database,
+        }
         client = CSVClient(connection.get("schema").name)
 
     client.get_data(query).sort_values(by=["table_name", "ordinal_position"])
@@ -219,6 +226,54 @@ def get_database_schema(
 
     outp = {
         "result": tables,
+    }
+
+    return outp
+
+
+def get_table(
+    connection: dict,
+    database: str,
+    table_name: str,
+) -> dict:
+
+    client = None
+    query = None
+    if connection.get("connection_type") == ConnectionType.BIGQUERY:
+        client = IBQClient(connection)
+        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection}.`region-eu`.INFORMATION_SCHEMA.COLUMNS where table_schema = '{database}' and table_name = '{table_name}' order by 2, 5"
+
+    elif connection.get("connection_type") == ConnectionType.CSV:
+        query = {
+            "database": database,
+            "table_name": table_name,
+        }
+        client = CSVClient(connection.get("schema").name)
+
+    client.get_data(query).sort_values(by=["table_name", "ordinal_position"])
+
+    cols = [
+        {
+            "dataset": row["table_schema"],
+            "table_name": row["table_name"],
+            "column_name": row["column_name"],
+            "data_type": row["data_type"],
+            "ordinal_position": row["ordinal_position"],
+            "is_nullable": True if row["is_nullable"] == "YES" else False,
+            "type": "column",
+            "connection_id": connection.get("id"),
+        }
+        for index, row in client.data.iterrows()
+    ]
+
+    outp = {
+        "result": {
+            "name": table_name,
+            "dataset": database,
+            "content": cols,
+            "type": "table",
+            "connection_id": connection.get("id"),
+        },
     }
 
     return outp

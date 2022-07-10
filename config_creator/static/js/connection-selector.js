@@ -67,6 +67,7 @@
         element.setAttribute("data-table-name", object["name"]);
         element.setAttribute("data-table-full", object["dataset"] + "." + object["name"]);
         element.setAttribute("data-dataset-name", object["dataset"]);
+        element.setAttribute("data-connection-id", object["connection_id"]);
       }
       else {
         let summary = createElement("summary", null, ["tree-table-summary"], null, null);
@@ -107,6 +108,7 @@
         element.setAttribute("onclick", "selectElement(this)");
         element.insertAdjacentText("beforeend", " " + object["name"]);
         element.setAttribute("data-dataset-name", object["name"]);
+        element.setAttribute("data-connection-id", object["connection_id"]);
       }
       else {
         let summary = createElement("summary", null, ["tree-dataset-summary"], null, null);
@@ -212,10 +214,10 @@
     return element;
   }
 
-  function callConnectionApi(url) {
+  function callConnectionApi(url, modal_id) {
     const xhttp = new XMLHttpRequest();
     let parent = document.getElementById(modal_id);
-    if (parent.children.length > 0) {
+    if (parent.childElementCount > 0) {
       parent.children[0].appendChild(createSpinner(modal_id + "_spinner"));
     }
     else {
@@ -256,7 +258,7 @@
     }
     modal_id = element_id;
 
-    callConnectionApi(url);  
+    callConnectionApi(url, element_id);  
 
     document.getElementById(element_id).removeAttribute("onclick");
 
@@ -288,47 +290,59 @@
     let element = document.getElementById(id);
     if (selector == "column" && returnType["column"]["target"]) {
       document.getElementById(returnType["column"]["target"]).value = element.dataset[returnType["column"]["type"]];
+      document.getElementById(returnType["column"]["target"]).dispatchEvent(new Event('input'));
     }
     if ((selector == "column" || selector == "table") && returnType["table"]["target"]) {
       document.getElementById(returnType["table"]["target"]).value = element.dataset[returnType["table"]["type"]];
+      document.getElementById(returnType["table"]["target"]).dispatchEvent(new Event('input'));
     }
     if (returnType["dataset"]["target"]) {
       document.getElementById(returnType["dataset"]["target"]).value = element.dataset[returnType["dataset"]["type"]];
+      document.getElementById(returnType["dataset"]["target"]).dispatchEvent(new Event('input'));
+    }
+    if (returnType["connection"]["target"]) {
+      document.getElementById(returnType["connection"]["target"]).value = element.dataset[returnType["connection"]["type"]];
+      document.getElementById(returnType["connection"]["target"]).dispatchEvent(new Event('input'));
     }
     bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide();
   }
 
-    function setReturnType(selector, columnTarget, columnType, tableTarget, tableType, datasetTarget, reLoadModal) {
-      let datasetType = null;
-      if (datasetTarget) {
-        datasetType = "datasetName";
-      }
-      returnType = {
-        "selector": selector,
-        "column": {
-          "target": columnTarget,
-          "type": columnType,
-        },
-        "table": {
-          "target": tableTarget,
-          "type": tableType,
-        },
-        "dataset": {
-          "target": datasetTarget,
-          "type": datasetType,
-        }
-      };
-
-      if (reLoadModal) {
-        modal_id = "id_modal_content";
-        spinner_id = "id_modal_content_spinner";
-        document.getElementById(modal_id).textContent = "";
-        callConnectionApi("/api/schema/");
-      }
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show();
+  function setReturnType(selector, columnTarget, columnType, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal) {
+    let datasetType = null;
+    let connectionType = null;
+    if (datasetTarget) {
+      datasetType = "datasetName";
     }
+    if (connectionTarget) {
+      connectionType = "connectionId"
+    }
+    returnType = {
+      "selector": selector,
+      "column": {
+        "target": columnTarget,
+        "type": columnType,
+      },
+      "table": {
+        "target": tableTarget,
+        "type": tableType,
+      },
+      "dataset": {
+        "target": datasetTarget,
+        "type": datasetType,
+      },
+      "connection": {
+        "target": connectionTarget,
+        "type": connectionType,
+      }
+    };
 
-  
+    if (reLoadModal) {
+      let modal_id = "id_modal_content";
+      document.getElementById(modal_id).textContent = "";
+      callConnectionApi("/api/schema/", modal_id);
+    }
+    bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show();
+  }
 
   let returnType = {
     "selector": "column",
@@ -343,12 +357,14 @@
     "dataset": {
       "target": null,
       "type": null,
+    },
+    "connection": {
+      "target": null,
+      "type": null,
     }
   };
 
-  let modal_id = "id_modal_content";
-  let spinner_id = "id_modal_content_spinner";
-  callConnectionApi("/api/schema/");
+  callConnectionApi("/api/schema/", "id_modal_content");
 
   const myModalEl = document.getElementById('connection-modal');
   myModalEl.addEventListener('hidden.bs.modal', function (event) {
