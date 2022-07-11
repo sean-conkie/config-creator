@@ -38,8 +38,8 @@
           </tr>
           {% endfor %}
           {% if fields|length == 0 %}
-          <tr>
-            <td class="text-center placeholder-row" colspan="5">No fields linked to task!</td>
+          <tr class="placeholder-row">
+            <td class="text-center" colspan="5">No fields linked to task!</td>
           </tr>
           {% endif %}
         </tbody>
@@ -114,7 +114,7 @@
         deleteButton.setAttribute("data-bs-placement", "right");
         deleteButton.setAttribute("data-delete-url", `/api/field/${rowData['id']}/delete/`);
         deleteButton.setAttribute("data-delete-element-id", rowId);
-        deleteButton.appendChild(createElement("i", null, ["bi", "bi-search"], 0, null));
+        deleteButton.appendChild(createElement("i", null, ["bi", "bi-trash"], 0, null));
         deleteButton.addEventListener("click", function () {
           deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);
         })

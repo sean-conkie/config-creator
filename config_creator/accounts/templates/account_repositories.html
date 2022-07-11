@@ -1,7 +1,9 @@
 {% extends "account_base.html" %}
 
 {% block title %}Git Repositories{% endblock %}
-        {% block profile %}
+        
+{% block content %}
+<div class="container">
         <div class="py-5 text-center">
           <h2>Git Repositories</h2>
           <p class="lead">View or change your saved repositories.</p>
@@ -27,4 +29,5 @@
           </table>
         </div>
         <a class="btn btn-primary" type="button" href="{% url 'repository-add' %}" title=""><i class="bi bi-plus"></i> Add Repository</a>
-        {% endblock %}
+      </div>
+{% endblock %}

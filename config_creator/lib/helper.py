@@ -1,4 +1,9 @@
-_all_ = ["isnullorwhitespace", "isnullorempty", "ifnull"]
+__all__ = [
+    "isnullorwhitespace",
+    "isnullorempty",
+    "ifnull",
+    "safe_dict",
+]
 
 
 def isnullorwhitespace(string: str) -> bool:
@@ -62,3 +67,21 @@ def ifnull(string: str, default: str) -> str:
         return default
     else:
         return string
+
+
+def safe_dict(dict_obj: dict) -> dict:
+    """
+    "If the dict is a dict, return it, otherwise return an empty dict."
+
+    The function is called safe_dict because it's a safe way to get a dict
+
+    Args:
+      dict (dict): The dictionary to be checked.
+
+    Returns:
+      A dictionary
+    """
+    if dict and type(dict_obj) == dict:
+        return dict_obj
+
+    return {}

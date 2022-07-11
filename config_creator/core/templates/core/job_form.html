@@ -1,6 +1,6 @@
-{% extends 'core_base.html' %}
+{% extends 'base.html' %}
 {% block title %}Change Job{% endblock %}
-{% block core-content %}
+{% block content %}
 {% load static %}
 <div class="container">
   <div class="py-5 text-center">
@@ -34,13 +34,6 @@
               <input type="text" class="form-control" name="description" maxlength="255" required="" id="{{form.description.id_for_label}}" 
               {% if form.description.value != None %} value="{{form.description.value}}" {% endif %}>
               {{form.description.label_tag}}
-            </div>
-          </div>
-          
-          <div class="col-sm-12">
-            <div class="form-floating">
-              {{form.properties}}
-              {{form.properties.label_tag}}
             </div>
           </div>
 
