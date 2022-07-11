@@ -3,7 +3,7 @@ name: Feature task
 about: Changes required to deliver a feature
 title: ''
 labels: feature task
-assignees: ''
+assignees: sean-conkie
 
 ---
 
