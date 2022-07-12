@@ -11,16 +11,19 @@
       <table class="table table-hover table-striped">
         <thead>
           <tr>
+            <th scope="col"></th>
             <th scope="col">Target Column</th>
             <th scope="col">Source Column</th>
             <th scope="col">Transformation</th>
+            <th scope="col"></th>
             <th scope="col"></th>
             <th scope="col"></th>
           </tr>
         </thead>
         <tbody id="id_source_to_target">
           {% for field in fields %}
-          <tr class="align-middle" id="id_field_{{field.id}}_row">
+          <tr class="align-middle" id="id_field_{{field.id}}_row" draggable="true" ondragstart="start()"  ondragover="dragover()">
+            <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
             <td>{% if field.is_primary_key %}<i class="bi bi-key"></i> {% endif %}{% if field.is_history_key %}<i
                 class="bi bi-clock-history"></i> {% endif %}{{ field.name}} </td>
             <td>
@@ -35,6 +38,7 @@
                 type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                 data-delete-url="{% url 'api-field-delete' pk=field.id %}"
                 data-delete-element-id="id_field_{{field.id}}_row"><i class="bi bi-trash3"></i></button></td>
+            <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
           </tr>
           {% endfor %}
           {% if fields|length == 0 %}
@@ -182,3 +186,4 @@
     }
   }
 </script>
+<script src="/static/js/table-dragover.js" ></script>

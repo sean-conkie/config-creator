@@ -33,6 +33,8 @@ __all__ = [
     "DEFAULT_LOGIC_OPERATOR_ID",
     "DEFAULT_OPERATOR_ID",
     "DEFAULT_JOIN_ID",
+    "DagJobProperties",
+    "BatchCustomJobTaskProperties",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -336,6 +338,28 @@ class JobTask(models.Model):
     def __str__(self):
         return self.name
 
+    def get_property_object(self):
+        """
+        It takes a task object, and returns the corresponding property object
+
+        Returns:
+          The property object for the task.
+        """
+        property_class = str_to_class(
+            f"{self.job.type.code.title()}{self.type.code.title()}JobTaskProperties"
+        )
+        if property_class:
+            if property_class.objects.filter(task_id=self.id).exists():
+                return property_class.objects.filter(
+                    task_id=self.id,
+                )[0]
+            else:
+                return property_class(
+                    task_id=self.id,
+                )
+
+        return None
+
 
 class History(models.Model):
     class Meta:
@@ -600,6 +624,28 @@ class DagJobProperties(BaseJobProperties):
         blank=True,
         null=True,
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
+    )
+
+
+class BaseJobTaskProperties(models.Model):
+    task = models.OneToOneField(
+        to=JobTask,
+        on_delete=models.CASCADE,
+        unique=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class BatchCustomJobTaskProperties(BaseJobTaskProperties):
+    sql = models.CharField(
+        verbose_name="Sql Script Name",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+        help_text="Enter the name of the sql fiel to be used by this task",
     )
 
 

@@ -10,6 +10,7 @@ from .models import (
     Dependency,
     BatchJobProperties,
     DagJobProperties,
+    BatchCustomJobTaskProperties,
 )
 from django import forms
 from django.core.exceptions import ValidationError
@@ -145,6 +146,14 @@ class DagJobPropertiesForm(forms.ModelForm):
             "email",
             "tags",
             "imports",
+        ]
+
+
+class BatchCustomJobTaskPropertiesForm(forms.ModelForm):
+    class Meta:
+        model = BatchCustomJobTaskProperties
+        fields = [
+            "sql",
         ]
 
 

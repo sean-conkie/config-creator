@@ -34,4 +34,9 @@ urlpatterns = [
         login_required(conditiondeleteview),
         name="job-task-condition-delete",
     ),
+    path(
+        "task/<int:task_id>/property/<int:pk>/",
+        login_required(editjobtaskproperty),
+        name="job-task-property-update",
+    ),
 ]
