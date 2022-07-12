@@ -143,8 +143,8 @@ const HttpStatusEnum = new Map()
 
 /* Adding the class form-control to all the input elements in the document. */
 const inputs = document.getElementsByTagName('input')
-for (var i = 0; i < inputs.length; i++) {
-  if (inputs[i].type == 'checkbox') {
+for (let i = 0; i < inputs.length; i++) {
+  if (inputs[i].type === 'checkbox') {
     inputs[i].classList.add('form-check-input')
   } else {
     inputs[i].classList.add('form-control')
@@ -153,26 +153,26 @@ for (var i = 0; i < inputs.length; i++) {
 
 /* Adding the class "form-control" to all the labels in the form. */
 const textarea = document.getElementsByTagName('textarea')
-for (var i = 0; i < textarea.length; i++) {
-  textarea[i].classList.add('form-control')
+for (let j = 0; j < textarea.length; j++) {
+  textarea[j].classList.add('form-control')
 }
 
 /* Adding the class form-label to all the label elements in the document. */
 const labels = document.getElementsByTagName('label')
-for (var i = 0; i < labels.length; i++) {
-  labels[i].classList.add('form-label')
+for (let k = 0; k < labels.length; k++) {
+  labels[k].classList.add('form-label')
 }
 
 /* Adding the class form-select to all the select elements in the document. */
 const selects = document.getElementsByTagName('select')
-for (var i = 0; i < selects.length; i++) {
-  selects[i].classList.add('form-select')
+for (let l = 0; l < selects.length; l++) {
+  selects[l].classList.add('form-select')
 }
 
 /* Creating a tooltip for each element that has the attribute data-bs-toggle="tooltip" */
 const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
-const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-  return new bootstrap.Tooltip(tooltipTriggerEl)
+const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { // eslint-disable-line no-unused-vars
+  return new bootstrap.Tooltip(tooltipTriggerEl) // eslint-disable-line no-undef
 })
 
 /**
@@ -255,8 +255,6 @@ function createElement (type, content, classList, layer, id) {
  *   show: boolean,
  */
 function createToast (message, type, show) {
-  const doc = document.getElementsByTagName('body')[0]
-
   const outer = document.getElementById('toastPlacement')
 
   const toastInner = document.createElement('div')
@@ -289,7 +287,7 @@ function createToast (message, type, show) {
   outer.appendChild(toastInner)
 
   if (show) {
-    const toastObj = new bootstrap.Toast(toastInner)
+    const toastObj = new bootstrap.Toast(toastInner) // eslint-disable-line no-undef
     toastObj.show()
   }
 }
@@ -304,10 +302,10 @@ function createToast (message, type, show) {
  *   spinnerElementId: The id of the element that will contain the spinner.
  */
 function callModelApi (url, method, spinnerElementId) {
-  const xhttp = new XMLHttpRequest()
+  const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
   let spinnerId
   if (spinnerElementId) {
-    const parent = document.getElementById(modal_id)
+    const parent = document.getElementById(spinnerElementId)
     spinnerId = spinnerElementId + '_spinner'
     if (parent.children.length > 0) {
       parent.children[0].appendChild(createSpinner(spinnerId))
@@ -319,16 +317,18 @@ function callModelApi (url, method, spinnerElementId) {
   xhttp.onload = function () {
     if (spinnerId) {
       const spinner = document.getElementById(spinnerId)
+      /* eslint-disable no-undef */
       if (parent && parent.nodeType) {
         parent.removeChild(spinner)
       }
+      /* eslint-enable no-undef */
     }
 
-    data = xhttp.response
-    if ((xhttp.status == 200 || xhttp.status == 404) && 'message' in data) {
+    const data = xhttp.response
+    if ((xhttp.status === 200 || xhttp.status === 404) && 'message' in data) {
       createToast(data.message, data.type, true)
     } else {
-      message = HttpStatusEnum.get(xhttp.status)
+      const message = HttpStatusEnum.get(xhttp.status)
       createToast(message.desc, message.name, true)
     }
   }
@@ -350,11 +350,11 @@ function callModelApi (url, method, spinnerElementId) {
  *   elementToRemoveId: The id of the element to remove from the DOM.
  *   spinnerTargetId: The id of the element that will be the target of the spinner.
  */
-function deleteModelObject (url, elementToRemoveId, spinnerTargetId) {
-  if (confirm('Are you sure you want to delete this?')) {
+function deleteModelObject (url, elementToRemoveId, spinnerTargetId) { // eslint-disable-line no-unused-vars
+  if (confirm('Are you sure you want to delete this?')) { // eslint-disable-line no-undef
     callModelApi(url, 'DELETE', spinnerTargetId)
     const element = document.getElementById(elementToRemoveId)
-    if (element.tagName == 'TR') {
+    if (element.tagName === 'TR') {
       element.classList.add('delete-row')
     } else {
       element.parentNode.removeChild(element)
@@ -375,11 +375,12 @@ function deleteModelObject (url, elementToRemoveId, spinnerTargetId) {
  * Returns:
  *   An object with the properties classList, id, content, and value.
  */
-function createRowObject (classList, id, content, value, object) {
+function createRowObject (classList, id, content, value, object) { // eslint-disable-line no-unused-vars
   let cL = []
   let i = ''
   let c = []
   let v = ''
+  let o = {}
 
   if (classList) {
     cL = classList
@@ -425,7 +426,7 @@ function createRowObject (classList, id, content, value, object) {
  *   data: an array of objects, each object representing a row in the table.
  *   parent: the parent element to append the row to
  */
-function addRow (data, parent) {
+function addRow (data, parent) { // eslint-disable-line no-unused-vars
   for (let i = 0; i < data.length; i++) {
     const row = createElement('tr', null, data[i].classList, null, data[i].id)
 
