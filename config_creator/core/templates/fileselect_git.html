@@ -22,13 +22,13 @@
             </div>
             <div class="col-md-6 col-lg-6">
               <form action="." method="post">
-                <input name="path" id="id_path" type="text" hidden>
+                <input id="id_path" name="path" type="text" hidden />
                 <div id="id_message_wrapper">
                   <label id="id_message"></label>
                 </div>
                 <div class="container py-3">
-                  <a href="{% url 'repository-list' %}" id="id_cancel" class="btn btn-secondary" ><i class="bi bi-x-lg"></i> Cancel</a>
-                  <button id="id_load" class="btn btn-primary" hidden type="submit"><i class="bi bi-upload"></i> Load</button>
+                  <a class="btn btn-secondary" id="id_cancel" href="{% url 'repository-list' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+                  <button class="btn btn-primary" id="id_load" type="submit" hidden><i class="bi bi-upload"></i> Load</button>
                 </div>
               </form>
             </div>

@@ -27,6 +27,12 @@ __all__ = [
     "Condition",
     "ConditionField",
     "BatchJobProperties",
+    "DEFAULT_TASK_ID",
+    "DEFAULT_TABLE_ID",
+    "DEFAULT_WRITE_DISPOSITION_ID",
+    "DEFAULT_LOGIC_OPERATOR_ID",
+    "DEFAULT_OPERATOR_ID",
+    "DEFAULT_JOIN_ID",
 ]
 
 User = settings.AUTH_USER_MODEL

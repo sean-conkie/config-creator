@@ -19,13 +19,13 @@
                 {% for repo in repositories %}
                   <tr>
                     <td>{{ repo.name }}</td>
-                    <td><a href="{% url 'repository-pull' pk=repo.id %}" class="btn btn-secondary" aria-current="page" title="Pull from repository" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fa-solid fa-code-pull-request"></i></a></td>
+                    <td><a class="btn btn-secondary" href="{% url 'repository-pull' pk=repo.id %}" title="Pull from repository" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fa-solid fa-code-pull-request"></i></a></td>
                   </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
-          <button class="btn btn-primary " type="button" data-bs-toggle="modal" data-bs-target="#changeForm"><i class="fa-solid fa-code-pull-request"></i> Pull from new repository</button>
+          <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#changeForm"><i class="fa-solid fa-code-pull-request"></i> Pull from new repository</button>
         </div>
 
         <div class="modal" id="changeForm" tabindex="-1">
@@ -33,7 +33,7 @@
             <div class="modal-content">
               <div class="modal-header">
                 <h5 class="modal-title">Add new repository</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button  class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
               <form action="{% url 'repository-pull-new' %}" method="POST">
                 {% csrf_token %}
@@ -41,16 +41,14 @@
                   <div class="row g-3">
                     <div class="col-12">
                       <div class="form-floating">
-                        <input class="form-control" type="text" name="name" maxlength="250" required="" id="id_name" 
-                        {% if form.name.value == None %} value="" {% else %} value="{{form.name.value}} {% endif %}">
+                        <input class="form-control" id="id_name" name="name" type="text" maxlength="250" />
                         <label for="id_name">Repository Name</label>
                       </div>
                     </div>
             
                     <div class="col-12">
                       <div class="form-floating">
-                        <input class="form-control" type="text" name="url" maxlength="250" id="id_url" 
-                        {% if form.url.value == None %} value="" {% else %} value="{{form.url.value}} {% endif %}">
+                        <input class="form-control" id="id_url" name="url" type="text" maxlength="250" />
                         <label for="id_url">Repository URL</label>
                       </div>
                     </div>
@@ -58,8 +56,8 @@
                   </div>
                 </div> 
                 <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancel</button>
-                  <button type="submit" class="btn btn-primary"><i class="fa-solid fa-code-pull-request"></i> Pull</button>
+                  <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancel</button>
+                  <button class="btn btn-primary" type="submit" ><i class="fa-solid fa-code-pull-request"></i> Pull</button>
                 </div>
               </form>
             </div>

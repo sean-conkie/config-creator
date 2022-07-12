@@ -18,7 +18,7 @@ from .forms import (
 from .models import *
 from accounts.models import GitRepository
 from django.contrib import messages
-from django.core.files.uploadhandler import TemporaryFileUploadHandler
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
@@ -291,9 +291,21 @@ def jobdeleteview(request, pk):
     else:
         return render(
             request,
-            "core/job_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-delete",
+                    kwargs={
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "pk": pk,
+                    },
+                ),
+                "object": "job",
             },
         )
 
@@ -361,10 +373,22 @@ def jobtaskdeleteview(request, job_id, pk):
     else:
         return render(
             request,
-            "core/jobtask_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-tasks",
+                    kwargs={
+                        "job_id": job_id,
+                    },
+                ),
+                "object": "task",
             },
         )
 
@@ -555,11 +579,24 @@ def fielddeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/field_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-field-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "field",
             },
         )
 
@@ -629,24 +666,6 @@ def editjoinview(request, job_id, task_id, pk=None):
         )
 
 
-def joinview(request, job_id, task_id, pk):
-
-    join = Join.objects.select_related().get(id=pk)
-    job = Job.objects.get(id=job_id)
-    task = JobTask.objects.get(id=task_id)
-
-    return render(
-        request,
-        "core/join.html",
-        {
-            "join": join,
-            "task": task,
-            "job": job,
-            "field_id": pk,
-        },
-    )
-
-
 def joindeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
         try:
@@ -667,11 +686,24 @@ def joindeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/condition_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-join-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "join",
             },
         )
 
@@ -760,11 +792,24 @@ def conditiondeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/condition_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-where-condition-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "condition",
             },
         )
 
@@ -875,11 +920,24 @@ def deltadeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/delta_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-delta-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "delta condition",
             },
         )
 
@@ -943,11 +1001,24 @@ def dependencydeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/dependency_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-dependency-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "dependency",
             },
         )
 

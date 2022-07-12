@@ -5,7 +5,7 @@
         Predecessors
       </button>
     </div>
-    <div id="collapse-dependency" class="accordion-collapse collapse" aria-labelledby="heading-dependency">
+    <div class="accordion-collapse collapse" id="collapse-dependency" aria-labelledby="heading-dependency">
       <div class="row g-3 py-3">
         
         <table class="table table-striped table-hover align-middle">
@@ -26,14 +26,14 @@
                 <td>{{ dependency.predecessor.type }}</td>
                 <td>{{ dependency.predecessor.description }}</td>
                 <td>{{ dependency.predecessor.lastupdate }}</td>
-                <td class="btn-column"><a href="{% url 'job-task' job_id=job.id pk=task.predecessor.id dependency_id=dependency.id task_id=task_id %}" class="btn btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-                <td class="btn-column"><a href="{% url 'job-task-dependency-delete' job_id=job.id task_id=task_id pk=dependency.id %}" class="btn btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+                <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.predecessor.id dependency_id=dependency.id task_id=task_id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+                <td class="btn-column"><a class="btn btn-danger" href="{% url 'job-task-dependency-delete' job_id=job.id task_id=task_id pk=dependency.id %}" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
         <div class="col-md-4 col-lg-3">
-          <a href="{% url 'job-task-dependency-add' job_id=job.id task_id=task.id %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Predecessor</a> 
+          <a class="btn btn-primary" type="button" href="{% url 'job-task-dependency-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Predecessor</a> 
         </div>
       </div>
     </div>
