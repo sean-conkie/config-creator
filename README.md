@@ -10,3 +10,6 @@ Web app to create and update JSON config files which define datawarehouse tables
 ## Resources
 ### DJango
 [User Model](https://www.codingforentrepreneurs.com/blog/how-to-create-a-custom-django-user-model)
+
+### Web (CSS, HTML, JavaScript)
+[Table Drag & Drop] (https://www.therogerlab.com/sandbox/pages/how-to-reorder-table-rows-in-javascript?s=0ea4985d74a189e8b7b547976e7192ae.4122809346f6a15e41c9a43f6fcb5fd5)
