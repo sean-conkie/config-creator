@@ -188,8 +188,8 @@ def get_database_schema(
     client = None
     query = None
     if connection.get("connection_type") == ConnectionType.BIGQUERY:
-        client = IBQClient(connection)
-        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection}.`region-eu`.INFORMATION_SCHEMA.COLUMNS where table_schema = '{database}' order by 2, 5"
+        client = IBQClient(connection.get("connection_string"))
+        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
         query = {
@@ -240,8 +240,8 @@ def get_table(
     client = None
     query = None
     if connection.get("connection_type") == ConnectionType.BIGQUERY:
-        client = IBQClient(connection)
-        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection}.`region-eu`.INFORMATION_SCHEMA.COLUMNS where table_schema = '{database}' and table_name = '{table_name}' order by 2, 5"
+        client = IBQClient(connection.get("connection_string"))
+        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{table_name}' order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
         query = {

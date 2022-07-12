@@ -13,15 +13,19 @@ from .forms import (
     JobTaskForm,
     JoinForm,
     UploadFileForm,
+    str_to_form,
 )
 from .models import *
 from accounts.models import GitRepository
 from django.contrib import messages
-from django.core.files.uploadhandler import TemporaryFileUploadHandler
+from django.db.models import Q
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from lib.file_helper import file_upload
+from lib.helper import safe_dict
+
+from .models import str_to_class
 
 # region core views
 def index(request):
@@ -190,13 +194,26 @@ def editjobview(request, pk=None):
         else:
             job = Job()
 
-        job.name = request.POST["name"]
-        job.description = request.POST["description"]
-        job.properties = request.POST["properties"]
-        job.type = JobType.objects.get(id=request.POST["type"])
+        job.name = request.POST.get("name")
+        job.description = request.POST.get("description")
+        job.properties = request.POST.get("properties")
+        job.type = JobType.objects.get(id=request.POST.get("type"))
         job.createdby = request.user
         job.updatedby = request.user
         job.save()
+
+        property_object = job.get_property_object()
+
+        if property_object:
+            return redirect(
+                reverse(
+                    "job-property-add",
+                    kwargs={
+                        "job_id": job.id,
+                    },
+                ),
+            )
+
         return redirect(
             reverse(
                 "job-tasks",
@@ -222,6 +239,42 @@ def editjobview(request, pk=None):
         )
 
 
+def editjobproperty(request, job_id, pk=None):
+    job = Job.objects.select_related().get(id=job_id)
+    form = str_to_form(f"{job.get_property_object().__class__.__name__}Form")
+
+    if request.method == "POST":
+        return_form = form(request.POST)
+        return_form.instance.job_id = job_id
+        if pk:
+            return_form.instance.id = pk
+        if return_form.is_valid():
+            return_form.save()
+            return redirect(
+                reverse(
+                    "job-tasks",
+                    kwargs={
+                        "job_id": job.id,
+                    },
+                ),
+            )
+    else:
+        if pk:
+            edit_form = form(instance=job.get_property_object())
+        else:
+            edit_form = form()
+
+        return render(
+            request,
+            "core/job_property_form.html",
+            {
+                "form": edit_form,
+                "job_id": job.id,
+                "pk": pk,
+            },
+        )
+
+
 def jobdeleteview(request, pk):
     if request.method == "POST":
         try:
@@ -238,9 +291,21 @@ def jobdeleteview(request, pk):
     else:
         return render(
             request,
-            "core/job_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-delete",
+                    kwargs={
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "pk": pk,
+                    },
+                ),
+                "object": "job",
             },
         )
 
@@ -259,9 +324,7 @@ def jobdownload(request, pk):
     filecontent = get_filecontent(pk)
     c = json.dumps(filecontent, indent=2).encode("utf-8")
 
-    # file = tempfile.NamedTemporaryFile(suffix=".json")
-    # file.write(c)
-    file_name = f"{filecontent.get('name', 'config')}.json"
+    file_name = f"cfg_{filecontent.get('name', 'config')}.json"
     mime_type, _ = mimetypes.guess_type(file_name)
     response = HttpResponse(c, content_type=mime_type)
     response["Content-Disposition"] = "attachment; filename=%s" % file_name
@@ -273,8 +336,15 @@ def jobdownload(request, pk):
 # region task views
 def jobtasksview(request, job_id):
     job = Job.objects.select_related().get(id=job_id)
+    properties = safe_dict(job.get_property_object().__dict__)
     context = {
         "job": job,
+        "properties": [
+            {k: properties.get(k)}
+            for k in properties.keys()
+            if k not in ["_state", "id", "job_id"]
+        ],
+        "property_id": properties.get("id"),
         "tasks": JobTask.objects.select_related().filter(job=job),
     }
     return render(
@@ -303,10 +373,22 @@ def jobtaskdeleteview(request, job_id, pk):
     else:
         return render(
             request,
-            "core/jobtask_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-tasks",
+                    kwargs={
+                        "job_id": job_id,
+                    },
+                ),
+                "object": "task",
             },
         )
 
@@ -497,11 +579,24 @@ def fielddeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/field_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-field-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "field",
             },
         )
 
@@ -571,24 +666,6 @@ def editjoinview(request, job_id, task_id, pk=None):
         )
 
 
-def joinview(request, job_id, task_id, pk):
-
-    join = Join.objects.select_related().get(id=pk)
-    job = Job.objects.get(id=job_id)
-    task = JobTask.objects.get(id=task_id)
-
-    return render(
-        request,
-        "core/join.html",
-        {
-            "join": join,
-            "task": task,
-            "job": job,
-            "field_id": pk,
-        },
-    )
-
-
 def joindeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
         try:
@@ -609,11 +686,24 @@ def joindeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/condition_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-join-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "join",
             },
         )
 
@@ -702,11 +792,24 @@ def conditiondeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/condition_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-where-condition-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "condition",
             },
         )
 
@@ -817,11 +920,24 @@ def deltadeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/delta_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-delta-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "delta condition",
             },
         )
 
@@ -885,11 +1001,24 @@ def dependencydeleteview(request, job_id, task_id, pk):
     else:
         return render(
             request,
-            "core/dependency_confirm_delete.html",
+            "core/confirm_delete.html",
             {
-                "job_id": job_id,
-                "task_id": task_id,
-                "pk": pk,
+                "delete_url": reverse(
+                    "job-task-dependency-delete",
+                    kwargs={
+                        "job_id": job_id,
+                        "task_id": task_id,
+                        "pk": pk,
+                    },
+                ),
+                "return_url": reverse(
+                    "job-task",
+                    kwargs={
+                        "job_id": job_id,
+                        "pk": task_id,
+                    },
+                ),
+                "object": "dependency",
             },
         )
 
@@ -1210,8 +1339,7 @@ def get_filecontent(pk: int) -> dict:
       A dictionary with the job name, description, type, properties, and tasks.
     """
     job = Job.objects.select_related().get(id=pk)
-    if job.properties and job.properties != "":
-        job_properties = json.loads(job.properties)
+    job_properties = job.get_property_object().__dict__
 
     tasks = JobTask.objects.select_related().filter(job=job)
 
@@ -1220,13 +1348,20 @@ def get_filecontent(pk: int) -> dict:
         t = {
             "task_id": task.name,
             "operator": task.type.code,
+            "description": task.description,
             "parameters": json.loads(
                 task.properties
-                if task.properties != "" and not task.properties is None
+                if task.properties in ["", "null", "None"]
+                and not task.properties is None
                 else "{}"
             ),
             "description": job.description,
-            "dependencies": [],
+            "dependencies": [
+                dependant.name
+                for dependant in Dependency.objects.select_related().filter(
+                    dependant_id=task.id
+                )
+            ],
         }
 
         params = t["parameters"]
@@ -1283,13 +1418,7 @@ def get_filecontent(pk: int) -> dict:
         params["driving_table"] = task.driving_table
         params["staging_dataset"] = task.staging_dataset
         params["target_type"] = task.table_type.code
-
-        dependencies = [
-            dependant.name
-            for dependant in Dependency.objects.select_related().filter(
-                dependant_id=task.id
-            )
-        ]
+        params["block_data_check"] = True
 
         task_list.append(t)
 
@@ -1297,7 +1426,11 @@ def get_filecontent(pk: int) -> dict:
         "name": job.name,
         "description": job.description,
         "type": job.type.code,
-        "properties": job_properties,
+        "properties": {
+            k: job_properties.get(k)
+            for k in job_properties.keys()
+            if k not in ["_state", "id", "job_id"]
+        },
         "tasks": task_list,
     }
 

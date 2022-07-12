@@ -28,4 +28,14 @@ urlpatterns = [
         login_required(jobdownload),
         name="job-download",
     ),
+    path(
+        "<int:job_id>/property/",
+        login_required(editjobproperty),
+        name="job-property-add",
+    ),
+    path(
+        "<int:job_id>/property/<int:pk>/",
+        login_required(editjobproperty),
+        name="job-property-update",
+    ),
 ]

@@ -5,7 +5,7 @@
         Delta Load Condition
       </button>
     </div>
-    <div id="collapse-delta" class="accordion-collapse collapse" aria-labelledby="heading-delta">
+    <div class="accordion-collapse collapse" id="collapse-delta" aria-labelledby="heading-delta">
       <div class="row g-3 py-3">
         <div class="row g-3 py-1">
           <div class="col-lg-12 col-md-12">
@@ -22,8 +22,8 @@
                   {% for d in delta %}
                     <tr>
                       <td class="lead">select records where {{ d.field }} is {% if d.upper_bound != None and d.upper_bound > 0 %}between{% else %}greater than or equal to{% endif %} {{ d.lower_bound }} {% if d.upper_bound != None and d.upper_bound > 0 %} and {{ d.lower_bound }} plus {{d.upper_bound}}{% endif %}</td>
-                      <td class="btn-column"><a href="{% url 'job-task-delta-update' job_id=job.id task_id=task.id pk=d.id %}" class="btn btn-secondary" aria-current="page" title="Edit" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
-                      <td class="btn-column"><a href="{% url 'job-task-delta-delete' job_id=job.id task_id=task.id pk=d.id %}" class="btn btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+                      <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task-delta-update' job_id=job.id task_id=task.id pk=d.id %}" title="Edit" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
+                      <td class="btn-column"><a class="btn btn-danger" href="{% url 'job-task-delta-delete' job_id=job.id task_id=task.id pk=d.id %}" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
                     </tr>
                   {% endfor %}
                 </tbody>
@@ -32,7 +32,7 @@
           </div>
           {% if delta|length == 0 %}
             <div class="col-md-4 col-lg-3">
-              <a href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Delta Condition</a> 
+              <a class="btn btn-primary" type="button" href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Delta Condition</a> 
             </div>
           {% endif %}
         </div>

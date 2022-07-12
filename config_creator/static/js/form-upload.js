@@ -4,9 +4,9 @@ const labels = document.getElementsByTagName('label')
 console.log(labels)
 for (let i = 0; i < labels.length; i++) {
   console.log(i + ':' + labels.length)
-  if (labels[i].htmlFor != '' && labels[i].id != 'file-label') { labels[i].remove() }
+  if (labels[i].htmlFor !== '' && labels[i].id !== 'file-label') { labels[i].remove() }
   i--
-  if (labels.length == 1) { break }
+  if (labels.length === 1) { break }
   // labels[i].setAttribute("hidden", true);
 }
 
@@ -23,17 +23,11 @@ for (let i = 0; i < labels.length; i++) {
   Array.prototype.forEach.call(forms, function (form) {
     const input = form.querySelector('input[type="file"]')
     const label = form.querySelector('label')
-    const errorMsg = form.querySelector('.box__error span')
     const restart = form.querySelectorAll('.box__restart')
     let droppedFiles = false
     const showFiles = function (files) {
       label.textContent = files.length > 1 ? (input.getAttribute('data-multiple-caption') || '').replace('{count}', files.length) : files[0].name
       document.getElementById('id_title').value = files[0].name
-    }
-    const triggerFormSubmit = function () {
-      const event = document.createEvent('HTMLEvents')
-      event.initEvent('submit', true, false)
-      form.dispatchEvent(event)
     }
 
     // automatically submit the form on file select

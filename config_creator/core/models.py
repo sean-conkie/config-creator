@@ -1,7 +1,39 @@
+import sys
+
 from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
+
+__all__ = [
+    "JobType",
+    "TaskType",
+    "TableType",
+    "WriteDisposition",
+    "LogicOperator",
+    "Operator",
+    "JoinType",
+    "JobToTaskType",
+    "Job",
+    "JobTask",
+    "History",
+    "Field",
+    "Dependency",
+    "DrivingColumn",
+    "Partition",
+    "HistoryOrder",
+    "Delta",
+    "Join",
+    "Condition",
+    "ConditionField",
+    "BatchJobProperties",
+    "DEFAULT_TASK_ID",
+    "DEFAULT_TABLE_ID",
+    "DEFAULT_WRITE_DISPOSITION_ID",
+    "DEFAULT_LOGIC_OPERATOR_ID",
+    "DEFAULT_OPERATOR_ID",
+    "DEFAULT_JOIN_ID",
+]
 
 User = settings.AUTH_USER_MODEL
 
@@ -194,7 +226,33 @@ class Job(models.Model):
         return self.name
 
     def get_absolute_url(self):
+        """
+        It returns the URL of the job detail page for the job with the primary key of self.id.
+
+        Returns:
+          The url for the job-change page.
+        """
         return reverse("job-change", kwargs={"pk": self.id})
+
+    def get_property_object(self):
+        """
+        It takes a job object, and returns the job's properties object
+
+        Returns:
+          The property object for the job.
+        """
+        property_class = str_to_class(f"{self.type.code.title()}JobProperties")
+        if property_class:
+            if property_class.objects.filter(job_id=self.id).exists():
+                return property_class.objects.filter(
+                    job_id=self.id,
+                )[0]
+            else:
+                return property_class(
+                    job_id=self.id,
+                )
+
+        return None
 
 
 class JobTask(models.Model):
@@ -463,3 +521,99 @@ class ConditionField(models.Model):
     condition = models.OneToOneField(
         Condition, on_delete=models.CASCADE, null=False, blank=False
     )
+
+
+class BaseJobProperties(models.Model):
+    job = models.OneToOneField(
+        to=Job,
+        on_delete=models.CASCADE,
+        unique=True,
+    )
+    dataset_source = models.CharField(
+        verbose_name="Source Dataset",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+        help_text="default value for all tasks in this job",
+    )
+    dataset_staging = models.CharField(
+        verbose_name="Staging Dataset",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+        help_text="Default value for all tasks in this job",
+    )
+    dataset_publish = models.CharField(
+        verbose_name="Target Dataset",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+        help_text="Default value for all tasks in this job",
+    )
+
+    class Meta:
+        abstract = True
+
+
+class BatchJobProperties(BaseJobProperties):
+    prefix = models.CharField(
+        verbose_name="Script Name Prefix",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+        help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
+    )
+
+
+class DagJobProperties(BaseJobProperties):
+    tags = models.CharField(
+        verbose_name="Job Tags",
+        max_length=255,
+        unique=False,
+        blank=True,
+        null=True,
+        help_text="Enter tags for the job, seperated by a semi-colon ';'",
+    )
+    owner = models.CharField(
+        verbose_name="Job Owner",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+    )
+    email = models.CharField(
+        verbose_name="Email",
+        max_length=255,
+        unique=False,
+        blank=True,
+        null=True,
+        help_text="Enter email address for the job to contact, seperated by a semi-colon ';'",
+    )
+    imports = models.CharField(
+        verbose_name="Imports",
+        max_length=255,
+        unique=False,
+        blank=True,
+        null=True,
+        help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
+    )
+
+
+def str_to_class(classname):
+    """
+    It takes a string and returns the class object that the string represents
+
+    Args:
+      classname: The name of the class you want to instantiate.
+
+    Returns:
+      The class object of the classname string.
+    """
+    try:
+        return getattr(sys.modules[__name__], classname)
+    except AttributeError:
+        return None

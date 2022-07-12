@@ -1,6 +1,31 @@
-from .models import *
+import sys
+
+from .models import (
+    Job,
+    JobTask,
+    Field,
+    Join,
+    Condition,
+    Delta,
+    Dependency,
+    BatchJobProperties,
+    DagJobProperties,
+)
 from django import forms
 from django.core.exceptions import ValidationError
+
+__all__ = [
+    "UploadFileForm",
+    "JobTaskForm",
+    "FieldForm",
+    "JoinForm",
+    "ConditionForm",
+    "DeltaForm",
+    "DependencyForm",
+    "JobForm",
+    "BatchJobPropertiesForm",
+    "DagJobPropertiesForm",
+]
 
 
 def validate_file_extension(value):
@@ -94,6 +119,46 @@ class JobForm(forms.ModelForm):
             "name",
             "type",
             "description",
-            "properties",
             "id",
         ]
+
+
+class BatchJobPropertiesForm(forms.ModelForm):
+    class Meta:
+        model = BatchJobProperties
+        fields = [
+            "prefix",
+            "dataset_source",
+            "dataset_staging",
+            "dataset_publish",
+        ]
+
+
+class DagJobPropertiesForm(forms.ModelForm):
+    class Meta:
+        model = DagJobProperties
+        fields = [
+            "dataset_source",
+            "dataset_staging",
+            "dataset_publish",
+            "owner",
+            "email",
+            "tags",
+            "imports",
+        ]
+
+
+def str_to_form(formname):
+    """
+    It takes a string and returns a form
+
+    Args:
+      formname: The name of the form to be loaded.
+
+    Returns:
+      The form object.
+    """
+    try:
+        return getattr(sys.modules[__name__], formname)
+    except AttributeError:
+        return None

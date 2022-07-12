@@ -1,7 +1,6 @@
-{% extends 'core_base.html' %}
+{% extends 'base.html' %}
 {% block title %}Job Tasks{% endblock %}
-{% block core-content %}
-{% load static %}
+{% block content %}
 <div class="container">
   <div class="py-5 text-center">
     <h2>Jobs</h2>
@@ -27,16 +26,16 @@
             <td>{{ job.type }}</td>
             <td>{{ job.description }}</td>
             <td>{{ job.lastupdate }}</td>
-            <td class="btn-column"><a href="{% url 'job-tasks' job_id=job.id %}" class="btn btn-secondary" aria-current="page" title="View" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-            <td class="btn-column"><a href="{% url 'job-download' pk=job.id %}" class="btn btn-info" aria-current="page" title="Download" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
-            <td class="btn-column"><a href="{% url 'job-delete' pk=job.id %}" class="btn btn-danger" aria-current="page" title="Delete" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+            <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-tasks' job_id=job.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+            <td class="btn-column"><a class="btn btn-info" href="{% url 'job-download' pk=job.id %}" title="Download" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
+            <td class="btn-column"><a class="btn btn-danger" href="{% url 'job-delete' pk=job.id %}" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
           </tr>
         {% endfor %}
       </tbody>
     </table>
   </div>  
   <div class="col-md-4 col-lg-3">
-    <a href="{% url 'job-add' %}" class="btn btn-primary " type="button"><i class="bi bi-plus"></i> Add Job</a> 
+    <a class="btn btn-primary" type="button" href="{% url 'job-add' %}" title=""><i class="bi bi-plus"></i> Add Job</a> 
   </div>
 </div>
 {% endblock %}

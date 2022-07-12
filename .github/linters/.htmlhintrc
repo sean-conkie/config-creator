@@ -31,6 +31,6 @@
   "inline-script-disabled":false,
   "inline-style-disabled":false,
   "space-tab-mixed-disabled":true,
-  "spec-char-escape":true
+  "spec-char-escape":false
 
 }

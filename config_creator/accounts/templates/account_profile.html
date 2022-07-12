@@ -3,19 +3,7 @@
 
 
 {% block content %}
-  <style>
-    main {
-      display: flex;
-      flex-wrap: nowrap;
-      height: 100vh;
-      max-height: 100vh;
-      overflow-x: auto;
-      overflow-y: hidden;
-    }</style>
-  <main>
-    {% include "account_nav.html" %}
       <div class="container">
-        {% block profile %}
         <div class="py-5 text-center">
           <h2>User Profile</h2>
           <p class="lead">View or change your user data.</p>
@@ -62,7 +50,5 @@
           </div>  
           
         </form>
-        {% endblock %}
       </div>
-  </main>
 {% endblock %}

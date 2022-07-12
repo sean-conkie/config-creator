@@ -1,7 +1,8 @@
 {% extends "account_base.html" %}
 
 {% block title %}User Connections{% endblock %}
-{% block profile %}
+{% block content %}
+      <div class="container">
 <style>
   svg {
     max-width: 150px;
@@ -53,4 +54,5 @@
 </div>
 <a class="btn btn-primary"  type="button" href="{% url 'connection-add' %}" title=""><i class="bi bi-plus"></i> Add
   Connection</a>
+</div>
 {% endblock %}

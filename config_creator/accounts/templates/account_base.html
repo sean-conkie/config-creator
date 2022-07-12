@@ -1,15 +1,6 @@
-{% extends "base.html" %}
-
-
+{% extends 'base.html' %}
+{% block nav %}
+  {% include "account_nav.html" %}
+{% endblock %}
 {% block content %}
-  <main>
-    {% include "account_nav.html" %}
-      <div class="container">
-        {% block profile %}        
-        {% endblock %}
-      </div>
-    </div>
-  </main>
-  <div class="container-fluid">
-  {% include "./footer.html" %}
 {% endblock %}

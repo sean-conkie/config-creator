@@ -1,18 +1,18 @@
-{% extends "core_base.html" %}
-{% block title %}Delete Condition{% endblock %}
+{% extends "base.html" %}
+{% block title %}Delete{% endblock %}
 
-{% block core-content %}    
+{% block content %}    
 <div class="container">
   <div class="row g-5">
     <div class="col-md-12 col-lg-12">
       <div class="row g-3">
-        <form
-         {% block form-action %}action="."{% endblock %}
-         method="post">
+        {% block form-action %}
+        <form action="{{delete_url}}" method="post">
+        {% endblock %}
           {% csrf_token %}
           <div class="py-5 text-center">
             <h2>Are you sure?</h2>
-            <p class="lead">Are you sure you want to delete the {% block object %}object{% endblock %}?</p>
+            <p class="lead">Are you sure you want to delete the {% block object %}{{object}}{% endblock %}?</p>
           </div>
           <input name="action" type="hidden" value="cancel" />
 
@@ -22,7 +22,9 @@
                 <button class="w-100 btn btn-danger" type="submit">Yes, I'm sure</button>
               </div>
               <div class="col-md-4 col-lg-3 py-5">
-                <a {% block return-url %}href=""{% endblock %} class="w-100 btn btn-secondary">No, take me back</a>
+                {% block return-url %}
+                <a class="w-100 btn btn-secondary" href="{{return_url}}" title="">No, take me back</a>
+                {% endblock %}
               </div>
             </div>
           </div>

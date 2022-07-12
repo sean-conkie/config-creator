@@ -1,6 +1,6 @@
-{% extends 'core_base.html' %}
+{% extends 'base.html' %}
 {% block title %}Change Task{% endblock %}
-{% block core-content %}
+{% block content %}
 {% load static %}
 <div class="container">
   <div class="py-5 text-center">
@@ -113,7 +113,6 @@
     
   </form>
   
-  {{ connections }}  
   <script src="/static/js/lazy-listener.js" ></script>
   <script>
     let ta = document.getElementById("id_properties");

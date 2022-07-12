@@ -1,6 +1,6 @@
-{% extends 'core_base.html' %}
+{% extends 'base.html' %}
 {% block title %}Change Join{% endblock %}
-{% block core-content %}
+{% block content %}
 {% load static %}
 <div class="container">
   <div class="py-5 text-center">
@@ -11,8 +11,11 @@
     {% csrf_token %}
     <div class="row g-5">
       <div class="col-md-7 col-lg-8">
-        <input hidden {% if join_id != None %} value="{{ join_id }}" {% endif %} name="id" id="id_id">
-        <input hidden value="return" name="action" id="id_action">
+        {% if join_id != None %} 
+          <input id="id_id" name="id" value="{{ join_id }}" hidden />
+        {% else %}
+          <input id="id_empty_id" name="id" hidden />
+        {% endif %}
         <div class="row g-3">
           <div class="lead">Join Details</div>
           <div class="col-sm-6">
@@ -25,22 +28,26 @@
         <div class="row g-3 py-3">
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_destination_dataset_tree" onclick="setReturnType('table', null, null, '{{ form.left.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_left_dataset_tree" type="button" onclick="setReturnType('table', null, null, '{{ form.left.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
-                <input type="text" class="form-control" name="left" maxlength="255" id="{{ form.left.id_for_label }}" 
-                {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.left.help_text }}" {% endif %}
-                {% if form.left.value != None %} value="{{ form.left.value }}" {% endif %}>
+                {% if form.left.value != None %}
+                <input class="form-control" id="{{ form.left.id_for_label }}" name="left" type="text" value="{{ form.left.value }}" maxlength="255" />
+                {% else %}
+                <input class="form-control" id="{{ form.left.id_for_label }}_empty" name="left" type="text" maxlength="255" />
+                 {% endif %} 
                 {{ form.left.label_tag }}
               </div>
             </div>
           </div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" type="button" id="id_destination_dataset_tree" onclick="setReturnType('table', null, null, '{{ form.right.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_right_dataset_tree" type="button" onclick="setReturnType('table', null, null, '{{ form.right.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
-                <input type="text" class="form-control" name="right" maxlength="255" required="" id="{{ form.right.id_for_label }}" 
-                {% if form.source_column.help_text != "" %}  data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ form.right.help_text }}" {% endif %}
-                {% if form.right.value != None %} value="{{ form.right.value }}" {% endif %}>
+                {% if form.right.value != None %}
+                <input class="form-control" id="{{ form.right.id_for_label }}" name="right" type="text" value="{{ form.left.value }}" maxlength="255" />
+                {% else %}
+                <input class="form-control" id="{{ form.right.id_for_label }}_empty" name="right" type="text" maxlength="255" />
+                 {% endif %} 
                 {{ form.right.label_tag }}
               </div>
             </div>
@@ -52,15 +59,16 @@
           <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
         </div>
         <div class="row g-3 py-3">
-          <a {% if field_id != None %} href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field_id %}" {% else %} href="{% url 'job-task' job_id=job.id pk=task.id %}" {% endif %} class="w-100 btn  btn-secondary"><i class="bi bi-x-lg"></i> Cancel</a>
+          {% if field_id != None %}
+           <a class="w-100 btn btn-secondary" href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field_id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+          {% else %}
+            <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+          {% endif %}
         </div>
       </div>
     </div>  
     
   </form>
-  <script>
-    document.getElementById("{{form.type.id_for_label}}").classList.add("form-select");
-  </script>
   {% include 'core/connection_selector.html' %}
 </div>
 {% endblock %}

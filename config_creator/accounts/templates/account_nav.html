@@ -2,30 +2,30 @@
     {% include "logo.html" %}
     <ul class="nav nav-pills nav-flush flex-column mb-auto text-center">
       <li class="nav-item">
-        <a href="{% url 'home' %}" class="nav-link py-3 border-bottom link-dark" aria-current="page" title="Home" data-bs-toggle="tooltip" data-bs-placement="right">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-house-door-fill" viewBox="0 0 16 16">
+        <a class="nav-link py-3 border-bottom link-dark" href="{% url 'home' %}" title="Home" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right">
+          <svg class="bi bi-house-door-fill" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
             <path d="M6.5 14.5v-3.505c0-.245.25-.495.5-.495h2c.25 0 .5.25.5.5v3.5a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5v-7a.5.5 0 0 0-.146-.354L13 5.793V2.5a.5.5 0 0 0-.5-.5h-1a.5.5 0 0 0-.5.5v1.293L8.354 1.146a.5.5 0 0 0-.708 0l-6 6A.5.5 0 0 0 1.5 7.5v7a.5.5 0 0 0 .5.5h4a.5.5 0 0 0 .5-.5z"/>
           </svg>
         </a>
       </li>
       <li class="nav-item">
-        <a href="{% url 'profile' %}" class="nav-link py-3 border-bottom link-dark" aria-current="page" title="Your Profile" data-bs-toggle="tooltip" data-bs-placement="right">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-person-rolodex" viewBox="0 0 16 16">
+        <a class="nav-link py-3 border-bottom link-dark" href="{% url 'profile' %}" title="Your Profile" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right">
+          <svg class="bi bi-person-rolodex" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
             <path d="M8 9.05a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/>
             <path d="M1 1a1 1 0 0 0-1 1v11a1 1 0 0 0 1 1h.5a.5.5 0 0 0 .5-.5.5.5 0 0 1 1 0 .5.5 0 0 0 .5.5h9a.5.5 0 0 0 .5-.5.5.5 0 0 1 1 0 .5.5 0 0 0 .5.5h.5a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1H6.707L6 1.293A1 1 0 0 0 5.293 1H1Zm0 1h4.293L6 2.707A1 1 0 0 0 6.707 3H15v10h-.085a1.5 1.5 0 0 0-2.4-.63C11.885 11.223 10.554 10 8 10c-2.555 0-3.886 1.224-4.514 2.37a1.5 1.5 0 0 0-2.4.63H1V2Z"/>
           </svg>
         </a>
       </li>
       <li class="nav-item">
-        <a href="{% url 'repositories' %}" class="nav-link py-3 border-bottom link-dark" aria-current="page" title="Your Repositories" data-bs-toggle="tooltip" data-bs-placement="right">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-git" viewBox="0 0 16 16">
+        <a class="nav-link py-3 border-bottom link-dark" href="{% url 'repositories' %}" title="Your Repositories" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right">
+          <svg class="bi bi-git" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
             <path d="M15.698 7.287 8.712.302a1.03 1.03 0 0 0-1.457 0l-1.45 1.45 1.84 1.84a1.223 1.223 0 0 1 1.55 1.56l1.773 1.774a1.224 1.224 0 0 1 1.267 2.025 1.226 1.226 0 0 1-2.002-1.334L8.58 5.963v4.353a1.226 1.226 0 1 1-1.008-.036V5.887a1.226 1.226 0 0 1-.666-1.608L5.093 2.465l-4.79 4.79a1.03 1.03 0 0 0 0 1.457l6.986 6.986a1.03 1.03 0 0 0 1.457 0l6.953-6.953a1.031 1.031 0 0 0 0-1.457"/>
           </svg>
         </a>
       </li>
       <li class="nav-item">
-        <a href="{% url 'connections' %}" class="nav-link py-3 border-bottom link-dark" aria-current="page" title="Your Connections" data-bs-toggle="tooltip" data-bs-placement="right">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" class="bi bi-server" viewBox="0 0 16 16">
+        <a class="nav-link py-3 border-bottom link-dark" href="{% url 'connections' %}" title="Your Connections" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right">
+          <svg class="bi bi-server" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 16 16">
             <path d="M1.333 2.667C1.333 1.194 4.318 0 8 0s6.667 1.194 6.667 2.667V4c0 1.473-2.985 2.667-6.667 2.667S1.333 5.473 1.333 4V2.667z"/>
             <path d="M1.333 6.334v3C1.333 10.805 4.318 12 8 12s6.667-1.194 6.667-2.667V6.334a6.51 6.51 0 0 1-1.458.79C11.81 7.684 9.967 8 8 8c-1.966 0-3.809-.317-5.208-.876a6.508 6.508 0 0 1-1.458-.79z"/>
             <path d="M14.667 11.668a6.51 6.51 0 0 1-1.458.789c-1.4.56-3.242.876-5.21.876-1.966 0-3.809-.316-5.208-.876a6.51 6.51 0 0 1-1.458-.79v1.666C1.333 14.806 4.318 16 8 16s6.667-1.194 6.667-2.667v-1.665z"/>
