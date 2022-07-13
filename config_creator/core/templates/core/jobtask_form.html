@@ -37,12 +37,6 @@
               {{form.description.label_tag}}
             </div>
           </div>
-          <div class="col-sm-12">
-            <div class="form-floating">
-              {{form.properties}}
-              {{form.properties.label_tag}}
-            </div>
-          </div>
         </div>
       </div>
       <div class="col-md-4 col-lg-3">
@@ -115,16 +109,11 @@
   
   <script src="/static/js/lazy-listener.js" ></script>
   <script>
-    let ta = document.getElementById("id_properties");
-    let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
-    let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
-    ta.style.height = newHeight + "px";
-
     new Map([
-      ["id_staging_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, '{{form.staging_dataset.id_for_label}}', null, true)", "type": "click"}],
-      ["id_driving_table_tree", {"function": "setReturnType('table', null, null, '{{form.driving_table.id_for_label}}', 'tableFull', null, null, true)", "type": "click"}],
-      ["id_destination_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, '{{form.destination_dataset.id_for_label}}', null, true)", "type": "click"}],
-      ["id_destination_table_tree", {"function": "setReturnType('table', null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', null, true)", "type": "click"}],
+      ["id_staging_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, null, '{{form.staging_dataset.id_for_label}}', null, true)", "type": "click"}],
+      ["id_driving_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.driving_table.id_for_label}}', 'tableFull', null, null, true)", "type": "click"}],
+      ["id_destination_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, null, '{{form.destination_dataset.id_for_label}}', null, true)", "type": "click"}],
+      ["id_destination_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', null, true)", "type": "click"}],
     ]).forEach(addListener);
   </script>
   {% include 'core/connection_selector.html' %}

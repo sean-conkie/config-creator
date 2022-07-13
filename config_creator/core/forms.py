@@ -1,6 +1,7 @@
 import sys
 
 from .models import (
+    BigQueryDataType,
     Job,
     JobTask,
     Field,
@@ -64,6 +65,11 @@ class JobTaskForm(forms.ModelForm):
 
 
 class FieldForm(forms.ModelForm):
+
+    data_type = forms.ModelChoiceField(
+        queryset=BigQueryDataType.objects.order_by("name")
+    )
+
     class Meta:
         model = Field
         fields = [
@@ -72,6 +78,10 @@ class FieldForm(forms.ModelForm):
             "source_name",
             "transformation",
             "is_primary_key",
+            "is_nullable",
+            "position",
+            "data_type",
+            "source_data_type",
         ]
 
 

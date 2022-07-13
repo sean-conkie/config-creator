@@ -390,7 +390,9 @@ def jobtaskdeleteview(request, job_id, pk):
 def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
     task = JobTask.objects.select_related().get(id=pk)
     job = Job.objects.get(id=job_id)
-    fields = Field.objects.filter(task_id=pk, is_source_to_target=True)
+    fields = Field.objects.filter(task_id=pk, is_source_to_target=True).order_by(
+        "position"
+    )
     joins = get_joins(pk)
     where = get_where(pk)
     delta = Delta.objects.select_related().filter(task_id=pk)
@@ -436,7 +438,6 @@ def editjobtaskview(request, job_id, pk=None):
         task.write_disposition = WriteDisposition.objects.get(
             id=request.POST["write_disposition"]
         )
-        task.properties = request.POST["properties"]
         task.staging_dataset = request.POST["staging_dataset"]
         task.type = TaskType.objects.get(id=request.POST["type"])
         task.createdby = request.user
@@ -529,6 +530,7 @@ def editjobtaskproperty(request, job_id, task_id, pk=None):
             },
         )
 
+
 # endregion
 
 # region field views
@@ -539,28 +541,35 @@ def editfieldview(
     pk=None,
 ):
     if request.method == "POST":
-        if request.POST["id"]:
-            field = Field.objects.get(id=request.POST["id"])
-        else:
-            field = Field()
 
-        field.name = request.POST["name"]
-        field.source_name = request.POST["source_name"]
-        field.source_column = request.POST["source_column"]
-        field.transformation = request.POST["transformation"]
-        field.is_primary_key = (
-            True if request.POST.get("is_primary_key", "off") == "on" else False
+        form = FieldForm(
+            request.POST,
         )
-        field.task_id = task_id
         task = JobTask.objects.get(id=task_id)
-        if field.source_name == "":
-            field.source_name = task.driving_table
+        if request.POST.get("source_name", "") == "":
+            form.instance.source_name = task.driving_table
 
-        if field.source_column == "":
-            field.source_column = field.name
+        if request.POST.get("source_column", "") == "":
+            form.instance.source_column = request.POST.get("name", "")
 
-        field.save()
-        messages.success(request, f"{field.name} created successfully.")
+        if pk:
+            message = f"{form.instance.name} updated successfully."
+            form.instance.id = pk
+            original_position = Field.objects.get(id=pk).position
+        else:
+            message = f"{form.instance.name} created successfully."
+            original_position = -1
+
+        form.instance.task_id = task_id
+
+        if form.is_valid():
+            form.save()
+            changefieldposition(
+                Field.objects.get(id=form.instance.id),
+                original_position,
+                form.instance.position,
+            )
+            messages.success(request, message)
 
         if request.POST.get("action") == "return":
             return redirect(
@@ -568,7 +577,7 @@ def editfieldview(
                     "job-task",
                     kwargs={
                         "job_id": job_id,
-                        "pk": field.task_id,
+                        "pk": task_id,
                     },
                 ),
             )
@@ -578,7 +587,7 @@ def editfieldview(
                     "job-task-field-add",
                     kwargs={
                         "job_id": job_id,
-                        "task_id": field.task_id,
+                        "task_id": task_id,
                     },
                 ),
             )
@@ -1390,7 +1399,11 @@ def get_filecontent(pk: int) -> dict:
 
     task_list = []
     for task in tasks:
-        task_properties = safe_dict(task.get_property_object().__dict__)
+        task_properties = (
+            safe_dict(task.get_property_object().__dict__)
+            if task.get_property_object()
+            else {}
+        )
         t = {
             "task_id": task.name,
             "operator": task.type.code,

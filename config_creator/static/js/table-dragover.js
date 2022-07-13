@@ -1,4 +1,5 @@
 let row
+let position
 function start () { // eslint-disable-line no-unused-vars
   row = event.target // eslint-disable-line no-undef
 }
@@ -13,4 +14,7 @@ function dragover () { // eslint-disable-line no-unused-vars
   } else { 
     e.target.parentNode.before(row) 
   }
+
+  e.target.parentNode.dataset["position"] = children.indexOf(e.target.parentNode) + 1
+
 }

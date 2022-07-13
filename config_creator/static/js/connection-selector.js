@@ -55,6 +55,7 @@ function createColumnElement (object, layer) {
   columnName.setAttribute('data-table-name', object.table_name)
   columnName.setAttribute('data-table-full', object.dataset + '.' + object.table_name)
   columnName.setAttribute('data-dataset-name', object.dataset)
+  columnName.setAttribute('data-data-type', object.data_type)
   const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.table_name + '_' + object.column_name
   columnName.setAttribute('id', id)
   const dataType = createElement('td', object.data_type, null, null, null)
@@ -384,6 +385,10 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
   if (selector === 'column' && returnType.column.target) {
     document.getElementById(returnType.column.target).value = element.dataset[returnType.column.type]
     document.getElementById(returnType.column.target).dispatchEvent(new Event('input'))
+    if (returnType.datatype.target) {
+      document.getElementById(returnType.datatype.target).value = element.dataset[returnType.datatype.type]
+      document.getElementById(returnType.datatype.target).dispatchEvent(new Event('input'))
+    }
   }
   if ((selector === 'column' || selector === 'table') && returnType.table.target) {
     document.getElementById(returnType.table.target).value = element.dataset[returnType.table.type]
@@ -400,33 +405,30 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
   bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide() // eslint-disable-line no-undef
 }
 
-/**
- * It sets the return type for the modal
- *
- * Args:
- *   selector: The id of the element that will be populated with the selected value.
- *   columnTarget: The id of the input field where the column name will be placed.
- *   columnType: The type of the column you want to return.
- *   tableTarget: The id of the input field where the table name will be placed.
- *   tableType: The type of the table that the column is in.
- *   datasetTarget: The name of the dataset you want to return the value to.
- *   connectionTarget: The id of the input field where the connection id will be stored.
- *   reLoadModal: If true, the modal will be reloaded with the schema from the selected connection.
- */
-function setReturnType (selector, columnTarget, columnType, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal) { // eslint-disable-line no-unused-vars
+
+function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal) { // eslint-disable-line no-unused-vars
   let datasetType = null
   let connectionType = null
+  let dataType = null
   if (datasetTarget) {
     datasetType = 'datasetName'
   }
   if (connectionTarget) {
     connectionType = 'connectionId'
   }
+  if (dataTypeTarget) {
+    dataType = 'dataType'
+  }
+
   returnType = {
     selector,
     column: {
       target: columnTarget,
       type: columnType
+    },
+    datatype: {
+      target: dataTypeTarget,
+      type: dataType
     },
     table: {
       target: tableTarget,
@@ -455,6 +457,10 @@ let returnType = {
   column: {
     target: 'id_source_column',
     type: 'columnName'
+  },
+  datatype: {
+    target: 'id_source_data_type',
+    type: 'dataType'
   },
   table: {
     target: 'id_source_name',

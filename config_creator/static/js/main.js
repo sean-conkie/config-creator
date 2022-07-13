@@ -363,22 +363,24 @@ function deleteModelObject (url, elementToRemoveId, spinnerTargetId) { // eslint
 }
 
 /**
- * It takes in a classList, id, content, and value, and returns an object with the classList and id,
- * and either the content or value
- *
+ * It creates an object that can be used to create a row in a table
+ * 
  * Args:
- *   classList: an array of classes to be added to the row
- *   id: the id of the row
- *   content: an array of objects that will be used to create the row's cells.
- *   value: The value of the input.
- *
+ *   classList: An array of classes to be added to the row.
+ *   id: The id of the row.
+ *   content: an array of objects that will be used to create the row's content.
+ *   value: The value of the row.
+ *   object: The object that will be used to create the row.
+ *   attributes: an array of tuples containing any attribute name and value you want to add to the row.
+ * 
  * Returns:
- *   An object with the properties classList, id, content, and value.
+ *   An object with the properties classList, id, content, value, and object.
  */
-function createRowObject (classList, id, content, value, object) { // eslint-disable-line no-unused-vars
+function createRowObject (classList, id, content, value, object, attributes) { // eslint-disable-line no-unused-vars
   let cL = []
   let i = ''
   let c = []
+  let a = []
   let v = ''
   let o = {}
 
@@ -394,6 +396,10 @@ function createRowObject (classList, id, content, value, object) { // eslint-dis
     c = content
   }
 
+  if (attributes) {
+    a = attributes
+  }
+
   if (value) {
     v = value
   }
@@ -404,7 +410,8 @@ function createRowObject (classList, id, content, value, object) { // eslint-dis
 
   const obj = {
     classList: cL,
-    id: i
+    id: i,
+    attributes: a
   }
 
   if (content) {
@@ -429,6 +436,12 @@ function createRowObject (classList, id, content, value, object) { // eslint-dis
 function addRow (data, parent) { // eslint-disable-line no-unused-vars
   for (let i = 0; i < data.length; i++) {
     const row = createElement('tr', null, data[i].classList, null, data[i].id)
+
+    if (data.attributes) {
+      for (let a = 0; a < attributes.length; a ++) {
+        row.setAttribute(attributes[a][0], attributes[a][1])
+      }
+    }
 
     const content = data[i].content
 

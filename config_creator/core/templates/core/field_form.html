@@ -7,7 +7,12 @@
       <h2>Column</h2>
       <p class="lead">Add or change your column.</p>
     </div>
-    <form id="id_form" method="post" action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
+      <form id="id_form" method="post" 
+      {% if field_id != None %}
+      action="{% url 'job-task-field-update' job_id=job.id task_id=task.id pk=field_id %}">
+      {% else %}
+      action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
+      {% endif %}
       {% csrf_token %}
       <div class="row g-5">
         <div class="col-md-8 col-lg-9">
@@ -30,6 +35,22 @@
                 {{ form.is_primary_key }}
                 {{ form.is_primary_key.label_tag }}
               </div>
+              <div class="form-check">
+                {{ form.is_nullable }}
+                {{ form.is_nullable.label_tag }}
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating">
+                {{ form.data_type }}
+                {{ form.data_type.label_tag }}
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating">
+                {{ form.position }}
+                {{ form.position.label_tag }}
+              </div>
             </div>
           </div>
           <div class="row g-3 py-1">
@@ -50,6 +71,12 @@
                   {{ form.source_name }}
                   {{ form.source_name.label_tag }}
                 </div>
+              </div>
+            </div>
+            <div class="col-6">
+              <div class="form-floating">
+                {{ form.source_data_type }}
+                {{ form.source_data_type.label_tag }}
               </div>
             </div>
           </div>
@@ -81,13 +108,68 @@
       </div>  
       
     </form>
+  </div>
+
+    <script src="/static/js/lazy-listener.js"></script>
     <script>
       function saveAnother() {
         document.getElementById("id_action").value = "";
         document.getElementById("id_form").submit();
       }
+      
+      let listenerMap = new Map([
+        ["{{ form.data_type.id_for_label }}", {
+          "function": "dataComparison()",
+          "type": "change"
+        }],
+        ["{{ form.source_data_type.id_for_label }}", {
+          "function": "dataComparison()",
+          "type": "input"
+        }],
+        ["{{ form.source_name.id_for_label }}", {
+          "function": "dataComparison()",
+          "type": "input"
+        }],
+        ["{{ form.source_column.id_for_label }}", {
+          "function": "dataComparison()",
+          "type": "input"
+        }]
+      ]);
+      
+      listenerMap.forEach(addListener);
+
+      function dataComparison() {
+        const source = document.getElementById("{{ form.source_data_type.id_for_label }}").value
+        let target
+        const options = document.getElementById("{{ form.data_type.id_for_label }}").childNodes
+
+        for (let i = 0; i < options.length; i++) {
+          if (options[i].selected && options[i].value !== '') {
+            target = options[i].textContent
+          }
+        }
+
+        const column = document.getElementById('{{ form.source_name.id_for_label }}').value + '.' + document.getElementById('{{ form.source_column.id_for_label }}').value
+
+        const url = `/api/data-type-comparison/${source}/${target}/${column}/`        
+        const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
+
+        xhttp.responseType = "text"
+        xhttp.onload = function () {
+          const data = xhttp.response
+          if (xhttp.status === 200 && data) {
+            document.getElementById("{{ form.transformation.id_for_label }}").value = data.replace('"', '').replace('"', '')
+          } else {
+            document.getElementById("{{ form.transformation.id_for_label }}").value = ""
+          }
+        }
+
+        xhttp.open("GET", url, true)
+        xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+        xhttp.send()
+      }
+
     </script>
-  </div>
 
   {% include 'core/connection_selector.html' %}
 {% endblock %}
