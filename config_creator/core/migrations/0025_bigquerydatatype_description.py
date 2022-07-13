@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0024_bigquerydatatype_field_position_and_more'),
+        ("core", "0024_bigquerydatatype_field_position_and_more"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='bigquerydatatype',
-            name='description',
+            model_name="bigquerydatatype",
+            name="description",
             field=models.TextField(blank=True, null=True),
         ),
     ]

@@ -364,7 +364,7 @@ function deleteModelObject (url, elementToRemoveId, spinnerTargetId) { // eslint
 
 /**
  * It creates an object that can be used to create a row in a table
- * 
+ *
  * Args:
  *   classList: An array of classes to be added to the row.
  *   id: The id of the row.
@@ -372,7 +372,7 @@ function deleteModelObject (url, elementToRemoveId, spinnerTargetId) { // eslint
  *   value: The value of the row.
  *   object: The object that will be used to create the row.
  *   attributes: an array of tuples containing any attribute name and value you want to add to the row.
- * 
+ *
  * Returns:
  *   An object with the properties classList, id, content, value, and object.
  */
@@ -438,8 +438,8 @@ function addRow (data, parent) { // eslint-disable-line no-unused-vars
     const row = createElement('tr', null, data[i].classList, null, data[i].id)
 
     if (data.attributes) {
-      for (let a = 0; a < attributes.length; a ++) {
-        row.setAttribute(attributes[a][0], attributes[a][1])
+      for (let a = 0; a < data.attributes.length; a++) {
+        row.setAttribute(data.attributes[a][0], data.attributes[a][1])
       }
     }
 

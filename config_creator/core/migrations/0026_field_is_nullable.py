@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0025_bigquerydatatype_description'),
+        ("core", "0025_bigquerydatatype_description"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='field',
-            name='is_nullable',
-            field=models.BooleanField(default=True, verbose_name='Is Column Nullable'),
+            model_name="field",
+            name="is_nullable",
+            field=models.BooleanField(default=True, verbose_name="Is Column Nullable"),
         ),
     ]

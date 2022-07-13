@@ -248,11 +248,10 @@ class FieldAdmin(admin.ModelAdmin):
     get_job.admin_order_field = "job"
     get_job.short_description = "Job"
 
-
     def save_model(self, request, obj, form, change):
         original_position = Field.objects.get(id=obj.id).position if obj.id else -1
         super().save_model(request, obj, form, change)
-    
+
         changefieldposition(
             Field.objects.get(id=obj.id),
             original_position,

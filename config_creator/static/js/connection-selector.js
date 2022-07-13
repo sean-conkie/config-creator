@@ -405,7 +405,6 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
   bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide() // eslint-disable-line no-undef
 }
 
-
 function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal) { // eslint-disable-line no-unused-vars
   let datasetType = null
   let connectionType = null
