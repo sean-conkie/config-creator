@@ -14,6 +14,13 @@ from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
 
+__all__ = [
+    "FieldView",
+    "copytable",
+    "datatypecomparison",
+    "fieldpositionchange",
+]
+
 
 class FieldView(views.APIView):
 

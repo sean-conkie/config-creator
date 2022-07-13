@@ -1,6 +1,5 @@
 from .models import *
 from django.contrib import admin
-from django.urls import reverse
 
 
 class HistoryInLine(admin.TabularInline):

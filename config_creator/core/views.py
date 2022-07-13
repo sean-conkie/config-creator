@@ -19,13 +19,41 @@ from .models import *
 from accounts.models import GitRepository
 from django.contrib import messages
 from django.db.models import Q
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.urls import reverse_lazy, reverse
 from lib.file_helper import file_upload
 from lib.helper import safe_dict
 
-from .models import str_to_class
+__all__ = [
+    "index",
+    "loadfrom",
+    "repositoriesview",
+    "pullrepository",
+    "pullnewrepository",
+    "fileselect",
+    "schema_fileselect",
+    "editjobview",
+    "editjobproperty",
+    "jobdeleteview",
+    "jobview",
+    "jobdownload",
+    "jobtasksview",
+    "jobtaskview",
+    "jobtasksdeleteview",
+    "editjobtaskview",
+    "editjobtaskproperty",
+    "editfieldview",
+    "fieldview",
+    "editjoinview",
+    "joindeleteview",
+    "editconditionview",
+    "conditiondeleteview",
+    "editdeltaview",
+    "deltadeleteview",
+    "adddependencyview",
+    "dependencydeleteview",
+]
 
 # region core views
 def index(request):
@@ -154,8 +182,13 @@ def fileselect(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request)
-            return HttpResponseRedirect("/")
+            id = handle_uploaded_file(request)
+            return redirect(
+                reverse(
+                    "job-tasks",
+                    kwargs={"job_id", id},
+                )
+            )
     else:
         form = UploadFileForm()
     return render(request, "fileselect.html", {"form": form})
@@ -177,8 +210,13 @@ def schema_fileselect(request):
     if request.method == "POST":
         form = UploadFileForm(request.POST, request.FILES)
         if form.is_valid():
-            handle_uploaded_file(request)
-            return HttpResponseRedirect("/")
+            id = handle_uploaded_file(request)
+            return redirect(
+                reverse(
+                    "job-tasks",
+                    kwargs={"job_id", id},
+                )
+            )
     else:
         form = UploadFileForm()
     return render(request, "fileselect.html", {"form": form})
@@ -615,11 +653,8 @@ def editfieldview(
 
 def fielddeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
-        try:
-            Field.objects.get(id=pk).delete()
-            messages.success(request, "Field deleted successfully.")
-        except:
-            pass
+        Field.objects.get(id=pk).delete()
+        messages.success(request, "Field deleted successfully.")
 
         return redirect(
             reverse(
@@ -722,11 +757,8 @@ def editjoinview(request, job_id, task_id, pk=None):
 
 def joindeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
-        try:
-            Join.objects.get(id=pk).delete()
-            messages.success(request, "Join deleted successfully.")
-        except:
-            pass
+        Join.objects.get(id=pk).delete()
+        messages.success(request, "Join deleted successfully.")
 
         return redirect(
             reverse(
@@ -828,11 +860,8 @@ def editconditionview(request, job_id, task_id, join_id=None, pk=None):
 
 def conditiondeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
-        try:
-            Condition.objects.get(id=pk).delete()
-            messages.success(request, "Condition deleted successfully.")
-        except:
-            pass
+        Condition.objects.get(id=pk).delete()
+        messages.success(request, "Condition deleted successfully.")
 
         return redirect(
             reverse(
@@ -956,11 +985,8 @@ def editdeltaview(request, job_id, task_id, pk=None):
 
 def deltadeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
-        try:
-            Delta.objects.get(id=pk).delete()
-            messages.success(request, "Delta conditions deleted successfully.")
-        except:
-            pass
+        Delta.objects.get(id=pk).delete()
+        messages.success(request, "Delta conditions deleted successfully.")
 
         return redirect(
             reverse(
@@ -1037,11 +1063,8 @@ def adddependencyview(request, job_id, task_id):
 
 def dependencydeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
-        try:
-            Dependency.objects.get(id=pk).delete()
-            messages.success(request, "Dependency deleted successfully.")
-        except:
-            pass
+        Dependency.objects.get(id=pk).delete()
+        messages.success(request, "Dependency deleted successfully.")
 
         return redirect(
             reverse(
@@ -1132,18 +1155,22 @@ def get_where(task_id: str) -> list[dict]:
 
 def handle_uploaded_file(request):
 
-    filecontent = file_upload(request).file.read()
+    file = file_upload(request).file
+    filecontent = file.read()
     jscontent = json.loads(filecontent)
 
     job = Job(
         name=jscontent.get("name"),
         type=JobType.objects.get(code=jscontent.get("type").upper()),
         description=jscontent.get("description"),
-        properties=jscontent.get("properties"),
         createdby=request.user,
         updatedby=request.user,
     )
     job.save()
+
+    job_properties = job.get_property_object()
+    for key in jscontent.get("properties", {}).keys():
+        setattr(job_properties, key, jscontent.get("properties", {})[key])
 
     tasks = jscontent.get("tasks")
     for task in tasks:
@@ -1166,6 +1193,8 @@ def handle_uploaded_file(request):
             createdby=request.user,
             updatedby=request.user,
         )
+
+        t.save()
         properties = {
             k: params[k]
             for k in params.keys()
@@ -1179,20 +1208,33 @@ def handle_uploaded_file(request):
                 "driving_table",
                 "staging_dataset",
                 "description",
+                "source_to_target",
+                "where",
+                "joins",
+                "history",
+                "delta",
             ]
         }
-        t.properties = properties
-        t.save()
 
-        for field in params.get("source_to_target", []):
+        task_properties = t.get_property_object()
+        if task_properties:
+            for key in properties.keys():
+                setattr(task_properties, key, properties[key])
+
+        for i, field in enumerate(params.get("source_to_target", [])):
             f = Field(
                 name=field.get("name", field.get("source_column")),
+                data_type=BigQueryDataType.objects.get(name=field.get("data_type"))
+                if field.get("data_type")
+                else BigQueryDataType.objects.get(id=DEFAULT_DATA_TYPE_ID),
                 source_column=field.get("source_column"),
                 source_name=field.get("source_name"),
                 transformation=field.get("transformation"),
                 is_source_to_target=True,
                 is_primary_key=field.get("is_primary_key", False),
                 is_history_key=field.get("is_history_key", False),
+                is_nullable=field.get("is_nullable", True),
+                position=i + 1,
                 task=t,
             )
             f.save()
@@ -1413,13 +1455,13 @@ def get_filecontent(pk: int) -> dict:
                 for k in task_properties.keys()
                 if k not in ["_state", "id", "task_id"]
             },
-            "description": job.description,
             "dependencies": [
                 dependant.name
                 for dependant in Dependency.objects.select_related().filter(
                     dependant_id=task.id
                 )
             ],
+            "author": f"{task.updatedby.forename} {task.updatedby.surname}",
         }
 
         params = t["parameters"]
@@ -1427,15 +1469,17 @@ def get_filecontent(pk: int) -> dict:
         params["source_to_target"] = [
             {
                 "name": f.name,
+                "data_type": f.data_type.name,
                 "source_column": f.source_column,
                 "source_name": f.source_name,
                 "transformation": f.transformation,
+                "nullable": f.is_nullable,
                 "pk": f.is_primary_key,
                 "hk": f.is_history_key,
             }
-            for f in Field.objects.select_related().filter(
-                task_id=task.id, is_source_to_target=True
-            )
+            for f in Field.objects.select_related()
+            .filter(task_id=task.id, is_source_to_target=True)
+            .order_by("position")
         ]
 
         params["where"] = [
@@ -1477,6 +1521,7 @@ def get_filecontent(pk: int) -> dict:
         params["staging_dataset"] = task.staging_dataset
         params["target_type"] = task.table_type.code
         params["block_data_check"] = True
+        params["build_artifacts"] = True
 
         task_list.append(t)
 
@@ -1490,6 +1535,7 @@ def get_filecontent(pk: int) -> dict:
             if k not in ["_state", "id", "job_id"]
         },
         "tasks": task_list,
+        "author": f"{job.updatedby.forename} {job.updatedby.surname}",
     }
 
     return filecontent

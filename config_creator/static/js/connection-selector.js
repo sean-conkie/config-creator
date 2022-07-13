@@ -111,7 +111,7 @@ function createTableElement (object, layer) {
       const table = createElement('table', null, ['table', 'table-striped', 'table-hover'], layerInner, null)
 
       if ({}.propertyIsEnumerable.call(object, 'content')) {
-        const child = parseObject(object.content, layerInner, null)
+        const child = parseObject(object.content, layerInner)
         if (child) {
           table.appendChild(child)
         }
@@ -158,7 +158,7 @@ function createDatasetElement (object, layer) {
       element.setAttribute('onclick', 'getData(' + object.connection_id + ", '" + object.name + "', '" + id + "')")
 
       if ({}.propertyIsEnumerable.call(object, 'content')) {
-        const child = parseObject(object.content, layer + 1, null)
+        const child = parseObject(object.content, layer + 1)
         if (child) {
           element.appendChild(child)
         }
@@ -193,7 +193,7 @@ function createConnectionElement (object, layer) {
   }
 
   if ({}.propertyIsEnumerable.call(object, 'content')) {
-    const child = parseObject(object.content, layer + 1, object.id)
+    const child = parseObject(object.content, layer + 1)
     if (child) {
       detail.appendChild(child)
     }
@@ -220,7 +220,7 @@ function createConnectionTypeElement (object, layer) {
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
-    const child = parseObject(object.content, layer + 1, null)
+    const child = parseObject(object.content, layer + 1)
     if (child) {
       detail.appendChild(child)
     }

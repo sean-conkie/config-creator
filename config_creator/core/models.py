@@ -1,6 +1,5 @@
 import sys
 
-from copy import copy
 from django.db import models
 from django.conf import settings
 from django.db.models import Q
@@ -39,6 +38,7 @@ __all__ = [
     "BigQueryDataType",
     "DATA_TYPE_MAPPING",
     "changefieldposition",
+    "DEFAULT_DATA_TYPE_ID",
 ]
 
 User = settings.AUTH_USER_MODEL

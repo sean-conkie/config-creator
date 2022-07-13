@@ -39,7 +39,7 @@
         <a class="w-100 btn btn-outline-dark" type="submit" href="{% url 'jobs' %}" title=""><i class="bi bi-arrow-left"></i> Back to Jobs</a>
       </div>
       <div class="row g-3">
-        <a class="btn btn-info" type="button" href="{% url 'job-download' pk=job.id %}" title=""><i class="bi bi-box-arrow-down"></i> Download Config</a>
+        <a class="btn btn-info" id="id_download_config" type="button" href="{% url 'job-download' pk=job.id %}" title=""><i class="bi bi-box-arrow-down"></i> Download Config</a>
       </div>
     </div>
   </div>
@@ -110,4 +110,13 @@
     </div> 
   </div>
 </div>
+<script src="/static/js/lazy-listener.js"></script>
+<script>
+let listenerMap = new Map([
+    ["id_download_config", {
+      "function": "event.appendChild(createSpinner('id_download_config'))",
+      "type": "click"
+    }]
+  ]).forEach(addListener)
+</script>
 {% endblock %}
