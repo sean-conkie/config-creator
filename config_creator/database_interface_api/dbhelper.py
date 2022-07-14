@@ -59,8 +59,8 @@ class IBQClient(bigquery.Client):
             for i in self._data.index:
                 row = self._data.iloc[i].to_list()
                 row_obj = {}
-                for i, c in enumerate(self._data.columns.values):
-                    row_obj[c] = row[i]
+                for j, c in enumerate(self._data.columns.values):
+                    row_obj[c] = row[j]
 
                 root["result"].append(row_obj)
 
@@ -137,8 +137,8 @@ class CSVClient:
             for i in self._data.index:
                 row = self._data.iloc[i].to_list()
                 row_obj = {}
-                for i, c in enumerate(self._data.columns.values):
-                    row_obj[c] = row[i]
+                for j, c in enumerate(self._data.columns.values):
+                    row_obj[c] = row[j]
 
                 root["result"].append(row_obj)
 

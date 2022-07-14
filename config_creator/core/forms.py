@@ -1,6 +1,7 @@
 import sys
 
 from .models import (
+    BigQueryDataType,
     Job,
     JobTask,
     Field,
@@ -10,6 +11,7 @@ from .models import (
     Dependency,
     BatchJobProperties,
     DagJobProperties,
+    BatchCustomJobTaskProperties,
 )
 from django import forms
 from django.core.exceptions import ValidationError
@@ -63,6 +65,11 @@ class JobTaskForm(forms.ModelForm):
 
 
 class FieldForm(forms.ModelForm):
+
+    data_type = forms.ModelChoiceField(
+        queryset=BigQueryDataType.objects.order_by("name")
+    )
+
     class Meta:
         model = Field
         fields = [
@@ -71,6 +78,10 @@ class FieldForm(forms.ModelForm):
             "source_name",
             "transformation",
             "is_primary_key",
+            "is_nullable",
+            "position",
+            "data_type",
+            "source_data_type",
         ]
 
 
@@ -145,6 +156,14 @@ class DagJobPropertiesForm(forms.ModelForm):
             "email",
             "tags",
             "imports",
+        ]
+
+
+class BatchCustomJobTaskPropertiesForm(forms.ModelForm):
+    class Meta:
+        model = BatchCustomJobTaskProperties
+        fields = [
+            "sql",
         ]
 
 

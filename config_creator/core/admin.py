@@ -1,6 +1,5 @@
 from .models import *
 from django.contrib import admin
-from django.urls import reverse
 
 
 class HistoryInLine(admin.TabularInline):
@@ -106,6 +105,7 @@ class JoinConditionInLine(admin.TabularInline):
 @admin.register(WriteDisposition)
 @admin.register(Operator)
 @admin.register(LogicOperator)
+@admin.register(BigQueryDataType)
 class TypeAdmin(admin.ModelAdmin):
 
     list_display = ["name", "description"]
@@ -246,6 +246,16 @@ class FieldAdmin(admin.ModelAdmin):
 
     get_job.admin_order_field = "job"
     get_job.short_description = "Job"
+
+    def save_model(self, request, obj, form, change):
+        original_position = Field.objects.get(id=obj.id).position if obj.id else -1
+        super().save_model(request, obj, form, change)
+
+        changefieldposition(
+            Field.objects.get(id=obj.id),
+            original_position,
+            obj.position,
+        )
 
 
 @admin.register(Join)

@@ -1,0 +1,42 @@
+{% extends 'base.html' %}
+{% block title %}Change Property{% endblock %}
+{% block content %}
+{% load static %}
+<div class="container">
+  <div class="py-5 text-center">
+    <h2>Task Properties</h2>
+    <p class="lead">View or change your task properties.</p>
+  </div>
+  <form method="post" action="{% url 'job-property-update' job_id=job_id pk=pk %}">
+  {% if pk != None %}
+    <input id="id_id" name="id" value="{{ pk }}" hidden />
+  {% else %}
+    <input id="id_empty_id" name="id" hidden />
+  {% endif %}
+    {% csrf_token %}
+    <div class="row g-5">
+      <div class="col-md-8 col-lg-9">
+        <div class="row g-3">
+          {% for field in form %}
+            <div class="col-6">
+              <div class="form-floating">
+                {{ field }}
+                {{ field.label_tag }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+      <div class="col-md-4 col-lg-3">
+        <div class="row g-3">
+          <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+        </div>
+        <div class="row g-3 py-3">
+          <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job_id pk=task_id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+        </div>
+      </div>
+    </div>  
+    
+  </form>
+</div>
+{% endblock %}

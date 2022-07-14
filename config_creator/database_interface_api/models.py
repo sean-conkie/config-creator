@@ -4,6 +4,11 @@ from django.urls import reverse
 
 User = settings.AUTH_USER_MODEL
 
+__all__ = [
+    "ConnectionType",
+    "Connection",
+]
+
 
 class ConnectionType(models.Model):
     description = models.CharField(blank=False, unique=True, max_length=250)

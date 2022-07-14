@@ -33,9 +33,40 @@ __all__ = [
     "DEFAULT_LOGIC_OPERATOR_ID",
     "DEFAULT_OPERATOR_ID",
     "DEFAULT_JOIN_ID",
+    "DagJobProperties",
+    "BatchCustomJobTaskProperties",
+    "BigQueryDataType",
+    "DATA_TYPE_MAPPING",
+    "changefieldposition",
+    "DEFAULT_DATA_TYPE_ID",
 ]
 
 User = settings.AUTH_USER_MODEL
+
+DATA_TYPE_MAPPING = {
+    "CHAR": "STRING",
+    "VARCHAR": "STRING",
+    "VARCHAR2": "STRING",
+    "DATE": "DATE",
+    "TIMESTAMP": "TIMESTAMP",
+    "BYTEINT": "INT64",
+    "SMALLINT": "INT64",
+    "INTEGER": "INT64",
+    "BIGINT": "INT64",
+    "NUMBER": "NUMERIC",
+    "NUMERIC": "NUMERIC",
+    "DECIMAL": "NUMERIC",
+    "BINARY DOUBLE": "FLOAT64",
+    "DOUBLE PRECISION": "FLOAT64",
+    "BINARY FLOAT": "FLOAT64",
+    "DOUBLE": "FLOAT64",
+    "BOOL": "BOOL",
+    "STRING": "STRING",
+    "NUMERIC": "NUMERIC",
+    "FLOAT64": "FLOAT64",
+    "INT64": "INT64",
+    "TIMESTAMP": "TIMESTAMP",
+}
 
 DEFAULT_ID = 1
 DEFAULT_TASK_ID = DEFAULT_ID
@@ -44,6 +75,7 @@ DEFAULT_WRITE_DISPOSITION_ID = DEFAULT_ID
 DEFAULT_LOGIC_OPERATOR_ID = DEFAULT_ID
 DEFAULT_OPERATOR_ID = DEFAULT_ID
 DEFAULT_JOIN_ID = DEFAULT_ID
+DEFAULT_DATA_TYPE_ID = DEFAULT_ID
 
 
 class JobType(models.Model):
@@ -336,6 +368,29 @@ class JobTask(models.Model):
     def __str__(self):
         return self.name
 
+    def get_property_object(self):
+
+        """
+        It takes a task object, and returns the corresponding property object
+
+        Returns:
+          The property object for the task.
+        """
+        property_class = str_to_class(
+            f"{self.job.type.code.title()}{self.type.code.title()}JobTaskProperties"
+        )
+        if property_class:
+            if property_class.objects.filter(task_id=self.id).exists():
+                return property_class.objects.filter(
+                    task_id=self.id,
+                )[0]
+            else:
+                return property_class(
+                    task_id=self.id,
+                )
+
+        return None
+
 
 class History(models.Model):
     class Meta:
@@ -349,9 +404,38 @@ class History(models.Model):
         return f"{self.task.name} history"
 
 
+class BigQueryDataType(models.Model):
+    name = models.CharField(
+        verbose_name="Data Type",
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text="",
+    )
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
 class Field(models.Model):
     name = models.CharField(
         verbose_name="Name", max_length=255, blank=False, null=False, help_text=""
+    )
+    data_type = models.ForeignKey(
+        BigQueryDataType,
+        verbose_name="Data Type",
+        on_delete=models.SET_DEFAULT,
+        default=DEFAULT_DATA_TYPE_ID,
+        null=False,
+        blank=False,
+    )
+    position = models.IntegerField(
+        verbose_name="Ordinal Position",
+        null=False,
+        blank=False,
+        default=-1,
+        help_text="Enter the column's position within the target table",
     )
     source_column = models.CharField(
         verbose_name="Source Column",
@@ -359,6 +443,13 @@ class Field(models.Model):
         blank=True,
         null=True,
         help_text="",
+    )
+    source_data_type = models.CharField(
+        verbose_name="Source Data Type",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Data type for the column at source",
     )
     source_name = models.CharField(
         verbose_name="Source Table",
@@ -383,6 +474,7 @@ class Field(models.Model):
     is_history_key = models.BooleanField(
         verbose_name="History Key Field", default=False
     )
+    is_nullable = models.BooleanField(verbose_name="Is Column Nullable", default=True)
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
@@ -395,6 +487,56 @@ class Field(models.Model):
             outp.append(self.name)
 
         return ".".join(outp)
+
+
+def changefieldposition(field: Field, original_position: int, position: int) -> int:
+    """
+    If the field's position is changed, then re-order all fields in the task
+
+    Args:
+      field (Field): Field = the field object that is being re-ordered
+      original_position (int): the original position of the field
+      position (int): the new position of the field
+
+    Returns:
+      0
+    """
+    if original_position != position:
+        fields = Field.objects.filter(~Q(id=field.id), task_id=field.task_id).order_by(
+            "position"
+        )
+        max_field_position = len(fields) + 1
+        if original_position > max_field_position:
+            original_position = max_field_position
+        if fields.exists():
+            for i, f in enumerate(fields):
+                # if field has default position (-1), or 0 position then set it to
+                # the field's index in returned queryset
+                if f.position < 1:
+                    f.position = i + 1
+
+                # if field's position is greater than total number of fields, this can stop
+                # re-order.  so set it to total number of fields
+                if f.position > max_field_position:
+                    f.position = max_field_position
+
+                if (
+                    f.position <= position
+                    and f.position > 0
+                    and f.position > original_position
+                    and original_position > 0
+                ):
+                    f.position = f.position - 1
+                elif (
+                    f.position > position
+                    and f.position > 0
+                    and f.position < original_position
+                    and original_position > 0
+                ):
+                    f.position = f.position + 1
+
+                f.save()
+    return 0
 
 
 class Dependency(models.Model):
@@ -600,6 +742,28 @@ class DagJobProperties(BaseJobProperties):
         blank=True,
         null=True,
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
+    )
+
+
+class BaseJobTaskProperties(models.Model):
+    task = models.OneToOneField(
+        to=JobTask,
+        on_delete=models.CASCADE,
+        unique=True,
+    )
+
+    class Meta:
+        abstract = True
+
+
+class BatchCustomJobTaskProperties(BaseJobTaskProperties):
+    sql = models.CharField(
+        verbose_name="Sql Script Name",
+        max_length=255,
+        unique=False,
+        blank=False,
+        null=False,
+        help_text="Enter the name of the sql fiel to be used by this task",
     )
 
 

@@ -13,4 +13,14 @@ urlpatterns = [
         login_required(copytable),
         name="api-table-copy",
     ),
+    path(
+        "data-type-comparison/<str:source>/<str:target>/<str:column>/",
+        login_required(datatypecomparison),
+        name="api-data-type-comparison",
+    ),
+    path(
+        "task/<int:task_id>/field/<int:field_id>/position/<int:position>/update/",
+        login_required(fieldpositionchange),
+        name="api-task-field-position-update",
+    ),
 ]

@@ -11,22 +11,42 @@
       <table class="table table-hover table-striped">
         <thead>
           <tr>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
+            <th scope="col"></th>
             <th scope="col">Target Column</th>
+            <th scope="col">Data Type</th>
             <th scope="col">Source Column</th>
-            <th scope="col">Transformation</th>
+            <th scope="col"></th>
             <th scope="col"></th>
             <th scope="col"></th>
           </tr>
         </thead>
         <tbody id="id_source_to_target">
           {% for field in fields %}
-          <tr class="align-middle" id="id_field_{{field.id}}_row">
-            <td>{% if field.is_primary_key %}<i class="bi bi-key"></i> {% endif %}{% if field.is_history_key %}<i
-                class="bi bi-clock-history"></i> {% endif %}{{ field.name}} </td>
+          <tr class="align-middle" id="id_field_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="fieldPositionChange(this)" data-field-id="{{ field.id }}" data-position="{{ field.position }}" data-task-id="{{ task.id }}">
+            <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
+            <td class="vertical-grip-col">
+              {% if field.is_primary_key == True %}<i class="bi bi-key" title="Key field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
+            </td>
+            <td class="vertical-grip-col">
+              {% if field.is_history_key %}<i class="bi bi-clock-history" title="History partition" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
+            </td>
+            <td class="vertical-grip-col">
+              {% if field.is_nullable == False %}<i class="bi bi-asterisk" title="Required field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
+            </td>
+            <td class="vertical-grip-col">
+              {% if field.transformation != None and field.transformation != '' %}<i class="fa-solid fa-shuffle" title="Contains transformation" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
+            </td>
+            <td>
+              {{ field.name}} 
+            </td>
+            <td>{{ field.data_type }}</td>
             <td>
               {% if field.source_name != "" and field.source_name != None %}<span>{{ field.source_name }}.</span><strong>{{ field.source_column }}</strong>{% else %}{{ field.source_column }}{% endif %}
             </td>
-            <td>{{ field.transformation }}</td>
             <td class="btn-column"><a class="btn btn-secondary"
                 href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field.id %}" title="View"
                 aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a>
@@ -35,11 +55,12 @@
                 type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                 data-delete-url="{% url 'api-field-delete' pk=field.id %}"
                 data-delete-element-id="id_field_{{field.id}}_row"><i class="bi bi-trash3"></i></button></td>
+            <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
           </tr>
           {% endfor %}
           {% if fields|length == 0 %}
           <tr class="placeholder-row">
-            <td class="text-center" colspan="5">No fields linked to task!</td>
+            <td class="text-center" colspan="11">No fields linked to task!</td>
           </tr>
           {% endif %}
         </tbody>
@@ -63,7 +84,7 @@
 <script>
   let listenerMap = new Map([
     ["id_copy_table", {
-      "function": "setReturnType('table', null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true)",
+      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true)",
       "type": "click"
     }],
     ["id_field_source_connection", {
@@ -118,18 +139,28 @@
         deleteButton.addEventListener("click", function () {
           deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);
         })
+        let transformation = null
+        if (content[i]["transformation"]) {
+          transformation = createElement("i", null, ["fa-solid","fa-shuffle"], 0, null)
+        }
+        const grip = createElement("i", null, ["bi", "bi-grip-vertical"], 0, null)
 
         let rowContent = [
+          createRowObject(["vertical-grip-col"], null, null, null, grip),
+          createRowObject(null, null, null, null, null),
+          createRowObject(null, null, null, null, null),
+          createRowObject(null, null, null, null, null),
+          createRowObject(null, null, null, null, transformation),
           createRowObject(null, null, null, content[i]["column_name"], null),
+          createRowObject(null, null, null, content[i]["data_type"], null),
           createRowObject(null, null, null, content[i]["dataset"] + "." + content[i]["table_name"] + "." + content[i][
             "column_name"
           ], null),
-          createRowObject(null, null, null, "", null),
           createRowObject(["btn-column"], null, null, null, viewButton),
           createRowObject(["btn-column"], null, null, null, deleteButton),
-
+          createRowObject(["vertical-grip-col"], null, null, null, grip),
         ];
-        let row = createRowObject(["align-middle"], rowId, rowContent, null, null);
+        let row = createRowObject(["align-middle"], rowId, rowContent, null, null, [['draggable',"true"],['ondragstart',"start()"],['ondragover',"dragover()"],['ondragend',"fieldPositionChange(this)"],['data-field-id',rowData['id']],['data-position',content[i]["position"]],['data-task-id',task_id]]);
         addRow([row], parent);
 
       }
@@ -181,4 +212,21 @@
       xhttp.send();
     }
   }
+
+  function fieldPositionChange(element) {
+    const position = element.dataset["position"]
+    const url = `/api/task/${element.dataset["taskId"]}/field/${element.dataset["fieldId"]}/position/${position}/update/`
+    const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
+    xhttp.onload = function () {
+      if (xhttp.status !== 200) {
+        const message = HttpStatusEnum.get(xhttp.status)
+        createToast(`There has been an error updating the position of the column - ${message.desc}.  Please edit the field to change it's position.`, `Error - ${message.name}`, true)
+      }
+    }
+    xhttp.open('POST', url, true)
+    xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+    xhttp.send()
+  }
+
 </script>
+<script src="/static/js/table-dragover.js" ></script>
