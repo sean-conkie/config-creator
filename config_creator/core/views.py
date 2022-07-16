@@ -45,6 +45,7 @@ __all__ = [
     "editjobtaskproperty",
     "editfieldview",
     "fieldview",
+    "fielddeleteview",
     "editjoinview",
     "joindeleteview",
     "editconditionview",
@@ -804,10 +805,10 @@ def editconditionview(request, job_id, task_id, join_id=None, pk=None):
     if request.method == "POST":
         if request.POST["id"]:
             condition = Condition.objects.get(id=request.POST["id"])
-            field = ConditionField.objects.get(condition_id=request.POST["id"])
+            # field = ConditionField.objects.get(condition_id=request.POST["id"])
         else:
             condition = Condition()
-            field = ConditionField()
+            # field = ConditionField()
 
         condition.operator = Operator.objects.get(
             id=request.POST.get("operator", DEFAULT_OPERATOR_ID)
@@ -819,10 +820,10 @@ def editconditionview(request, job_id, task_id, join_id=None, pk=None):
         condition.where_id = task_id if not join_id else None
         condition.save()
 
-        field.left = request.POST["left"]
-        field.right = request.POST["right"]
-        field.condition = condition
-        field.save()
+        # field.left = request.POST["left"]
+        # field.right = request.POST["right"]
+        # field.condition = condition
+        # field.save()
 
         messages.success(request, f"Condition created successfully.")
 
@@ -836,7 +837,7 @@ def editconditionview(request, job_id, task_id, join_id=None, pk=None):
         if pk:
             condition = Condition.objects.get(id=pk)
             form = ConditionForm(instance=condition)
-            fields = ConditionField.objects.filter(condition_id=condition.id)
+            # fields = ConditionField.objects.filter(condition_id=condition.id)
         else:
             form = ConditionForm()
             fields = []
@@ -1124,7 +1125,7 @@ def get_joins(task_id: str) -> list[dict]:
             "conditions": [
                 {
                     "condition": condition,
-                    "fields": ConditionField.objects.filter(condition_id=condition.id),
+                    # "fields": ConditionField.objects.filter(condition_id=condition.id),
                 }
                 for condition in Condition.objects.filter(join_id=j.id)
             ],
@@ -1147,7 +1148,7 @@ def get_where(task_id: str) -> list[dict]:
     return [
         {
             "condition": condition,
-            "fields": ConditionField.objects.filter(condition_id=condition.id),
+            # "fields": ConditionField.objects.filter(condition_id=condition.id),
         }
         for condition in Condition.objects.filter(where_id=task_id)
     ]
@@ -1250,12 +1251,12 @@ def handle_uploaded_file(request):
             w.save()
 
             fields = where.get("fields")
-            field = ConditionField(
-                left=fields[0],
-                right=fields[1],
-                condition=w,
-            )
-            field.save()
+            # field = ConditionField(
+            #     left=fields[0],
+            #     right=fields[1],
+            #     condition=w,
+            # )
+            # field.save()
 
         for join in params.get("joins", []):
             j = Join(
@@ -1281,12 +1282,12 @@ def handle_uploaded_file(request):
                 c.save()
 
                 fields = condition.get("fields")
-                field = ConditionField(
-                    left=fields[0],
-                    right=fields[1],
-                    condition=c,
-                )
-                field.save()
+                # field = ConditionField(
+                #     left=fields[0],
+                #     right=fields[1],
+                #     condition=c,
+                # )
+                # field.save()
 
         history = params.get("history")
 
@@ -1486,10 +1487,10 @@ def get_filecontent(pk: int) -> dict:
             {
                 "logic_operator": c.logic_operator.code,
                 "operator": c.operator.symbol,
-                "fields": [
-                    [cf.left, cf.right]
-                    for cf in ConditionField.objects.filter(condition_id=c.id)
-                ][0],
+                # "fields": [
+                #     [cf.left, cf.right]
+                #     for cf in ConditionField.objects.filter(condition_id=c.id)
+                # ][0],
             }
             for c in Condition.objects.select_related().filter(where_id=task.id)
         ]
@@ -1503,10 +1504,10 @@ def get_filecontent(pk: int) -> dict:
                     {
                         "logic_operator": c.logic_operator.code,
                         "operator": c.operator.symbol,
-                        "fields": [
-                            [cf.left, cf.right]
-                            for cf in ConditionField.objects.filter(condition_id=c.id)
-                        ][0],
+                        # "fields": [
+                        #     [cf.left, cf.right]
+                        #     for cf in ConditionField.objects.filter(condition_id=c.id)
+                        # ][0],
                     }
                     for c in Condition.objects.select_related().filter(join_id=j.id)
                 ],

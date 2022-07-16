@@ -82,6 +82,7 @@ class FieldForm(forms.ModelForm):
             "position",
             "data_type",
             "source_data_type",
+            "source_project",
         ]
 
 
@@ -142,6 +143,7 @@ class BatchJobPropertiesForm(forms.ModelForm):
             "dataset_source",
             "dataset_staging",
             "dataset_publish",
+            "source_project",
         ]
 
 

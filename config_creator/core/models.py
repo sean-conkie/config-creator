@@ -25,7 +25,6 @@ __all__ = [
     "Delta",
     "Join",
     "Condition",
-    "ConditionField",
     "BatchJobProperties",
     "DEFAULT_TASK_ID",
     "DEFAULT_TABLE_ID",
@@ -62,10 +61,8 @@ DATA_TYPE_MAPPING = {
     "DOUBLE": "FLOAT64",
     "BOOL": "BOOL",
     "STRING": "STRING",
-    "NUMERIC": "NUMERIC",
     "FLOAT64": "FLOAT64",
     "INT64": "INT64",
-    "TIMESTAMP": "TIMESTAMP",
 }
 
 DEFAULT_ID = 1
@@ -420,7 +417,7 @@ class BigQueryDataType(models.Model):
 
 class Field(models.Model):
     name = models.CharField(
-        verbose_name="Name", max_length=255, blank=False, null=False, help_text=""
+        verbose_name="Name", max_length=255, blank=True, null=True, help_text=""
     )
     data_type = models.ForeignKey(
         BigQueryDataType,
@@ -457,6 +454,13 @@ class Field(models.Model):
         blank=True,
         null=True,
         help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
+    )
+    source_project = models.CharField(
+        verbose_name="Source Project",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Override default source project",
     )
     transformation = models.CharField(
         verbose_name="Column Transformation",
@@ -648,21 +652,27 @@ class Condition(models.Model):
     )
     join = models.ForeignKey(Join, on_delete=models.SET_NULL, null=True, blank=True)
     where = models.ForeignKey(JobTask, on_delete=models.SET_NULL, null=True, blank=True)
+    left = models.ForeignKey(
+        Field,
+        verbose_name="Left Parameter",
+        blank=False,
+        null=False,
+        max_length=255,
+        related_name="left_parameter",
+        on_delete=models.CASCADE,
+    )
+    right = models.ForeignKey(
+        Field,
+        verbose_name="Right Parameter",
+        blank=False,
+        null=False,
+        max_length=255,
+        related_name="right_parameter",
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
-
-
-class ConditionField(models.Model):
-    left = models.CharField(
-        verbose_name="Left Parameter", blank=False, null=False, max_length=255
-    )
-    right = models.CharField(
-        verbose_name="Right Parameter", blank=False, null=False, max_length=255
-    )
-    condition = models.OneToOneField(
-        Condition, on_delete=models.CASCADE, null=False, blank=False
-    )
 
 
 class BaseJobProperties(models.Model):
@@ -694,6 +704,13 @@ class BaseJobProperties(models.Model):
         blank=False,
         null=False,
         help_text="Default value for all tasks in this job",
+    )
+    source_project = models.CharField(
+        verbose_name="Source Project",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Default source project",
     )
 
     class Meta:

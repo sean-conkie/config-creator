@@ -39,13 +39,6 @@ class FieldInLine(admin.TabularInline):
     max_num = 1
 
 
-class ConditionFieldInLine(admin.TabularInline):
-    model = ConditionField
-    show_change_link = True
-    extra = 1
-    max_num = 1
-
-
 class JoinInLine(admin.TabularInline):
     model = Join
     fields = ("get_name",)
@@ -233,7 +226,6 @@ class ConditionAdmin(admin.ModelAdmin):
         "operator",
         "logic_operator",
     ]
-    inlines = [ConditionFieldInLine]
     filter_horizontal = ()
 
 

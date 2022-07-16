@@ -9,6 +9,11 @@ urlpatterns = [
         name="api-field-delete",
     ),
     path(
+        "job/<int:pk>/delete/",
+        login_required(JobView.as_view()),
+        name="api-job-delete",
+    ),
+    path(
         "task/<int:task_id>/connection/<int:connection_id>/dataset/<str:dataset>/table/<str:table_name>/copy/",
         login_required(copytable),
         name="api-table-copy",

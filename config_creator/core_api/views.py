@@ -1,8 +1,9 @@
 from core.models import (
     BigQueryDataType,
+    changefieldposition,
     DATA_TYPE_MAPPING,
     Field,
-    changefieldposition,
+    Job,
     JobTask,
 )
 from database_interface_api.dbhelper import get_table
@@ -19,6 +20,7 @@ __all__ = [
     "copytable",
     "datatypecomparison",
     "fieldpositionchange",
+    "JobView",
 ]
 
 
@@ -50,6 +52,31 @@ class FieldView(views.APIView):
         else:
             outp = {
                 "message": f"Field with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class JobView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        job = Job.objects.get(id=pk)
+        if job:
+            outp = {
+                "message": f"Job '{job.name}' deleted.",
+                "type": "success",
+            }
+            job.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Job with id '{pk}' does not exist.",
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND
