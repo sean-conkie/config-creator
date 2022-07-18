@@ -7,7 +7,13 @@
     <h2>Job Properties</h2>
     <p class="lead">View or change your job properties.</p>
   </div>
-  <form method="post" action="{% url 'job-property-update' job_id=job_id pk=pk %}">
+  <form method="post" 
+  {% if pk != None %}
+    action="{% url 'job-property-update' job_id=job_id pk=pk %}"
+  {% else %}
+   action="{% url 'job-property-add' job_id=job_id %}"
+  {% endif %}
+  >
   {% if pk != None %}
     <input id="id_id" name="id" value="{{ pk }}" hidden />
   {% else %}

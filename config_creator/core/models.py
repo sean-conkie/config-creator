@@ -1,3 +1,4 @@
+import re
 import sys
 
 from django.db import models
@@ -25,7 +26,6 @@ __all__ = [
     "Delta",
     "Join",
     "Condition",
-    "ConditionField",
     "BatchJobProperties",
     "DEFAULT_TASK_ID",
     "DEFAULT_TABLE_ID",
@@ -39,6 +39,7 @@ __all__ = [
     "DATA_TYPE_MAPPING",
     "changefieldposition",
     "DEFAULT_DATA_TYPE_ID",
+    "SourceTable",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -62,10 +63,8 @@ DATA_TYPE_MAPPING = {
     "DOUBLE": "FLOAT64",
     "BOOL": "BOOL",
     "STRING": "STRING",
-    "NUMERIC": "NUMERIC",
     "FLOAT64": "FLOAT64",
     "INT64": "INT64",
-    "TIMESTAMP": "TIMESTAMP",
 }
 
 DEFAULT_ID = 1
@@ -368,6 +367,26 @@ class JobTask(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super(JobTask, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.driving_table:
+            m = re.search(pattern, self.driving_table, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.id,
+            ).save()
+
     def get_property_object(self):
 
         """
@@ -420,7 +439,7 @@ class BigQueryDataType(models.Model):
 
 class Field(models.Model):
     name = models.CharField(
-        verbose_name="Name", max_length=255, blank=False, null=False, help_text=""
+        verbose_name="Name", max_length=255, blank=True, null=True, help_text=""
     )
     data_type = models.ForeignKey(
         BigQueryDataType,
@@ -458,9 +477,8 @@ class Field(models.Model):
         null=True,
         help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
     )
-    transformation = models.CharField(
+    transformation = models.TextField(
         verbose_name="Column Transformation",
-        max_length=255,
         blank=True,
         null=True,
         help_text="",
@@ -479,14 +497,50 @@ class Field(models.Model):
 
     def __str__(self):
         outp = []
-        if self.source_name:
-            outp.append(self.source_name)
-        if self.source_column:
-            outp.append(self.source_column)
-        else:
-            outp.append(self.name)
+        name = ""
+        table = ""
+        column = ""
 
-        return ".".join(outp)
+        if self.transformation:
+            if self.name:
+                name = f" as {self.name}"
+
+            return f"{self.transformation}{name}"
+
+        if self.source_name:
+            table = f"{self.source_name}."
+
+        if self.source_column:
+            column = f"{self.source_column}"
+            if self.name:
+                name = f" as {self.name}"
+        else:
+            name = f"{self.name}"
+
+        return f"{table}{column}{name}"
+
+    def save(self, *args, **kwargs):
+        super(Field, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.source_name:
+            m = re.search(pattern, self.source_name, re.IGNORECASE)
+
+        if self.transformation and not m:
+            m = re.search(pattern, self.transformation, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
 
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
@@ -630,6 +684,41 @@ class Join(models.Model):
     def __str__(self):
         return f"{self.task.name} join to {self.right}"
 
+    def save(self, *args, **kwargs):
+        super(Join, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.left:
+            m = re.search(pattern, self.left, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
+
+        if self.right:
+            m = re.search(pattern, self.right, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
+
 
 class Condition(models.Model):
     operator = models.ForeignKey(
@@ -646,23 +735,39 @@ class Condition(models.Model):
         null=False,
         default=DEFAULT_LOGIC_OPERATOR_ID,
     )
-    join = models.ForeignKey(Join, on_delete=models.SET_NULL, null=True, blank=True)
-    where = models.ForeignKey(JobTask, on_delete=models.SET_NULL, null=True, blank=True)
+    join = models.ForeignKey(
+        Join,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    where = models.ForeignKey(
+        JobTask,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+    )
+    left = models.ForeignKey(
+        Field,
+        verbose_name="Left Parameter",
+        null=True,
+        blank=True,
+        max_length=255,
+        related_name="left_parameter",
+        on_delete=models.CASCADE,
+    )
+    right = models.ForeignKey(
+        Field,
+        verbose_name="Right Parameter",
+        null=True,
+        blank=True,
+        max_length=255,
+        related_name="right_parameter",
+        on_delete=models.CASCADE,
+    )
 
     def __str__(self):
         return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
-
-
-class ConditionField(models.Model):
-    left = models.CharField(
-        verbose_name="Left Parameter", blank=False, null=False, max_length=255
-    )
-    right = models.CharField(
-        verbose_name="Right Parameter", blank=False, null=False, max_length=255
-    )
-    condition = models.OneToOneField(
-        Condition, on_delete=models.CASCADE, null=False, blank=False
-    )
 
 
 class BaseJobProperties(models.Model):
@@ -694,6 +799,13 @@ class BaseJobProperties(models.Model):
         blank=False,
         null=False,
         help_text="Default value for all tasks in this job",
+    )
+    source_project = models.CharField(
+        verbose_name="Source Project",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Default source project",
     )
 
     class Meta:
@@ -765,6 +877,31 @@ class BatchCustomJobTaskProperties(BaseJobTaskProperties):
         null=False,
         help_text="Enter the name of the sql fiel to be used by this task",
     )
+
+
+class SourceTable(models.Model):
+    task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
+    source_project = models.CharField(
+        verbose_name="Source Project",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    dataset_name = models.CharField(
+        verbose_name="Dataset Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    table_name = models.CharField(
+        verbose_name="Table Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+
+    def __str__(self):
+        return f"{self.dataset_name}.{self.table_name}"
 
 
 def str_to_class(classname):

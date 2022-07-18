@@ -101,6 +101,8 @@ class ConditionForm(forms.ModelForm):
         fields = [
             "operator",
             "logic_operator",
+            "left",
+            "right",
         ]
 
 
@@ -142,6 +144,7 @@ class BatchJobPropertiesForm(forms.ModelForm):
             "dataset_source",
             "dataset_staging",
             "dataset_publish",
+            "source_project",
         ]
 
 

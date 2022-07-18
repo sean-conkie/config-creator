@@ -91,13 +91,15 @@
         </div>
       </div> 
     </div>
-    <div class="accordion accordion-flush" id="accordian">
+  <script src="/static/js/lazy-listener.js"></script>
+  <div class="accordion accordion-flush" id="accordian">
       {% include 'core/jobtask_source_to_target.html' %}
       {% include 'core/jobtask_joins.html' %}
       {% include 'core/jobtask_where.html' %}
       {% if task.table_type.code != 'TYPE1' %} {% include 'core/jobtask_history.html' %} {% endif %}
       {% include 'core/jobtask_delta.html' %}
       {% include 'core/jobtask_dependency.html' %}
+      {% include 'core/jobtask_source_tables.html' %}
     </div>
   </div>  
 </div>

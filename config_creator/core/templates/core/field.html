@@ -42,13 +42,13 @@
           </div>
           <div class="col-6">
             <div class="form-floating">
-              <input class="form-control" id="id_data_type" name="name" type="text" value="{{ field.data_type }}" maxlength="255" required="" disabled />
+              <input class="form-control" id="id_data_type" name="data_type" type="text" value="{{ field.data_type }}" maxlength="255" required="" disabled />
               <label for="id_data_type">Data Type:</label>
             </div>
           </div>
           <div class="col-6">
             <div class="form-floating">
-              <input class="form-control" id="id_position" name="name" type="number" value="{{ field.position }}" maxlength="255" required="" disabled />
+              <input class="form-control" id="id_position" name="position" type="number" value="{{ field.position }}" maxlength="255" required="" disabled />
               <label for="id_position">Ordinal Position:</label>
             </div>
           </div>
@@ -73,7 +73,7 @@
           </div>
           <div class="col-6">
             <div class="form-floating">
-              <input class="form-control" id="id_source_data_type" name="name" type="text" value="{{ field.source_data_type }}" maxlength="255" required="" disabled />
+              <input class="form-control" id="id_source_data_type" name="source_data_Type" type="text" value="{{ field.source_data_type }}" maxlength="255" required="" disabled />
               <label for="id_source_data_type">Source Data Type:</label>
             </div>
           </div>
@@ -82,7 +82,7 @@
           <div class="lead">Transformation</div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <input class="form-control" id="{{ field.transformation.id_for_label }}" name="source_name" type="text" value="{{ field.transformation }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled />
+              <textarea class="form-control" id="{{ field.transformation.id_for_label }}" name="source_name" type="text" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled>{{ field.transformation }}</textarea>
               <label for="id_transformation">Transformation:</label>
             </div>
           </div>

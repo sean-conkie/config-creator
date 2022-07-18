@@ -31,16 +31,17 @@
                 </thead>
                 <tbody class="text-center align-middle">
                   {% for condition in join.conditions %}
-                    {% for field in condition.fields %}
-                      <tr>
+                      <tr id="id_join_condition_{{ condition.condition.id }}_row">
                         <td>{{ condition.condition.logic_operator }}</td>
-                        <td>{{ field.left }}</td>
+                        <td>{{ condition.condition.left }}</td>
                         <td>{{ condition.condition.operator }}</td>
-                        <td>{{ field.right }}</td>
+                        <td>{{ condition.condition.right }}</td>
                         <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task-join-condition-update' job_id=job.id task_id=task.id join_id=join.join.id pk=condition.condition.id %}" title="Edit" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
-                        <td class="btn-column"><a class="btn btn-danger" href="{% url 'job-task-join-condition-delete' job_id=job.id task_id=task.id join_id=join.join.id pk=condition.condition.id %}" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+                        <td class="btn-column"><button class="btn btn-danger join-delete" id="id_join_condition_delete_{{ condition.condition.id }}"
+                          type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
+                          data-delete-url="{% url 'api-condition-delete' pk=condition.condition.id %}"
+                          data-delete-element-id="id_join_condition_{{ condition.condition.id }}_row"><i class="bi bi-trash3"></i></button></td>
                       </tr>
-                    {% endfor %}
                   {% endfor %}
                   {% if join.conditions|length == 0 %}
                     <tr><td class="text-center" colspan="6">No conditions linked to join!</td></tr>
@@ -67,3 +68,15 @@
     </div>
   </div>
 </div>
+<script>
+  let joinListenerMap = new Map()
+  const joinDeleteButtonList = document.getElementsByClassName("where-delete");
+  for (var i = 0; i < joinDeleteButtonList.length; i++) {
+    joinListenerMap.set(joinDeleteButtonList[i].id, {
+      "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
+      "type": "click"
+    })
+  }
+
+  joinListenerMap.forEach(addListener);
+  </script>

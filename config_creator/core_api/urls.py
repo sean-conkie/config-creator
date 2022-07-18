@@ -9,6 +9,31 @@ urlpatterns = [
         name="api-field-delete",
     ),
     path(
+        "job/<int:pk>/delete/",
+        login_required(JobView.as_view()),
+        name="api-job-delete",
+    ),
+    path(
+        "condition/<int:pk>/delete/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-delete",
+    ),
+    path(
+        "source_table/<int:pk>/delete/",
+        login_required(SourceTableView.as_view()),
+        name="api-source-table-delete",
+    ),
+    path(
+        "source_table/<int:pk>/update/",
+        login_required(SourceTableView.as_view()),
+        name="api-source-table-update",
+    ),
+    path(
+        "source_table/<int:pk>/",
+        login_required(SourceTableView.as_view()),
+        name="api-source-table",
+    ),
+    path(
         "task/<int:task_id>/connection/<int:connection_id>/dataset/<str:dataset>/table/<str:table_name>/copy/",
         login_required(copytable),
         name="api-table-copy",
