@@ -5,7 +5,7 @@
 <div class="container">
   <div class="py-5 text-center">
     <h2>Join</h2>
-    <p class="lead">Add or change your column.</p>
+    <p class="lead">Add or change your join.</p>
   </div>
   <form id="id_form" method="post" action="{% url 'job-task-join-add' job_id=job.id task_id=task.id %}">
     {% csrf_token %}
@@ -28,7 +28,7 @@
         <div class="row g-3 py-3">
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_left_dataset_tree" type="button" onclick="setReturnType('table', null, null, null, '{{ form.left.id_for_label }}_empty', 'tableFull', null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_left_dataset_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 {% if form.left.value != None %}
                 <input class="form-control" id="{{ form.left.id_for_label }}" name="left" type="text" value="{{ form.left.value }}" maxlength="255" />
@@ -41,7 +41,7 @@
           </div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_right_dataset_tree" type="button" onclick="setReturnType('table', null, null, null, '{{ form.right.id_for_label }}_empty', 'tableFull', null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_right_dataset_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 {% if form.right.value != None %}
                 <input class="form-control" id="{{ form.right.id_for_label }}" name="right" type="text" value="{{ form.left.value }}" maxlength="255" />
@@ -69,6 +69,37 @@
     </div>  
     
   </form>
+  <script src="/static/js/lazy-listener.js"></script>
+  <script>
+    
+    let joinListenerMap = new Map()
+    
+    {% if form.left.value != None %}
+      joinListenerMap.set("id_left_dataset_tree", {
+            "function": "setReturnType('table', null, null, null, '{{ form.left.id_for_label }}', 'tableFull', null, null, false)",
+            "type": "click"
+          })
+    {% else %}
+      joinListenerMap.set("id_left_dataset_tree", {
+            "function": "setReturnType('table', null, null, null, '{{ form.left.id_for_label }}_empty', 'tableFull', null, null, false)",
+            "type": "click"
+          })
+    {% endif %}
+
+    {% if form.right.value != None %}
+      joinListenerMap.set("id_right_dataset_tree", {
+            "function": "setReturnType('table', null, null, null, '{{ form.right.id_for_label }}', 'tableFull', null, null, false)",
+            "type": "clikc"
+          })
+    {% else %}
+      joinListenerMap.set("id_left_dataset_tree", {
+            "function": "setReturnType('table', null, null, null, '{{ form.right.id_for_label }}_empty', 'tableFull', null, null, false)",
+            "type": "click"
+          })
+    {% endif %}
+      
+      joinListenerMap.forEach(addListener)
+  </script>
   {% include 'core/connection_selector.html' %}
 </div>
 {% endblock %}

@@ -82,7 +82,7 @@
           <div class="lead">Transformation</div>
           <div class="col-sm-12">
             <div class="form-floating">
-              <input class="form-control" id="{{ field.transformation.id_for_label }}" name="source_name" type="text" value="{{ field.transformation }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled />
+              <textarea class="form-control" id="{{ field.transformation.id_for_label }}" name="source_name" type="text" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled>{{ field.transformation }}</textarea>
               <label for="id_transformation">Transformation:</label>
             </div>
           </div>

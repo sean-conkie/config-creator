@@ -743,7 +743,7 @@ def editjoinview(request, job_id, task_id, pk=None):
             return redirect(
                 reverse(
                     "job-task-join-condition-add",
-                    kwargs={"job_id": job_id, "task_id": task_id, "pk": join.id},
+                    kwargs={"job_id": job_id, "task_id": task_id, "join_id": join.id},
                 ),
             )
     else:
@@ -1540,6 +1540,12 @@ def get_filecontent(pk: int) -> dict:
 
         params = t["parameters"]
 
+        params["source_project_override"] = {
+            f"{st.dataset_name}.{st.table_name}": st.source_project
+            for st in SourceTable.objects.filter(task_id=task.id)
+            if st.source_project
+        }
+
         params["source_to_target"] = [
             {
                 "name": f.name,
@@ -1560,10 +1566,14 @@ def get_filecontent(pk: int) -> dict:
             {
                 "logic_operator": c.logic_operator.code,
                 "operator": c.operator.symbol,
-                # "fields": [
-                #     [cf.left, cf.right]
-                #     for cf in ConditionField.objects.filter(condition_id=c.id)
-                # ][0],
+                "fields": [
+                    f"{c.left.source_name}.{c.left.source_column}"
+                    if c.left.source_name
+                    else c.left.transformation,
+                    f"{c.right.source_name}.{c.right.source_column}"
+                    if c.right.source_name
+                    else c.right.transformation,
+                ],
             }
             for c in Condition.objects.select_related().filter(where_id=task.id)
         ]
@@ -1577,10 +1587,14 @@ def get_filecontent(pk: int) -> dict:
                     {
                         "logic_operator": c.logic_operator.code,
                         "operator": c.operator.symbol,
-                        # "fields": [
-                        #     [cf.left, cf.right]
-                        #     for cf in ConditionField.objects.filter(condition_id=c.id)
-                        # ][0],
+                        "fields": [
+                            f"{c.left.source_name}.{c.left.source_column}"
+                            if c.left.source_name
+                            else c.left.transformation,
+                            f"{c.right.source_name}.{c.right.source_column}"
+                            if c.right.source_name
+                            else c.right.transformation,
+                        ],
                     }
                     for c in Condition.objects.select_related().filter(join_id=j.id)
                 ],
