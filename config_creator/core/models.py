@@ -1,3 +1,4 @@
+import re
 import sys
 
 from django.db import models
@@ -38,6 +39,7 @@ __all__ = [
     "DATA_TYPE_MAPPING",
     "changefieldposition",
     "DEFAULT_DATA_TYPE_ID",
+    "SourceTable",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -365,6 +367,26 @@ class JobTask(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super(JobTask, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.driving_table:
+            m = re.search(pattern, self.driving_table, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.id,
+            ).save()
+
     def get_property_object(self):
 
         """
@@ -496,6 +518,29 @@ class Field(models.Model):
             name = f"{self.name}"
 
         return f"{table}{column}{name}"
+
+    def save(self, *args, **kwargs):
+        super(Field, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.source_name:
+            m = re.search(pattern, self.source_name, re.IGNORECASE)
+
+        if self.transformation and not m:
+            m = re.search(pattern, self.transformation, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
 
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
@@ -638,6 +683,41 @@ class Join(models.Model):
 
     def __str__(self):
         return f"{self.task.name} join to {self.right}"
+
+    def save(self, *args, **kwargs):
+        super(Join, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.left:
+            m = re.search(pattern, self.left, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
+
+        if self.right:
+            m = re.search(pattern, self.right, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
 
 
 class Condition(models.Model):

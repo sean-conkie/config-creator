@@ -441,6 +441,8 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
         partition = Partition.objects.filter(history_id=history.id)
         history_order = HistoryOrder.objects.filter(history_id=history.id)
 
+    source_tables = SourceTable.objects.filter(task_id=pk)
+
     return render(
         request,
         "core/jobtask.html",
@@ -457,6 +459,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "history": history,
             "partition": partition if history else [],
             "history_order": history_order if history else [],
+            "source_tables": source_tables,
         },
     )
 
@@ -592,11 +595,11 @@ def editfieldview(
             form.instance.source_column = request.POST.get("name", "")
 
         if pk:
-            message = f"{form.instance.name} updated successfully."
+            message = f"{request.POST.get('name', 'Field')} updated successfully."
             form.instance.id = pk
             original_position = Field.objects.get(id=pk).position
         else:
-            message = f"{form.instance.name} created successfully."
+            message = f"{request.POST.get('name', 'Field')} created successfully."
             original_position = -1
 
         form.instance.task_id = task_id

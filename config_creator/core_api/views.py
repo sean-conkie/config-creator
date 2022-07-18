@@ -6,6 +6,7 @@ from core.models import (
     Field,
     Job,
     JobTask,
+    SourceTable,
 )
 from database_interface_api.dbhelper import get_table
 from database_interface_api.views import get_connection
@@ -22,6 +23,8 @@ __all__ = [
     "datatypecomparison",
     "fieldpositionchange",
     "JobView",
+    "ConditionView",
+    "SourceTableView",
 ]
 
 
@@ -103,6 +106,71 @@ class ConditionView(views.APIView):
         else:
             outp = {
                 "message": f"Condition with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class SourceTableView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: request, pk: int) -> response.Response:
+
+        source_table = SourceTable.objects.filter(id=pk).exists()
+        if source_table:
+            source_table = SourceTable.objects.get(id=pk)
+            outp = {
+                "result": source_table,
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Source Table with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def post(self, request: request, pk: int) -> response.Response:
+
+        source_table = SourceTable.objects.filter(id=pk).exists()
+        if source_table:
+            source_table = SourceTable.objects.get(id=pk)
+            source_table.source_project = request.POST.get("source_project")
+            source_table.save()
+            outp = {
+                "message": f"Source Table updated.",
+                "type": "success",
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Source Table with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        source_table = SourceTable.objects.filter(id=pk).exists()
+        if source_table:
+            source_table = SourceTable.objects.get(id=pk)
+            outp = {
+                "message": f"Source Table deleted.",
+                "type": "success",
+            }
+            source_table.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Source Table with id '{pk}' does not exist.",
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND

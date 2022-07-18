@@ -2,8 +2,6 @@ from .views import *
 from django.contrib.auth.decorators import login_required
 from django.urls import path
 
-from .views import ConditionView
-
 urlpatterns = [
     path(
         "field/<int:pk>/delete/",
@@ -19,6 +17,21 @@ urlpatterns = [
         "condition/<int:pk>/delete/",
         login_required(ConditionView.as_view()),
         name="api-condition-delete",
+    ),
+    path(
+        "source_table/<int:pk>/delete/",
+        login_required(SourceTableView.as_view()),
+        name="api-source-table-delete",
+    ),
+    path(
+        "source_table/<int:pk>/update/",
+        login_required(SourceTableView.as_view()),
+        name="api-source-table-update",
+    ),
+    path(
+        "source_table/<int:pk>/",
+        login_required(SourceTableView.as_view()),
+        name="api-source-table",
     ),
     path(
         "task/<int:task_id>/connection/<int:connection_id>/dataset/<str:dataset>/table/<str:table_name>/copy/",
