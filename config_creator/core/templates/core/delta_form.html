@@ -30,14 +30,10 @@
                 {{ form.upper_bound.label_tag }}
               </div>
           </div>
+          <div class="lead">Select field to apply condition</div>
           <div class="col-6">
             <div class="form-floating">
-              <select class="form-select" id="{{ form.field.id_for_label }}" name="field">
-                <option selected>---------</option>
-                {% for field in fields %}
-                  <option value="{{ field.id }}">{{ field }}</option>
-                {% endfor %}
-              </select>
+              {{ form.field }}
               {{ form.field.label_tag }}
             </div>
           </div>

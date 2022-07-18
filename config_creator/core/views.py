@@ -726,14 +726,23 @@ def editjoinview(request, job_id, task_id, pk=None):
         join.right = request.POST["right"]
         join.task_id = task_id
         join.save()
-        messages.success(request, f"Join created successfully.")
 
-        return redirect(
-            reverse(
-                "job-task-join",
-                kwargs={"job_id": job_id, "task_id": task_id, "pk": join.id},
-            ),
-        )
+        if pk:
+            messages.success(request, f"Join updated successfully.")
+            return redirect(
+                reverse(
+                    "job-task",
+                    kwargs={"job_id": job_id, "pk": task_id},
+                ),
+            )
+        else:
+            messages.success(request, f"Join created successfully.")
+            return redirect(
+                reverse(
+                    "job-task-join-condition-add",
+                    kwargs={"job_id": job_id, "task_id": task_id, "pk": join.id},
+                ),
+            )
     else:
         if pk:
             join = Join.objects.select_related().get(id=pk)
@@ -803,44 +812,106 @@ def joindeleteview(request, job_id, task_id, pk):
 def editconditionview(request, job_id, task_id, join_id=None, pk=None):
 
     if request.method == "POST":
-        if request.POST["id"]:
-            condition = Condition.objects.get(id=request.POST["id"])
-            # field = ConditionField.objects.get(condition_id=request.POST["id"])
+
+        form = ConditionForm(request.POST)
+        message = f"Condition created successfully."
+        if pk:
+            form.instance.id = pk
+            message = f"Condition updated successfully."
+
+        form.instance.join_id = join_id
+        form.instance.where_id = task_id if not join_id else None
+
+        pattern = r"(?P<dataset>\b\w+\b)\.(?P<table>\b\w+\b)\.(?P<field>\b\w+\b)"
+        left = re.search(pattern, request.POST.get("left_field"), re.IGNORECASE)
+        right = re.search(pattern, request.POST.get("right_field"), re.IGNORECASE)
+
+        if (
+            left
+            and not Field.objects.filter(
+                source_column=left.group("field"),
+                source_name=f"{left.group('dataset')}.{left.group('table')}",
+            ).exists()
+        ):
+            left_field = Field()
+            left_field.source_column = left.group("field")
+            left_field.source_name = f"{left.group('dataset')}.{left.group('table')}"
+            left_field.is_source_to_target = False
+            left_field.task_id = task_id
+            left_field.save()
+        elif left:
+            left_field = Field.objects.get(
+                source_column=left.group("field"),
+                source_name=f"{left.group('dataset')}.{left.group('table')}",
+            )
         else:
-            condition = Condition()
-            # field = ConditionField()
+            left_field = Field(
+                transformation=request.POST.get("left_field"),
+                is_source_to_target=False,
+                task_id=task_id,
+            )
+            left_field.save()
 
-        condition.operator = Operator.objects.get(
-            id=request.POST.get("operator", DEFAULT_OPERATOR_ID)
+        if (
+            right
+            and not Field.objects.filter(
+                source_column=right.group("field"),
+                source_name=f"{right.group('dataset')}.{right.group('table')}",
+            ).exists()
+        ):
+            right_field = Field()
+            right_field.source_column = right.group("field")
+            right_field.source_name = f"{right.group('dataset')}.{right.group('table')}"
+            right_field.is_source_to_target = False
+            right_field.task_id = task_id
+            right_field.save()
+        elif right:
+            right_field = Field.objects.get(
+                source_column=right.group("field"),
+                source_name=f"{right.group('dataset')}.{right.group('table')}",
+            )
+        else:
+            right_field = Field(
+                transformation=request.POST.get("right_field"),
+                is_source_to_target=False,
+                task_id=task_id,
+            )
+            right_field.save()
+
+        if form.is_valid():
+            form.save()
+            condition = Condition.objects.get(id=form.instance.id)
+            condition.right_id = right_field.id
+            condition.left_id = left_field.id
+            condition.save()
+            messages.success(request, message)
+
+            return redirect(
+                reverse(
+                    "job-task",
+                    kwargs={"job_id": job_id, "pk": task_id},
+                ),
+            )
+
+        return render(
+            request,
+            "core/condition_form.html",
+            {
+                "form": form,
+                "task": JobTask.objects.get(id=task_id),
+                "job": Job.objects.get(id=job_id),
+                "join_id": join_id,
+                "condition_id": pk,
+            },
         )
-        condition.logic_operator = LogicOperator.objects.get(
-            id=request.POST.get("logic_operator", DEFAULT_LOGIC_OPERATOR_ID)
-        )
-        condition.join_id = join_id
-        condition.where_id = task_id if not join_id else None
-        condition.save()
 
-        # field.left = request.POST["left"]
-        # field.right = request.POST["right"]
-        # field.condition = condition
-        # field.save()
-
-        messages.success(request, f"Condition created successfully.")
-
-        return redirect(
-            reverse(
-                "job-task",
-                kwargs={"job_id": job_id, "pk": task_id},
-            ),
-        )
     else:
         if pk:
-            condition = Condition.objects.get(id=pk)
+            condition = Condition.objects.select_related().get(id=pk)
             form = ConditionForm(instance=condition)
-            # fields = ConditionField.objects.filter(condition_id=condition.id)
         else:
+            condition = None
             form = ConditionForm()
-            fields = []
 
         job = Job.objects.get(id=job_id)
         task = JobTask.objects.get(id=task_id)
@@ -850,11 +921,11 @@ def editconditionview(request, job_id, task_id, join_id=None, pk=None):
             "core/condition_form.html",
             {
                 "form": form,
+                "condition": condition,
                 "task": task,
                 "job": job,
                 "join_id": join_id,
                 "condition_id": pk,
-                "fields": fields,
             },
         )
 
@@ -1148,9 +1219,8 @@ def get_where(task_id: str) -> list[dict]:
     return [
         {
             "condition": condition,
-            # "fields": ConditionField.objects.filter(condition_id=condition.id),
         }
-        for condition in Condition.objects.filter(where_id=task_id)
+        for condition in Condition.objects.select_related().filter(where_id=task_id)
     ]
 
 

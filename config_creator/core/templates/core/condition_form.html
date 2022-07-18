@@ -7,7 +7,21 @@
     <h2>{% if join_id != None %}Join {% else %}Where {% endif %}Condition</h2>
     <p class="lead">Add or change your condition.</p>
   </div>
-  <form id="id_form" method="post" {% if join_id != None %} action="{% url 'job-task-join-condition-add' job_id=job.id task_id=task.id join_id=join_id %}" {% else %}  action="{% url 'job-task-where-condition-add' job_id=job.id task_id=task.id %}" {% endif %}>
+  <form id="id_form" method="post" 
+    {% if condition_id != None %} 
+      {% if join_id != None %} 
+        action="{% url 'job-task-join-condition-update' job_id=job.id task_id=task.id join_id=join_id pk=condition_id %}" 
+      {% else %}  
+        action="{% url 'job-task-where-condition-update' job_id=job.id task_id=task.id pk=condition_id %}"
+      {% endif %}
+    {% else %}
+      {% if join_id != None %} 
+        action="{% url 'job-task-join-condition-add' job_id=job.id task_id=task.id join_id=join_id %}" 
+      {% else %}
+        action="{% url 'job-task-where-condition-add' job_id=job.id task_id=task.id %}"
+      {% endif %}
+    {% endif %}
+    >
     {% csrf_token %}
     <div class="row g-5">
       <div class="col-md-12 col-lg-12">
@@ -25,14 +39,14 @@
           </div>
           <div class="col-sm-4">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_value_1_tree" type="button" onclick="setReturnType('column', 'id_left', 'columnFull', null, null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_value_1_tree" type="button" onclick="setReturnType('column', 'id_left', 'columnFull', null, null, null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
-                {% if fields|length > 0 %} 
-                  <input class="form-control" id="id_left" name="left" type="text" value="{{ fields.0.left }}" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
+                {% if condition_id != None %} 
+                  <input class="form-control" id="id_left_field" name="left_field" type="text" value="{{ condition.left }}" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
                 {% else %}
-                  <input class="form-control" id="id_empty_left" name="left" type="text" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
+                  <input class="form-control" id="id_empty_left_field" name="left_field" type="text" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
                 {% endif %} 
-                <label for="id_left">Value 1:</label>
+                <label for="id_left_field">Value 1:</label>
               </div>
             </div>
           </div>
@@ -44,14 +58,14 @@
           </div>
           <div class="col-sm-4">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_value_2_tree" type="button" onclick="setReturnType('column', 'id_right', 'columnFull', null, null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_value_2_tree" type="button" onclick="setReturnType('column', 'id_right', 'columnFull', null, null, null, null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
-                {% if fields|length > 0 %} 
-                  <input class="form-control" id="id_right" name="right" type="text" value="{{ fields.0.right }}" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
+                {% if condition_id != None %} 
+                  <input class="form-control" id="id_right_field" name="right_field" type="text" value="{{ condition.right }}" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
                 {% else %}
-                  <input class="form-control" id="id_empty_right" name="right" type="text" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="left" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
+                  <input class="form-control" id="id_empty_right_field" name="right_field" type="text" maxlength="255" required="" aria-required="true" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="top" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="Enter a column name (<dataset name>.<table name>.<column name>), value or sql function" />
                 {% endif %} 
-                <label for="id_right">Value 2:</label>
+                <label for="id_right_field">Value 2:</label>
               </div>
             </div>
           </div>

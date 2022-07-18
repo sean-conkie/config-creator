@@ -1,6 +1,7 @@
 from core.models import (
     BigQueryDataType,
     changefieldposition,
+    Condition,
     DATA_TYPE_MAPPING,
     Field,
     Job,
@@ -77,6 +78,31 @@ class JobView(views.APIView):
         else:
             outp = {
                 "message": f"Job with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class ConditionView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        condition = Condition.objects.get(id=pk)
+        if condition:
+            outp = {
+                "message": f"Condition deleted.",
+                "type": "success",
+            }
+            condition.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Condition with id '{pk}' does not exist.",
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND

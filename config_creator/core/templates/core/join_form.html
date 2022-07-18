@@ -28,7 +28,7 @@
         <div class="row g-3 py-3">
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_left_dataset_tree" type="button" onclick="setReturnType('table', null, null, '{{ form.left.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_left_dataset_tree" type="button" onclick="setReturnType('table', null, null, null, '{{ form.left.id_for_label }}_empty', 'tableFull', null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 {% if form.left.value != None %}
                 <input class="form-control" id="{{ form.left.id_for_label }}" name="left" type="text" value="{{ form.left.value }}" maxlength="255" />
@@ -41,7 +41,7 @@
           </div>
           <div class="col-6">
             <div class="input-group mb-3">
-              <button class="input-group-text" id="id_right_dataset_tree" type="button" onclick="setReturnType('table', null, null, '{{ form.right.id_for_label }}', 'tableFull', null, false)"><i class="fa-solid fa-folder-tree"></i></button>
+              <button class="input-group-text" id="id_right_dataset_tree" type="button" onclick="setReturnType('table', null, null, null, '{{ form.right.id_for_label }}_empty', 'tableFull', null, null, false)"><i class="fa-solid fa-folder-tree"></i></button>
               <div class="form-floating flex-grow-1">
                 {% if form.right.value != None %}
                 <input class="form-control" id="{{ form.right.id_for_label }}" name="right" type="text" value="{{ form.left.value }}" maxlength="255" />

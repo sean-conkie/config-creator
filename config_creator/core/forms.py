@@ -82,7 +82,6 @@ class FieldForm(forms.ModelForm):
             "position",
             "data_type",
             "source_data_type",
-            "source_project",
         ]
 
 
@@ -102,6 +101,8 @@ class ConditionForm(forms.ModelForm):
         fields = [
             "operator",
             "logic_operator",
+            "left",
+            "right",
         ]
 
 

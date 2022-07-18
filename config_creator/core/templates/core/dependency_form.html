@@ -4,7 +4,7 @@
 {% load static %}
 <div class="container">
   <div class="py-5 text-center">
-    <h2>Predecessorn</h2>
+    <h2>Predecessor</h2>
     <p class="lead">Add a predecessor to {{ task.name }}.</p>
   </div>
   <form id="id_form" method="post" action="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}">
