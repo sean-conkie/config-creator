@@ -7,43 +7,77 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0026_field_is_nullable'),
+        ("core", "0026_field_is_nullable"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='batchjobproperties',
-            name='source_project',
-            field=models.CharField(blank=True, help_text='Default source project', max_length=255, null=True, verbose_name='Source Project'),
+            model_name="batchjobproperties",
+            name="source_project",
+            field=models.CharField(
+                blank=True,
+                help_text="Default source project",
+                max_length=255,
+                null=True,
+                verbose_name="Source Project",
+            ),
         ),
         migrations.AddField(
-            model_name='condition',
-            name='left',
-            field=models.ForeignKey(default=0, max_length=255, on_delete=django.db.models.deletion.CASCADE, related_name='left_parameter', to='core.field', verbose_name='Left Parameter'),
+            model_name="condition",
+            name="left",
+            field=models.ForeignKey(
+                default=0,
+                max_length=255,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="left_parameter",
+                to="core.field",
+                verbose_name="Left Parameter",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='condition',
-            name='right',
-            field=models.ForeignKey(default=0, max_length=255, on_delete=django.db.models.deletion.CASCADE, related_name='right_parameter', to='core.field', verbose_name='Right Parameter'),
+            model_name="condition",
+            name="right",
+            field=models.ForeignKey(
+                default=0,
+                max_length=255,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="right_parameter",
+                to="core.field",
+                verbose_name="Right Parameter",
+            ),
             preserve_default=False,
         ),
         migrations.AddField(
-            model_name='dagjobproperties',
-            name='source_project',
-            field=models.CharField(blank=True, help_text='Default source project', max_length=255, null=True, verbose_name='Source Project'),
+            model_name="dagjobproperties",
+            name="source_project",
+            field=models.CharField(
+                blank=True,
+                help_text="Default source project",
+                max_length=255,
+                null=True,
+                verbose_name="Source Project",
+            ),
         ),
         migrations.AddField(
-            model_name='field',
-            name='source_project',
-            field=models.CharField(blank=True, help_text='Override default source project', max_length=255, null=True, verbose_name='Source Project'),
+            model_name="field",
+            name="source_project",
+            field=models.CharField(
+                blank=True,
+                help_text="Override default source project",
+                max_length=255,
+                null=True,
+                verbose_name="Source Project",
+            ),
         ),
         migrations.AlterField(
-            model_name='field',
-            name='name',
-            field=models.CharField(blank=True, max_length=255, null=True, verbose_name='Name'),
+            model_name="field",
+            name="name",
+            field=models.CharField(
+                blank=True, max_length=255, null=True, verbose_name="Name"
+            ),
         ),
         migrations.DeleteModel(
-            name='ConditionField',
+            name="ConditionField",
         ),
     ]

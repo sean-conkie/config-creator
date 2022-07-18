@@ -7,37 +7,82 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0027_batchjobproperties_source_project_condition_left_and_more'),
+        ("core", "0027_batchjobproperties_source_project_condition_left_and_more"),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='field',
-            name='source_project',
+            model_name="field",
+            name="source_project",
         ),
         migrations.AlterField(
-            model_name='condition',
-            name='left',
-            field=models.ForeignKey(blank=True, max_length=255, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='left_parameter', to='core.field', verbose_name='Left Parameter'),
+            model_name="condition",
+            name="left",
+            field=models.ForeignKey(
+                blank=True,
+                max_length=255,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="left_parameter",
+                to="core.field",
+                verbose_name="Left Parameter",
+            ),
         ),
         migrations.AlterField(
-            model_name='condition',
-            name='right',
-            field=models.ForeignKey(blank=True, max_length=255, null=True, on_delete=django.db.models.deletion.CASCADE, related_name='right_parameter', to='core.field', verbose_name='Right Parameter'),
+            model_name="condition",
+            name="right",
+            field=models.ForeignKey(
+                blank=True,
+                max_length=255,
+                null=True,
+                on_delete=django.db.models.deletion.CASCADE,
+                related_name="right_parameter",
+                to="core.field",
+                verbose_name="Right Parameter",
+            ),
         ),
         migrations.AlterField(
-            model_name='field',
-            name='transformation',
-            field=models.TextField(blank=True, null=True, verbose_name='Column Transformation'),
+            model_name="field",
+            name="transformation",
+            field=models.TextField(
+                blank=True, null=True, verbose_name="Column Transformation"
+            ),
         ),
         migrations.CreateModel(
-            name='SourceTable',
+            name="SourceTable",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('source_project', models.CharField(blank=True, max_length=255, null=True, verbose_name='Source Project')),
-                ('dataset_name', models.CharField(max_length=255, verbose_name='Dataset Name')),
-                ('table_name', models.CharField(max_length=255, verbose_name='Table Name')),
-                ('task', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='core.jobtask')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "source_project",
+                    models.CharField(
+                        blank=True,
+                        max_length=255,
+                        null=True,
+                        verbose_name="Source Project",
+                    ),
+                ),
+                (
+                    "dataset_name",
+                    models.CharField(max_length=255, verbose_name="Dataset Name"),
+                ),
+                (
+                    "table_name",
+                    models.CharField(max_length=255, verbose_name="Table Name"),
+                ),
+                (
+                    "task",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE, to="core.jobtask"
+                    ),
+                ),
             ],
         ),
     ]
