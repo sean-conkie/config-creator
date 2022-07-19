@@ -7,29 +7,29 @@
 ### Step 1
 Run file `install.bat` this will execute the following statements which can be run individually instead.
 
-- Check python is installed 
+- Check python is installed
 ```shell
 python --version
 ```
-- Create virtual environment 
+- Create virtual environment
 ```shell
 python -m venv .\venv
 ```
-- Install requirements 
+- Install requirements
 ```shell
 python -m pip install -r ./requirements.txt
 ```
-- Create local sqlite3 database 
+- Create local sqlite3 database
 ```shell
 python .\lib\local_db.py
 ```
-- Apply Django migrations to sqlite3 database 
+- Apply Django migrations to sqlite3 database
 ```shell
 python .\config_creator\manage.py migrate
 ```
 
 ### Step 2
-Add a user, run command 
+Add a user, run command
 ```shell
 python .\config_creator\manage.py createsuperuser
 ```
