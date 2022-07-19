@@ -14,7 +14,7 @@ def createjobtypesdata(apps, schema_editor):
 Orchestration is handled by Control-m (or another batch processing workflow management tool).
 
 Cannot have cross-job dependencies, these need handled via orchestration tool.""",
-    ).exists:
+    ).exists():
         job_type(
             name="Batch",
             code="BATCH",
@@ -33,7 +33,7 @@ def createjointypesdata(apps, schema_editor):
         name="Left Join",
         code="LEFT",
         description="Returns all records from the left table, and the matched records from the right table",
-    ).exists:
+    ).exists():
         model(
             name="Left Join",
             code="LEFT",
@@ -44,7 +44,7 @@ def createjointypesdata(apps, schema_editor):
         name="Inner Join",
         code="INNER",
         description="Returns records that have matching values in both tables",
-    ).exists:
+    ).exists():
         model(
             name="Inner Join",
             code="INNER",
@@ -55,7 +55,7 @@ def createjointypesdata(apps, schema_editor):
         name="Full Join",
         code="FULL",
         description="Returns all records when there is a match in either left or right table",
-    ).exists:
+    ).exists():
         model(
             name="Full Join",
             code="FULL",
@@ -69,7 +69,7 @@ def createlogicoperatordata(apps, schema_editor):
     if not model.objects.filter(
         name="And",
         code="AND",
-    ).exists:
+    ).exists():
         model(
             name="And",
             code="AND",
@@ -79,7 +79,7 @@ def createlogicoperatordata(apps, schema_editor):
 def createoperatordata(apps, schema_editor):
     model = apps.get_model("core", "Operator")
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Equals",
             code="EQ",
@@ -87,7 +87,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Greater Than",
             code="GT",
@@ -95,7 +95,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Greater Than or Equal To",
             code="GE",
@@ -103,7 +103,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Not Equal",
             code="NE",
@@ -111,7 +111,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Less Than or Greater Than",
             code="LG",
@@ -119,7 +119,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Less Than",
             code="LT",
@@ -127,7 +127,7 @@ def createoperatordata(apps, schema_editor):
             description="<",
         ).save()
 
-    if not model.objects.filter().exists:
+    if not model.objects.filter().exists():
         model(
             name="Less Than or Equal To",
             code="LE",
@@ -142,7 +142,7 @@ def createtabletypedata(apps, schema_editor):
     if not model.objects.filter(
         name="Type 1",
         code="TYPE1",
-    ).exists:
+    ).exists():
         model(
             name="Type 1",
             code="TYPE1",
@@ -155,7 +155,7 @@ def createtasktypedata(apps, schema_editor):
     if not model.objects.filter(
         name="Create Table",
         code="CREATETABLE",
-    ).exists:
+    ).exists():
         model(
             name="Create Table",
             code="CREATETABLE",
@@ -168,7 +168,7 @@ def createwritedispositiondata(apps, schema_editor):
     if not model.objects.filter(
         name="Truncate Table",
         code="DELETE",
-    ).exists:
+    ).exists():
         model(
             name="Truncate Table",
             code="DELETE",
@@ -177,7 +177,7 @@ def createwritedispositiondata(apps, schema_editor):
     if not model.objects.filter(
         name="Write Append",
         code="WRITEAPPEND",
-    ).exists:
+    ).exists():
         model(
             name="Write Append",
             code="WRITEAPPEND",
@@ -186,7 +186,7 @@ def createwritedispositiondata(apps, schema_editor):
     if not model.objects.filter(
         name="Write Transient",
         code="WRITETRANSIENT",
-    ).exists:
+    ).exists():
         model(
             name="Write Transient",
             code="WRITETRANSIENT",
@@ -195,7 +195,7 @@ def createwritedispositiondata(apps, schema_editor):
     if not model.objects.filter(
         name="Write Truncate",
         code="WRITETRUNCATE",
-    ).exists:
+    ).exists():
         model(
             name="Write Truncate",
             code="WRITETRUNCATE",
