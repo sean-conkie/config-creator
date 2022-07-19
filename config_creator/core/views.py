@@ -436,10 +436,15 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
     where = get_where(pk)
     delta = Delta.objects.select_related().filter(task_id=pk)
     dependencies = Dependency.objects.select_related().filter(dependant=pk)
-    history = History.objects.filter(task_id=pk)
+    history = History.objects.get(task_id=pk)
     if history:
-        partition = Partition.objects.filter(history_id=history.id)
-        history_order = HistoryOrder.objects.filter(history_id=history.id)
+        partition = Partition.objects.select_related().filter(history_id=history.id)
+        history_order = HistoryOrder.objects.select_related().filter(
+            history_id=history.id
+        )
+        driving_column = DrivingColumn.objects.select_related().filter(
+            history_id=history.id
+        )
 
     source_tables = SourceTable.objects.filter(task_id=pk)
 
@@ -457,6 +462,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "dependency_id": dependency_id,
             "task_id": task_id,
             "history": history,
+            "driving_column": driving_column if history else [],
             "partition": partition if history else [],
             "history_order": history_order if history else [],
             "source_tables": source_tables,
@@ -486,6 +492,12 @@ def editjobtaskview(request, job_id, pk=None):
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
+
+        if (
+            task.table_type != TableType.objects.get(code="TYPE1")
+            and not History.objects.filter(task_id=task.id).exists()
+        ):
+            History(task_id=task.id).save()
 
         property_object = task.get_property_object()
 
