@@ -36,12 +36,15 @@
     {% endif %}
   </div>
 </div>
-<form action="{% url 'connection-update' pk=pk %}"  enctype="multipart/form-data" method="POST">
-  {% if delta_id != None %}
-    <input id="id_id" name="id" value="{{ delta_id }}" hidden />
-  {% else %}
-    <input id="id_empty_id" name="id" hidden />
-  {% endif %}
+<form 
+{% if pk == None %}
+action="{% url 'connection-add' %}"  
+{% else %}
+  action="{% url 'connection-update' pk=pk %}"  
+{% endif %}
+
+enctype="multipart/form-data" method="POST">
+  <input id="id_id" name="id" value="{{ form.id.value }}" hidden />
   {% csrf_token %}
   <div class="row g-5">
     <div class="col-md-8 col-lg-9">
