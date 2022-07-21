@@ -11,7 +11,7 @@
           <div class="row g-3">
             <div class="col-lg-6">
               <div class="lead">Driving Columns</div>
-              <table class="table table-hover table-striped draggable">
+              <table class="table table-hover draggable">
                 <thead>
                   <tr>
                     <th scope="col"></th>
@@ -21,20 +21,21 @@
                     <th scope="col"></th>
                   </tr>
                 </thead>
-                <tbody id="id_driving_column_">
+                <tbody id="id_driving_column">
                   {% for col in driving_column %}
-                  <tr class="align-middle" id="id_driving_column_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="fieldPositionChange(this)" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
+                  <tr class="align-middle" id="id_driving_column_{{col.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="fieldPositionChange(this)" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                     <td>
                       {% if col.field.source_name != "" and col.field.source_name != None %}<span>{{ col.field.source_name }}.</span><strong>{{ col.field.source_column }}</strong>{% else %}{{ col.field.source_column }}{% endif %}
                     </td>
-                    <td class="btn-column"><a class="btn btn-secondary"
-                        href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=col.id %}" title="View"
-                        aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a>
-                    </td>
-                    <td class="btn-column"><button class="btn btn-danger field-delete" id="id_driving_column_delete_{{col.id}}"
+                    <td class="btn-column"><button class="btn btn-secondary driving-column-view" id="id_driving_column_{{ col.id }}_view" 
+                      type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
+                      data-action="viewDrivingColumn" data-field-id="{{ col.field.id }}" data-target="id_driving_column"
+                      data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-delete-element-id="id_driving_column_{{col.id}}_row">
+                      <i class="bi bi-search"></i></button></td>
+                    <td class="btn-column"><button class="btn btn-danger driving-column-delete" id="id_driving_column_delete_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
-                        data-delete-url="{% url 'api-field-delete' pk=field.id %}"
+                        data-delete-url="{% url 'api-field-delete' pk=col.field.id %}"
                         data-delete-element-id="id_driving_column_{{col.id}}_row"><i class="bi bi-trash3"></i></button></td>
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                   </tr>
@@ -47,14 +48,14 @@
                 </tbody>
               </table>
               <div class="row">
-                <div class="col-md-4 col-lg-3">
-                  <button class="btn btn-primary" type="button" onclick="bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).show()"><i class="bi bi-plus"></i> Add Driving Column</button>
+                <div class="col-12">
+                  <button class="btn btn-primary" id="id_add_driving_column_button" type="button"><i class="bi bi-plus"></i> Add Driving Column</button>
                 </div>
               </div>
             </div>
             <div class="col-lg-6">
               <div class="lead">Partition</div>
-              <table class="table table-hover table-striped draggable">
+              <table class="table table-hover draggable">
                 <thead>
                   <tr>
                     <th scope="col"></th>
@@ -65,34 +66,40 @@
                   </tr>
                 </thead>
                 <tbody id="id_partition">
-                  {% for col in driving_column %}
+                  {% for col in partition %}
                   <tr class="align-middle" id="id_partition_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="fieldPositionChange(this)" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                     <td>
                       {% if col.field.source_name != "" and col.field.source_name != None %}<span>{{ col.field.source_name }}.</span><strong>{{ col.field.source_column }}</strong>{% else %}{{ col.field.source_column }}{% endif %}
                     </td>
-                    <td class="btn-column"><a class="btn btn-secondary"
-                        href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=col.id %}" title="View"
-                        aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a>
-                    </td>
-                    <td class="btn-column"><button class="btn btn-danger field-delete" id="id_partition_delete_{{col.id}}"
+                    <td class="btn-column"><button class="btn btn-secondary partition-view" id="id_partition_{{ col.id }}_view" 
+                      type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
+                      data-action="viewPartition" data-field-id="{{ col.field.id }}" data-target="id_partition"
+                      data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-delete-element-id="id_partition_{{col.id}}_row">
+                      <i class="bi bi-search"></i></button></td>
+                    <td class="btn-column"><button class="btn btn-danger partition-delete" id="id_partition_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
-                        data-delete-url="{% url 'api-field-delete' pk=field.id %}"
+                        data-delete-url="{% url 'api-field-delete' pk=col.field.id %}"
                         data-delete-element-id="id_partition_{{col.id}}_row"><i class="bi bi-trash3"></i></button></td>
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                   </tr>
                   {% endfor %}
-                  {% if driving_column|length == 0 %}
+                  {% if partition|length == 0 %}
                   <tr class="placeholder-row">
-                    <td class="text-center" colspan="11">No driving columns selected!</td>
+                    <td class="text-center" colspan="11">No partition columns selected!</td>
                   </tr>
                   {% endif %}
                 </tbody>
               </table>
+              <div class="row">
+                <div class="col-12">
+                  <button class="btn btn-primary" id="id_add_partition_button" type="button"><i class="bi bi-plus"></i> Add Partition Column</button>
+                </div>
+              </div>
             </div>
             <div class="col-lg-6">
               <div class="lead">Order</div>
-              <table class="table table-hover table-striped draggable">
+              <table class="table table-hover draggable">
                 <thead>
                   <tr>
                     <th scope="col"></th>
@@ -103,34 +110,108 @@
                   </tr>
                 </thead>
                 <tbody id="id_order">
-                  {% for col in driving_column %}
+                  {% for col in history_order %}
                   <tr class="align-middle" id="id_order_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="fieldPositionChange(this)" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                     <td>
                       {% if col.field.source_name != "" and col.field.source_name != None %}<span>{{ col.field.source_name }}.</span><strong>{{ col.field.source_column }}</strong>{% else %}{{ col.field.source_column }}{% endif %}
                     </td>
-                    <td class="btn-column"><a class="btn btn-secondary"
-                        href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=col.id %}" title="View"
-                        aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a>
-                    </td>
-                    <td class="btn-column"><button class="btn btn-danger field-delete" id="id_order_delete_{{col.id}}"
+                    <td class="btn-column"><button class="btn btn-secondary order-view" id="id_order_{{ col.id }}_view" 
+                      type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
+                      data-action="viewOrder" data-field-id="{{ col.field.id }}" data-target="id_order"
+                      data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-delete-element-id="id_order_{{col.id}}_row">
+                      <i class="bi bi-search"></i></button></td>
+                    <td class="btn-column"><button class="btn btn-danger order-delete" id="id_order_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
-                        data-delete-url="{% url 'api-field-delete' pk=field.id %}"
+                        data-delete-url="{% url 'api-field-delete' pk=col.field.id %}"
                         data-delete-element-id="id_order_{{col.id}}_row"><i class="bi bi-trash3"></i></button></td>
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                   </tr>
                   {% endfor %}
-                  {% if driving_column|length == 0 %}
+                  {% if history_order|length == 0 %}
                   <tr class="placeholder-row">
-                    <td class="text-center" colspan="11">No driving columns selected!</td>
+                    <td class="text-center" colspan="11">No order columns selected!</td>
                   </tr>
                   {% endif %}
                 </tbody>
               </table>
+              
+              <div class="row">
+                <div class="col-12">
+                  <button class="btn btn-primary" id="id_add_order_button" type="button"><i class="bi bi-plus"></i> Add Order Column</button>
+                </div>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
   </div>  
-  {% include 'core/field_form_modal.html' %}
+
+  <script>
+    let historyListenerMap = new Map([
+    ["id_add_driving_column_button", {
+      "function": "prepareFieldModal('historyDrivingColumn', undefined, 'id_driving_column', undefined, {{ job.id }}, {{ task.id }})",
+      "type": "click"
+    }],
+    ["id_add_partition_button", {
+      "function": "prepareFieldModal('historyPartition', undefined, 'id_partition', undefined, {{ job.id }}, {{ task.id }})",
+      "type": "click"
+    }],
+    ["id_add_order_button", {
+      "function": "prepareFieldModal('historyHistoryOrder', undefined, 'id_order', undefined, {{ job.id }}, {{ task.id }})",
+      "type": "click"
+    }],
+    ])
+
+    
+    const drivingColumnViewButtonList = document.getElementsByClassName("driving-column-view");
+    for (var i = 0; i < drivingColumnViewButtonList.length; i++) {
+      historyListenerMap.set(drivingColumnViewButtonList[i].id, {
+        "function": "prepareFieldModal(this.dataset['action'], this.dataset['fieldId'], this.dataset['target'], this.dataset['deleteElementId'], this.dataset['jobId'], this.dataset['taskId']);",
+        "type": "click"
+      })
+    }
+
+    const drivingColumnDeleteButtonList = document.getElementsByClassName("driving-column-delete");
+    for (var i = 0; i < drivingColumnDeleteButtonList.length; i++) {
+      historyListenerMap.set(drivingColumnDeleteButtonList[i].id, {
+        "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
+        "type": "click"
+      })
+    }
+    
+    const partitionViewButtonList = document.getElementsByClassName("partition-view");
+    for (var i = 0; i < partitionViewButtonList.length; i++) {
+      historyListenerMap.set(partitionViewButtonList[i].id, {
+        "function": "prepareFieldModal(this.dataset['action'], this.dataset['fieldId'], this.dataset['target'], this.dataset['deleteElementId'], this.dataset['jobId'], this.dataset['taskId']);",
+        "type": "click"
+      })
+    }
+
+    const partitionDeleteButtonList = document.getElementsByClassName("partition-delete");
+    for (var i = 0; i < partitionDeleteButtonList.length; i++) {
+      historyListenerMap.set(partitionDeleteButtonList[i].id, {
+        "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
+        "type": "click"
+      })
+    }
+    
+    const orderViewButtonList = document.getElementsByClassName("order-view");
+    for (var i = 0; i < orderViewButtonList.length; i++) {
+      historyListenerMap.set(orderViewButtonList[i].id, {
+        "function": "prepareFieldModal(this.dataset['action'], this.dataset['fieldId'], this.dataset['target'], this.dataset['deleteElementId'], this.dataset['jobId'], this.dataset['taskId']);",
+        "type": "click"
+      })
+    }
+
+    const orderDeleteButtonList = document.getElementsByClassName("order-delete");
+    for (var i = 0; i < orderDeleteButtonList.length; i++) {
+      historyListenerMap.set(orderDeleteButtonList[i].id, {
+        "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
+        "type": "click"
+      })
+    }
+
+    historyListenerMap.forEach(addListener)
+  </script>

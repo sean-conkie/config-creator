@@ -436,7 +436,14 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
     where = get_where(pk)
     delta = Delta.objects.select_related().filter(task_id=pk)
     dependencies = Dependency.objects.select_related().filter(dependant=pk)
-    history = History.objects.get(task_id=pk)
+    if task.table_type != TableType.objects.get(code="TYPE1"):
+        history = (
+            History.objects.get(task_id=pk)
+            if History.objects.filter(task_id=pk).exists()
+            else History(task_id=pk).save()
+        )
+    else:
+        history = None
     if history:
         partition = Partition.objects.select_related().filter(history_id=history.id)
         history_order = HistoryOrder.objects.select_related().filter(
@@ -455,6 +462,12 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "task": task,
             "job": job,
             "fields": fields,
+            "field_form": FieldForm(
+                initial={
+                    "data_type": 1,
+                    "position": -1,
+                }
+            ),
             "joins": joins,
             "where": where,
             "delta": delta,
@@ -1579,12 +1592,12 @@ def get_filecontent(pk: int) -> dict:
                 "logic_operator": c.logic_operator.code,
                 "operator": c.operator.symbol,
                 "fields": [
-                    f"{c.left.source_name}.{c.left.source_column}"
-                    if c.left.source_name
-                    else c.left.transformation,
-                    f"{c.right.source_name}.{c.right.source_column}"
-                    if c.right.source_name
-                    else c.right.transformation,
+                    c.left.transformation
+                    if c.left.transformation
+                    else f"{c.left.source_name}.{c.left.source_column}",
+                    c.right.transformation
+                    if c.right.transformation
+                    else f"{c.right.source_name}.{c.right.source_column}",
                 ],
             }
             for c in Condition.objects.select_related().filter(where_id=task.id)

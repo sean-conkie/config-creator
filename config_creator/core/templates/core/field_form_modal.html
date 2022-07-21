@@ -4,41 +4,43 @@
     <div class="modal-dialog modal-dialog-centered selector-dialog">
       <div class="modal-content">
         <div class="modal-header selector-header">
-          <h5 class="modal-title"></h5>
+          <h5 class="modal-title" id="id_field_modal_title"></h5>
           <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="container row g-3 py-3" id="id_field_modal_content">
           <form id="id_field_form">
+            <input id="id_id" name="id" hidden />
+            <input id="id_field_modal_action" name="action" hidden />
             <div class="row g-5">
               <div class="col-12">
                 <div class="row g-3">
                   <div class="lead">Target Column</div>
                   <div class="col-6">
                     <div class="form-floating">
-                      <input class="form-control" id="id_name" name="name" type="text" maxlength="255" required="" />
-                      <label for="id_name">Name:</label>
+                      {{ field_form.name }}
+                      {{ field_form.name.label_tag }}
                     </div>
                   </div>
                   <div class="col-6">
                     <div class="form-check">
-                      <input class="form-checkbox" id="id_is_primary_key" name="is_primary_key" type="checkbox" maxlength="255" required="" />
-                      <label for="id_is_primary_key">Primary key Field</label>
+                      {{ field_form.is_primary_key }}
+                      {{ field_form.is_primary_key.label_tag }}
                     </div>
                     <div class="form-check">
-                      <input class="form-checkbox" id="id_is_nullable" name="is_nullable" type="checkbox" maxlength="255" required="" />
-                      <label for="id_is_nullable">Is Column Nullable</label>
+                      {{ field_form.is_nullable }}
+                      {{ field_form.is_nullable.label_tag }}
                     </div>
                   </div>
                   <div class="col-6">
                     <div class="form-floating">
-                      <input class="form-control" id="id_data_type" name="data_type" type="text" maxlength="255" required="" />
-                      <label for="id_data_type">Data Type:</label>
+                      {{ field_form.data_type }}
+                      {{ field_form.data_type.label_tag }}
                     </div>
                   </div>
                   <div class="col-6">
                     <div class="form-floating">
-                      <input class="form-control" id="id_position" name="position" type="number" maxlength="255" required="" />
-                      <label for="id_position">Ordinal Position:</label>
+                      {{ field_form.position }}
+                      {{ field_form.position.label_tag }}
                     </div>
                   </div>
                 </div>
@@ -48,8 +50,8 @@
                     <div class="input-group mb-3">
                       <button class="input-group-text" id="id_source_column_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
                       <div class="form-floating flex-grow-1">
-                        <input class="form-control" id="id_source_column" name="source_column" type="text" maxlength="255" />
-                        <label for="id_source_column">Source Column:</label>
+                        {{ field_form.source_column }}
+                        {{ field_form.source_column.label_tag }}
                       </div>
                     </div>
                   </div>
@@ -57,15 +59,15 @@
                     <div class="input-group mb-3">
                       <button class="input-group-text" id="id_source_name_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
                       <div class="form-floating flex-grow-1">
-                        <input class="form-control" id="id_source_name" name="source_name" type="text" maxlength="255" />
-                        <label for="id_source_name">Source Table:</label>
+                        {{ field_form.source_name }}
+                        {{ field_form.source_name.label_tag }}
                       </div>
                     </div>
                   </div>
                   <div class="col-6">
                     <div class="form-floating">
-                      <input class="form-control" id="id_source_data_type" name="source_data_Type" type="text" maxlength="255" required="" />
-                      <label for="id_source_data_type">Source Data Type:</label>
+                      {{ field_form.source_data_type }}
+                      {{ field_form.source_data_type.label_tag }}
                     </div>
                   </div>
                 </div>
@@ -73,8 +75,8 @@
                   <div class="lead">Transformation</div>
                   <div class="col-sm-12">
                     <div class="form-floating">
-                      <textarea class="form-control" id="id_transformation" name="source_name" type="text" ></textarea>
-                      <label for="id_transformation">Transformation:</label>
+                      {{ field_form.transformation }}
+                      {{ field_form.transformation.label_tag }}
                     </div>
                   </div>
                 </div>
@@ -83,9 +85,9 @@
           </form>
         </div>
         <div class="modal-footer">
-          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
-          <button class="btn btn-primary" type="submit" title=""><i class="bi bi-pencil"></i> Edit</button>
-          <button class="btn btn-primary visually-hidden" id="id_field_modal_submit_button" type="button">Save changes</button>
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Close</button>
+          <button class="btn btn-info" id="id_field_modal_edit_button" type="submit" title=""><i class="bi bi-pencil"></i> Edit</button>
+          <button class="btn btn-primary" id="id_field_modal_submit_button" type="button"><i class="bi bi-check-lg"></i> Submit</button>
         </div>
       </div>
     </div>
@@ -109,40 +111,29 @@
         ["id_source_column", {
           "function": "dataComparison()",
           "type": "input"
-        }]
+        }],
+        ["id_field_modal_edit_button", {
+          "function": "prepareFieldModal(this.dataset.usage)",
+          "type": "click"
+        }],
+        ["id_field_modal_submit_button", {
+          "function": "sendField(this.dataset['target'], this.dataset['deleteElementId'], this.dataset['fieldId'], this.dataset['jobId'], this.dataset['taskId'])",
+          "type": "click"
+        }],
+        ["id_is_primary_key", {
+          "function": "this.value = (this.checked) ? 'true' : 'false'",
+          "type": "click"
+        }],
+        ["id_is_nullable", {
+          "function": "this.value = (this.checked) ? 'true' : 'false'",
+          "type": "click"
+        }],
+        ["{{ field_form.source_data_type.id_for_label }}", {
+          "function": "dataTypeMap(this.value)",
+          "type": "input"
+        }],
       ]);
       
       fieldModalListenerMap.forEach(addListener);
-
-      function dataComparison() {
-        const source = document.getElementById("id_source_data_type").value
-        let target
-        const options = document.getElementById("id_data_type").childNodes
-
-        for (let i = 0; i < options.length; i++) {
-          if (options[i].selected && options[i].value !== '') {
-            target = options[i].textContent
-          }
-        }
-
-        const column = document.getElementById('{{ form.source_name.id_for_label }}').value + '.' + document.getElementById('{{ form.source_column.id_for_label }}').value
-
-        const url = `/api/data-type-comparison/${source}/${target}/${column}/`        
-        const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
-
-        xhttp.responseType = "text"
-        xhttp.onload = function () {
-          const data = xhttp.response
-          if (xhttp.status === 200 && data) {
-            document.getElementById("{{ form.transformation.id_for_label }}").value = data.replace('"', '').replace('"', '')
-          } else {
-            document.getElementById("{{ form.transformation.id_for_label }}").value = ""
-          }
-        }
-
-        xhttp.open("GET", url, true)
-        xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
-        xhttp.send()
-      }
 
     </script>

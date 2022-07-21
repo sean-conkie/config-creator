@@ -447,12 +447,12 @@ class Field(models.Model):
         on_delete=models.SET_DEFAULT,
         default=DEFAULT_DATA_TYPE_ID,
         null=False,
-        blank=False,
+        blank=True,
     )
     position = models.IntegerField(
         verbose_name="Ordinal Position",
         null=False,
-        blank=False,
+        blank=True,
         default=-1,
         help_text="Enter the column's position within the target table",
     )
@@ -542,6 +542,30 @@ class Field(models.Model):
                 task_id=self.task_id,
             ).save()
 
+    def todict(self) -> dict:
+        """
+        It takes a column object and returns a dictionary with the column's name, data type, source
+        name, source column, source data type, transformation, position, is_primary_key, is_nullable,
+        and id
+
+        Returns:
+          A dictionary with the column name, data type, source name, source column, source data type,
+        transformation, position, is primary key, is nullable, and id.
+        """
+        return {
+            "name": self.name,
+            "data_type": self.data_type.name,
+            "data_type_id": self.data_type_id,
+            "source_name": self.source_name,
+            "source_column": self.source_column,
+            "source_data_type": self.source_data_type,
+            "transformation": self.transformation,
+            "position": self.position,
+            "is_primary_key": self.is_primary_key,
+            "is_nullable": self.is_nullable,
+            "id": self.id,
+        }
+
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
     """
@@ -629,11 +653,25 @@ class Partition(models.Model):
 
 class HistoryOrder(models.Model):
     history = models.ForeignKey(
-        History, on_delete=models.CASCADE, blank=False, null=False
+        History,
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False,
     )
-    position = models.IntegerField(null=False)
-    field = models.ForeignKey(Field, on_delete=models.CASCADE, null=False)
-    is_desc = models.BooleanField()
+    position = models.IntegerField(
+        null=False,
+    )
+    field = models.ForeignKey(
+        Field,
+        on_delete=models.CASCADE,
+        null=False,
+    )
+    is_desc = models.BooleanField(
+        verbose_name="Is Descending?",
+        default=False,
+        blank=True,
+        null=False,
+    )
 
     def __str__(self):
         return f"Order By - {self.position}"

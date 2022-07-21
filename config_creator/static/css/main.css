@@ -15,6 +15,10 @@
     margin: 1rem 1rem;
   }
 
+  .modal-footer .btn {
+    min-width: 100px;
+  }
+
   #id_modal_content {
     height: inherit;
     overflow-y: scroll;

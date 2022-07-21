@@ -9,6 +9,11 @@ urlpatterns = [
         name="api-field-delete",
     ),
     path(
+        "field/<int:pk>/",
+        login_required(FieldView.as_view()),
+        name="api-field",
+    ),
+    path(
         "job/<int:pk>/delete/",
         login_required(JobView.as_view()),
         name="api-job-delete",
@@ -44,8 +49,23 @@ urlpatterns = [
         name="api-data-type-comparison",
     ),
     path(
+        "data-type-map/<str:source>/",
+        login_required(datatypemap),
+        name="api-data-type-map",
+    ),
+    path(
         "task/<int:task_id>/field/<int:field_id>/position/<int:position>/update/",
         login_required(fieldpositionchange),
         name="api-task-field-position-update",
+    ),
+    path(
+        "task/<int:task_id>/field/add/",
+        login_required(FieldView.as_view()),
+        name="api-field-add",
+    ),
+    path(
+        "task/<int:task_id>/field/<int:pk>/update/",
+        login_required(FieldView.as_view()),
+        name="api-field-update",
     ),
 ]

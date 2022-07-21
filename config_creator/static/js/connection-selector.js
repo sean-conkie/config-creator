@@ -108,7 +108,7 @@ function createTableElement (object, layer) {
       element.appendChild(summary)
       const layerInner = layer + 1
 
-      const table = createElement('table', null, ['table', 'table-striped', 'table-hover'], layerInner, null)
+      const table = createElement('table', null, ['table', 'table-hover'], layerInner, null)
 
       if ({}.propertyIsEnumerable.call(object, 'content')) {
         const child = parseObject(object.content, layerInner)
@@ -152,7 +152,7 @@ function createDatasetElement (object, layer) {
       element.setAttribute('data-connection-id', object.connection_id)
     } else {
       const summary = createElement('summary', null, ['tree-dataset-summary'], null, null)
-      summary.appendChild(createElement('i', null, ['fa-solid', 'fa-dataset'], null, null))
+      summary.appendChild(createElement('i', null, ['fa-solid', 'fa-database'], null, null))
       summary.insertAdjacentText('beforeend', ' ' + object.name)
       element.appendChild(summary)
       element.setAttribute('onclick', 'getData(' + object.connection_id + ", '" + object.name + "', '" + id + "')")
