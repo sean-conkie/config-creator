@@ -436,6 +436,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
     where = get_where(pk)
     delta = Delta.objects.select_related().filter(task_id=pk)
     dependencies = Dependency.objects.select_related().filter(dependant=pk)
+
     if task.table_type != TableType.objects.get(code="TYPE1"):
         history = (
             History.objects.get(task_id=pk)
@@ -444,6 +445,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
         )
     else:
         history = None
+
     if history:
         partition = Partition.objects.select_related().filter(history_id=history.id)
         history_order = HistoryOrder.objects.select_related().filter(

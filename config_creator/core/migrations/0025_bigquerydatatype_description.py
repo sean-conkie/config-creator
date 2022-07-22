@@ -3,6 +3,59 @@
 from django.db import migrations, models
 
 
+def create_data_type(apps, schema_editor):
+    bq_data_type = apps.get_model("core", "BigQueryDataType")
+    indb = bq_data_type.objects.get(id=1)
+    indb.description = "Variable-length character (Unicode) data."
+    indb.save()
+    if not bq_data_type.objects.filter(
+        name="BOOL",
+        description="Boolean values are represented by the keywords TRUE and FALSE (case insensitive).",
+    ).exists():
+        bq_data_type(
+            name="BOOL",
+            description="Boolean values are represented by the keywords TRUE and FALSE (case insensitive).",
+        ).save()
+    if not bq_data_type.objects.filter(
+        name="DATE",
+        description="The DATE type represents a logical calendar date, independent of time zone. A DATE value does not represent a specific 24-hour time period. Rather, a given DATE value represents a different 24-hour period when interpreted in different time zones, and may represent a shorter or longer day during Daylight Savings Time transitions. To represent an absolute point in time, use a timestamp.",
+    ).exists():
+        bq_data_type(
+            name="DATE",
+            description="The DATE type represents a logical calendar date, independent of time zone. A DATE value does not represent a specific 24-hour time period. Rather, a given DATE value represents a different 24-hour period when interpreted in different time zones, and may represent a shorter or longer day during Daylight Savings Time transitions. To represent an absolute point in time, use a timestamp.",
+        ).save()
+    if not bq_data_type.objects.filter(
+        name="FLOAT64", description="Double precision (approximate) decimal values."
+    ).exists():
+        bq_data_type(
+            name="FLOAT64", description="Double precision (approximate) decimal values."
+        ).save()
+    if not bq_data_type.objects.filter(
+        name="INT64",
+        description="Integers are numeric values that do not have fractional components.",
+    ).exists():
+        bq_data_type(
+            name="INT64",
+            description="Integers are numeric values that do not have fractional components.",
+        ).save()
+    if not bq_data_type.objects.filter(
+        name="NUMERIC",
+        description="Decimal values with 38 decimal digits of precision and 9 decimal digits of scale.",
+    ).exists():
+        bq_data_type(
+            name="NUMERIC",
+            description="Decimal values with 38 decimal digits of precision and 9 decimal digits of scale.",
+        ).save()
+    if not bq_data_type.objects.filter(
+        name="TIMESTAMP",
+        description="A TIMESTAMP object represents an absolute point in time, independent of any time zone or convention such as Daylight Savings Time with microsecond precision. UTC - universal time coordinated",
+    ).exists():
+        bq_data_type(
+            name="TIMESTAMP",
+            description="A TIMESTAMP object represents an absolute point in time, independent of any time zone or convention such as Daylight Savings Time with microsecond precision. UTC - universal time coordinated",
+        ).save()
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -15,4 +68,5 @@ class Migration(migrations.Migration):
             name="description",
             field=models.TextField(blank=True, null=True),
         ),
+        migrations.RunPython(create_data_type),
     ]
