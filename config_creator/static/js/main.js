@@ -14,7 +14,7 @@ const HttpStatusEnum = new Map()
   })
   .set(200, {
     name: 'OK',
-    desc: 'The request is OK (this is the standard response for successful HTTP requests)'
+    desc: 'The request is OK'
   })
   .set(201, {
     name: 'Created',
@@ -39,6 +39,42 @@ const HttpStatusEnum = new Map()
   .set(206, {
     name: 'Partial Content',
     desc: 'The server is delivering only part of the resource due to a range header sent by the client'
+  })
+  .set(300, {
+    name: 'Multiple Choices',
+    desc: 'Indicates multiple options for the resource'
+  })
+  .set(301, {
+    name: 'Moved Permanently',
+    desc: 'This and all future requests should be directed to the given URI.'
+  })
+  .set(302, {
+    name: 'Found',
+    desc: 'This and all future requests should be directed to the given URI.'
+  })
+  .set(303, {
+    name: 'See Other',
+    desc: 'The response to the request can be found under another URI using the GET method.'
+  })
+  .set(304, {
+    name: 'Not Modified',
+    desc: 'The resource has not been modified'
+  })
+  .set(305, {
+    name: 'Use Proxy',
+    desc: 'The requested resource is available only through a proxy'
+  })
+  .set(306, {
+    name: 'Switch Proxy',
+    desc: 'Subsequent requests should use the specified proxy.'
+  })
+  .set(307, {
+    name: 'Temporary Redirect',
+    desc: 'The request should be repeated with another URI'
+  })
+  .set(308, {
+    name: 'Permanent Redirect',
+    desc: 'This and all future requests should be directed to the given URI.'
   })
   .set(400, {
     name: 'Bad Request',
@@ -118,7 +154,7 @@ const HttpStatusEnum = new Map()
   })
   .set(501, {
     name: 'Not Implemented',
-    desc: 'The server either does not recognize the request method'
+    desc: 'The server does not recognize the request method'
   })
   .set(502, {
     name: 'Bad Gateway',
@@ -259,7 +295,6 @@ function createToast (message, type, show) {
 
   const toastInner = document.createElement('div')
   toastInner.classList.add('toast')
-  toastInner.classList.add('alert-' + type)
 
   const toastHeader = document.createElement('div')
   toastHeader.classList.add('toast-header')
@@ -424,22 +459,13 @@ function createRowObject (classList, id, content, value, object, attributes) { /
   return obj
 }
 
-/**
- * It takes an array of objects, each object representing a row, and each object containing an array of
- * objects, each object representing a cell, and each object containing a classList, id, and value, and
- * it adds the rows and cells to the parent element
- *
- * Args:
- *   data: an array of objects, each object representing a row in the table.
- *   parent: the parent element to append the row to
- */
-function addRow (data, parent) { // eslint-disable-line no-unused-vars
+function addRow (data, parent, position) { // eslint-disable-line no-unused-vars
   for (let i = 0; i < data.length; i++) {
     const row = createElement('tr', null, data[i].classList, null, data[i].id)
 
-    if (data.attributes) {
-      for (let a = 0; a < data.attributes.length; a++) {
-        row.setAttribute(data.attributes[a][0], data.attributes[a][1])
+    if (data[i].attributes) {
+      for (let a = 0; a < data[i].attributes.length; a++) {
+        row.setAttribute(data[i].attributes[a][0], data[i].attributes[a][1])
       }
     }
 
@@ -456,7 +482,10 @@ function addRow (data, parent) { // eslint-disable-line no-unused-vars
 
       row.appendChild(td)
     }
-
-    parent.appendChild(row)
+    if (position && position !== '' && position !== undefined && position !== 'null' && position !== null && position !== 'undefined') {
+      parent.insertBefore(row, parent.children[position - 1])
+    } else {
+      parent.appendChild(row)
+    }
   }
 }

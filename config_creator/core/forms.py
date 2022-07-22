@@ -1,6 +1,7 @@
 import sys
 
 from .models import (
+    DEFAULT_DATA_TYPE_ID,
     BigQueryDataType,
     Job,
     JobTask,

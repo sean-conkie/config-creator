@@ -436,10 +436,24 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
     where = get_where(pk)
     delta = Delta.objects.select_related().filter(task_id=pk)
     dependencies = Dependency.objects.select_related().filter(dependant=pk)
-    history = History.objects.get(task_id=pk)
+
+    if task.table_type != TableType.objects.get(code="TYPE1"):
+        history = (
+            History.objects.get(task_id=pk)
+            if History.objects.filter(task_id=pk).exists()
+            else History(task_id=pk).save()
+        )
+    else:
+        history = None
+
     if history:
-        partition = Partition.objects.filter(history_id=history.id)
-        history_order = HistoryOrder.objects.filter(history_id=history.id)
+        partition = Partition.objects.select_related().filter(history_id=history.id)
+        history_order = HistoryOrder.objects.select_related().filter(
+            history_id=history.id
+        )
+        driving_column = DrivingColumn.objects.select_related().filter(
+            history_id=history.id
+        )
 
     source_tables = SourceTable.objects.filter(task_id=pk)
 
@@ -450,6 +464,12 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "task": task,
             "job": job,
             "fields": fields,
+            "field_form": FieldForm(
+                initial={
+                    "data_type": 1,
+                    "position": -1,
+                }
+            ),
             "joins": joins,
             "where": where,
             "delta": delta,
@@ -457,6 +477,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "dependency_id": dependency_id,
             "task_id": task_id,
             "history": history,
+            "driving_column": driving_column if history else [],
             "partition": partition if history else [],
             "history_order": history_order if history else [],
             "source_tables": source_tables,
@@ -486,6 +507,12 @@ def editjobtaskview(request, job_id, pk=None):
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
+
+        if (
+            task.table_type != TableType.objects.get(code="TYPE1")
+            and not History.objects.filter(task_id=task.id).exists()
+        ):
+            History(task_id=task.id).save()
 
         property_object = task.get_property_object()
 
@@ -1567,12 +1594,12 @@ def get_filecontent(pk: int) -> dict:
                 "logic_operator": c.logic_operator.code,
                 "operator": c.operator.symbol,
                 "fields": [
-                    f"{c.left.source_name}.{c.left.source_column}"
-                    if c.left.source_name
-                    else c.left.transformation,
-                    f"{c.right.source_name}.{c.right.source_column}"
-                    if c.right.source_name
-                    else c.right.transformation,
+                    c.left.transformation
+                    if c.left.transformation
+                    else f"{c.left.source_name}.{c.left.source_column}",
+                    c.right.transformation
+                    if c.right.transformation
+                    else f"{c.right.source_name}.{c.right.source_column}",
                 ],
             }
             for c in Condition.objects.select_related().filter(where_id=task.id)
@@ -1601,6 +1628,43 @@ def get_filecontent(pk: int) -> dict:
             }
             for j in Join.objects.select_related().filter(task_id=task.id)
         ]
+        history = (
+            History.objects.get(task_id=task.id)
+            if History.objects.filter(task_id=task.id).exists()
+            else None
+        )
+        if history:
+            params["history"] = {
+                "partition": [
+                    {
+                        "source_name": f.field.source_name,
+                        "source_column": f.field.source_column,
+                    }
+                    for f in Partition.objects.select_related().filter(
+                        history_id=history.id
+                    )
+                ],
+                "driving_column": [
+                    {
+                        "name": f.field.name,
+                        "source_name": f.field.source_name,
+                        "source_column": f.field.source_column,
+                        "transformation": f.field.transformation,
+                    }
+                    for f in DrivingColumn.objects.filter(history_id=history.id)
+                ],
+                "order": [
+                    {
+                        "source_name": f.field.source_name,
+                        "source_column": f.field.source_column,
+                        "transformation": f.field.transformation,
+                        "id_desc": f.is_desc,
+                    }
+                    for f in HistoryOrder.objects.filter(
+                        history_id=history.id
+                    ).order_by("position")
+                ],
+            }
 
         params["destination_table"] = task.destination_table
         params["destination_dataset"] = task.destination_dataset

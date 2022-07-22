@@ -13,8 +13,8 @@
         <div class="lead">Task Details</div>
         <div class="col-6">
           <div class="form-floating">
-            <input class="form-control" id="id_name" name="name" type="text" value="{{task.name}}" maxlength="255" required="" disabled />
-            <label for="id_name">Task Name:</label>
+            <input class="form-control" id="id_task_name" name="name" type="text" value="{{task.name}}" maxlength="255" required="" disabled />
+            <label for="id_task_name">Task Name:</label>
           </div>
         </div>
         <div class="col-sm-6">
@@ -92,6 +92,7 @@
       </div> 
     </div>
   <script src="/static/js/lazy-listener.js"></script>
+  <script src="/static/js/field-helpers.js"></script>
   <div class="accordion accordion-flush" id="accordian">
       {% include 'core/jobtask_source_to_target.html' %}
       {% include 'core/jobtask_joins.html' %}
@@ -100,6 +101,7 @@
       {% include 'core/jobtask_delta.html' %}
       {% include 'core/jobtask_dependency.html' %}
       {% include 'core/jobtask_source_tables.html' %}
+      {% include 'core/field_form_modal.html' %}
     </div>
   </div>  
 </div>
@@ -108,8 +110,13 @@
   let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
   let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
   ta.style.height = newHeight + "px";
+
+  // declar as var to create in window scope
+  window.taskId = '{{ task.id }}'
+  window.jobId = '{{ job.id }}'
 </script>
 
 {% include 'core/connection_selector.html' %}
+
 {% endblock %}
 

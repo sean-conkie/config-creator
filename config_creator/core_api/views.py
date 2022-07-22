@@ -1,12 +1,22 @@
+import re
+
+from core.forms import FieldForm
 from core.models import (
     BigQueryDataType,
     changefieldposition,
+    changeorderposition,
     Condition,
     DATA_TYPE_MAPPING,
+    DEFAULT_DATA_TYPE_ID,
+    DrivingColumn,
     Field,
+    History,
+    HistoryOrder,
     Job,
     JobTask,
+    Partition,
     SourceTable,
+    str_to_class,
 )
 from database_interface_api.dbhelper import get_table
 from database_interface_api.views import get_connection
@@ -21,10 +31,14 @@ __all__ = [
     "FieldView",
     "copytable",
     "datatypecomparison",
+    "datatypemap",
     "fieldpositionchange",
     "JobView",
     "ConditionView",
     "SourceTableView",
+    "DrivingColumnView",
+    "PartitionView",
+    "HistoryOrderView",
 ]
 
 
@@ -45,7 +59,9 @@ class FieldView(views.APIView):
           A response object with the data and status.
         """
 
-        field = Field.objects.get(id=pk)
+        field = (
+            Field.objects.get(id=pk) if Field.objects.filter(id=pk).exists() else None
+        )
         if field:
             outp = {
                 "message": f"Field '{field.name}' deleted.",
@@ -56,6 +72,308 @@ class FieldView(views.APIView):
         else:
             outp = {
                 "message": f"Field with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def get(self, request: request, pk: int) -> response.Response:
+        field = (
+            Field.objects.get(id=pk) if Field.objects.filter(id=pk).exists() else None
+        )
+        if field:
+            outp = field.todict()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {}
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data={"result": outp}, status=return_status)
+
+    def post(self, request: request, task_id: int, pk: int = None) -> response.Response:
+
+        action = request.POST.get("action")
+        data = {}
+        return_status = None
+        if action:
+            if action in ["createColumn", "editColumn"]:
+                form = FieldForm(request.POST)
+                if pk:
+                    form.instance.id = pk
+                message = (
+                    f"{request.POST.get('name', 'Field')} updated."
+                    if pk
+                    else f"{request.POST.get('name', 'Field')} created."
+                )
+                form.instance.task_id = task_id
+                if form.is_valid():
+                    form.save()
+                    data = {
+                        "message": message,
+                        "type": "Success",
+                        "result": {
+                            "content": [
+                                Field.objects.get(id=form.instance.id).todict()
+                            ],
+                        },
+                    }
+
+                    return_status = status.HTTP_200_OK
+                else:
+                    return_status = status.HTTP_400_BAD_REQUEST
+
+            elif action in [
+                "createDrivingColumn",
+                "createPartition",
+                "createHistoryOrder",
+            ]:
+                class_type = re.sub(r"^(create)", "", action)
+                column_class = str_to_class(class_type)
+                history = History.objects.get(task_id=task_id)
+                if column_class:
+                    column = column_class(history_id=history.id)
+                    column.position = (
+                        len(column_class.objects.filter(history_id=history.id)) + 1
+                    )
+
+                    field_name = (
+                        request.POST.get("name", "Field")
+                        if request.POST.get("name", "Field") != ""
+                        else "Field"
+                    )
+                    field_type = re.sub(r"^([A-Z].+)([A-Z])", r"\1 \2", class_type)
+
+                    if Field.objects.filter(
+                        source_name=request.POST.get("source_name"),
+                        source_column=request.POST.get("source_column"),
+                        is_source_to_target=True,
+                    ).exists():
+                        field = Field.objects.get(
+                            source_name=request.POST.get("source_name"),
+                            source_column=request.POST.get("source_column"),
+                            is_source_to_target=True,
+                        )
+                        field.is_history_key = True
+                        field.save()
+                        field_id = field.id
+
+                        message = f"{field_type} {field_name} updated."
+
+                    else:
+                        form = FieldForm(request.POST)
+                        message = f"{field_type} {field_name} created."
+
+                        form.instance.task_id = task_id
+                        form.instance.position = -1
+                        form.instance.data_type = BigQueryDataType.objects.get(
+                            id=DEFAULT_DATA_TYPE_ID
+                        )
+                        form.instance.is_source_to_target = False
+                        if form.is_valid():
+                            form.save()
+                            field_id = form.instance.id
+                        else:
+                            return_status = status.HTTP_400_BAD_REQUEST
+
+                    if not return_status:
+                        data = {
+                            "message": message,
+                            "type": "Success",
+                        }
+                        column.field_id = field_id
+
+                        column.save()
+                        data["result"] = {
+                            "content": [Field.objects.get(id=column.field_id).todict()],
+                        }
+                        data["result"]["content"][0]["position"] = column.position
+
+                        return_status = status.HTTP_200_OK
+                else:
+
+                    data = {
+                        "message": "Incorrect action supplied",
+                        "type": "Error",
+                    }
+                    return_status = status.HTTP_400_BAD_REQUEST
+
+        else:
+            data = {
+                "message": f"No action provided.",
+                "type": "error",
+            }
+            return_status = status.HTTP_400_BAD_REQUEST
+
+        return response.Response(data=data, status=return_status)
+
+
+class DrivingColumnView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        driving_column = (
+            DrivingColumn.objects.get(id=pk)
+            if DrivingColumn.objects.filter(id=pk).exists()
+            else None
+        )
+        if driving_column:
+            outp = {
+                "message": f"Driving Column deleted.",
+                "type": "success",
+            }
+
+            field = Field.objects.get(
+                id=driving_column.field_id,
+            )
+            if (
+                not DrivingColumn.objects.filter(
+                    ~Q(id=driving_column.id),
+                    field_id=field.id,
+                ).exists()
+                and not field.is_source_to_target
+                and not Partition.objects.filter(
+                    field_id=field.id,
+                ).exists()
+                and not HistoryOrder.objects.filter(
+                    field_id=field.id,
+                ).exists()
+                and not Condition.objects.filter(
+                    left_id=field.id,
+                ).exists()
+                and not Condition.objects.filter(
+                    right_id=field.id,
+                ).exists()
+            ):
+                field.delete()
+
+            driving_column.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Driving column with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class PartitionView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        partition = (
+            Partition.objects.get(id=pk)
+            if Partition.objects.filter(id=pk).exists()
+            else None
+        )
+        if partition:
+            outp = {
+                "message": f"Partition column deleted.",
+                "type": "success",
+            }
+
+            field = Field.objects.get(
+                id=partition.field_id,
+            )
+            if (
+                not DrivingColumn.objects.filter(
+                    field_id=field.id,
+                ).exists()
+                and not field.is_source_to_target
+                and not Partition.objects.filter(
+                    ~Q(id=partition.id),
+                    field_id=field.id,
+                ).exists()
+                and not HistoryOrder.objects.filter(
+                    field_id=field.id,
+                ).exists()
+                and not Condition.objects.filter(
+                    left_id=field.id,
+                ).exists()
+                and not Condition.objects.filter(
+                    right_id=field.id,
+                ).exists()
+            ):
+                field.delete()
+            elif (
+                field.is_source_to_target
+                and not Partition.objects.filter(
+                    ~Q(id=partition.id),
+                    field_id=field.id,
+                ).exists()
+            ):
+                field.is_history_key = False
+                field.save()
+
+            partition.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Partition column with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class HistoryOrderView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        history_order = (
+            HistoryOrder.objects.get(id=pk)
+            if HistoryOrder.objects.filter(id=pk).exists()
+            else None
+        )
+
+        if history_order:
+            outp = {
+                "message": f"Order column deleted.",
+                "type": "success",
+            }
+
+            field = Field.objects.get(
+                id=history_order.field_id,
+            )
+
+            if (
+                not DrivingColumn.objects.filter(
+                    field_id=field.id,
+                ).exists()
+                and not field.is_source_to_target
+                and not Partition.objects.filter(
+                    field_id=field.id,
+                ).exists()
+                and not HistoryOrder.objects.filter(
+                    ~Q(id=history_order.id),
+                    field_id=field.id,
+                ).exists()
+                and not Condition.objects.filter(
+                    left_id=field.id,
+                ).exists()
+                and not Condition.objects.filter(
+                    right_id=field.id,
+                ).exists()
+            ):
+                field.delete()
+
+            history_order.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Order column with id '{pk}' does not exist.",
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND
@@ -269,6 +587,15 @@ def datatypecomparison(
     return response.Response(data=data, status=status.HTTP_200_OK)
 
 
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def datatypemap(request: request, source: str) -> response.Response:
+
+    return response.Response(
+        data=DATA_TYPE_MAPPING.get(source.upper()), status=status.HTTP_200_OK
+    )
+
+
 @api_view(http_method_names=["POST"])
 @permission_classes([IsAuthenticated])
 def fieldpositionchange(
@@ -292,5 +619,20 @@ def fieldpositionchange(
     changefieldposition(field, field.position, position)
     field.position = position
     field.save()
+
+    return response.Response(data=None, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["POST"])
+@permission_classes([IsAuthenticated])
+def orderpositionchange(
+    request: request, task_id: int, order_id: int, position: int
+) -> response.Response:
+    order = HistoryOrder.objects.get(id=order_id)
+    if order.position == position:
+        return response.Response(data=None, status=status.HTTP_304_NOT_MODIFIED)
+    changeorderposition(order, order.position, position)
+    order.position = position
+    order.save()
 
     return response.Response(data=None, status=status.HTTP_200_OK)

@@ -8,7 +8,7 @@
   <div class="accordion-collapse collapse show" id="collapse-source-to-target"
     aria-labelledby="heading-source-to-target">
     <div class="row g-3 py-3">
-      <table class="table table-hover table-striped draggable">
+      <table class="table table-hover draggable">
         <thead>
           <tr>
             <th scope="col"></th>
@@ -47,10 +47,11 @@
             <td>
               {% if field.source_name != "" and field.source_name != None %}<span>{{ field.source_name }}.</span><strong>{{ field.source_column }}</strong>{% else %}{{ field.source_column }}{% endif %}
             </td>
-            <td class="btn-column"><a class="btn btn-secondary"
-                href="{% url 'job-task-field' job_id=job.id task_id=task.id pk=field.id %}" title="View"
-                aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a>
-            </td>
+            <td class="btn-column"><button class="btn btn-secondary field-view" id="id_field_{{ field.id }}_view" 
+              type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
+              data-action="viewColumn" data-field-id="{{ field.id }}" data-target="id_source_to_target"
+              data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-delete-element-id="id_field_{{field.id}}_row">
+              <i class="bi bi-search"></i></button></td>
             <td class="btn-column"><button class="btn btn-danger field-delete" id="id_field_delete_{{field.id}}"
                 type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                 data-delete-url="{% url 'api-field-delete' pk=field.id %}"
@@ -67,8 +68,7 @@
       </table>
       <div class="row">
         <div class="col-md-4 col-lg-3">
-          <a class="btn btn-primary" type="button" href="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}"
-            title=""><i class="bi bi-plus"></i> Add Column</a>
+          <button class="btn btn-primary" id="id_add_column_button" type="button"><i class="bi bi-plus"></i> Add Column</button>
           <button class="btn btn-info" id="id_copy_table" type="button"><i class="fa-solid fa-copy"></i> Copy
             Table</button>
           <input id="id_field_source_table_name" hidden />
@@ -89,10 +89,22 @@
     ["id_field_source_connection", {
       "function": "submitCopyTable()",
       "type": "input"
+    }],
+    ["id_add_column_button", {
+      "function": "prepareFieldModal('createColumn', undefined, 'id_source_to_target', undefined, {{ job.id }}, {{ task.id }})",
+      "type": "click"
     }]
-  ]);
+  ])
 
-  let fieldDeleteButtonList = document.getElementsByClassName("field-delete");
+  const fieldViewButtonList = document.getElementsByClassName("field-view");
+  for (var i = 0; i < fieldViewButtonList.length; i++) {
+    listenerMap.set(fieldViewButtonList[i].id, {
+      "function": "prepareFieldModal(this.dataset['action'], this.dataset['fieldId'], this.dataset['target'], this.dataset['deleteElementId'], this.dataset['jobId'], this.dataset['taskId']);",
+      "type": "click"
+    })
+  }
+
+  const fieldDeleteButtonList = document.getElementsByClassName("field-delete");
   for (var i = 0; i < fieldDeleteButtonList.length; i++) {
     listenerMap.set(fieldDeleteButtonList[i].id, {
       "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
@@ -101,131 +113,6 @@
   }
 
   listenerMap.forEach(addListener);
-
-  function addFieldToTable(data, elementToAddId) {
-    let job_id = "{{job.id}}";
-    let task_id = "{{task.id}}";
-
-    if ("result" in data) {
-      let parent = document.getElementById(elementToAddId);
-      let placeholder = parent.querySelector(".placeholder-row");
-      if (placeholder) {
-        placeholder.classList.add("delete-row");
-      }
-
-      let content = data["result"]["content"];
-
-      for (var i = 0; i < content.length; i++) {
-        let rowData = content[i];
-        let rowId = "id_field_" + rowData["id"] + "_row";
-
-        let viewButton = createElement("a", null, ["btn", "btn-secondary"], 0, null);
-        viewButton.setAttribute("href", `/job/${job_id}/task/${task_id}/field/${rowData['id']}/`);
-        viewButton.setAttribute("title", "View");
-        viewButton.setAttribute("aria-current", "page");
-        viewButton.setAttribute("data-bs-toggle", "tooltip");
-        viewButton.setAttribute("data-bs-placement", "right");
-        viewButton.appendChild(createElement("i", null, ["bi", "bi-search"], 0, null));
-
-        let deleteButton = createElement("button", null, ["btn", "btn-danger", "field-delete"], 0, null);
-        deleteButton.setAttribute("title", "Delete");
-        deleteButton.setAttribute("aria-current", "page");
-        deleteButton.setAttribute("data-bs-toggle", "tooltip");
-        deleteButton.setAttribute("data-bs-placement", "right");
-        deleteButton.setAttribute("data-delete-url", `/api/field/${rowData['id']}/delete/`);
-        deleteButton.setAttribute("data-delete-element-id", rowId);
-        deleteButton.appendChild(createElement("i", null, ["bi", "bi-trash"], 0, null));
-        deleteButton.addEventListener("click", function () {
-          deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);
-        })
-        let transformation = null
-        if (content[i]["transformation"]) {
-          transformation = createElement("i", null, ["fa-solid","fa-shuffle"], 0, null)
-        }
-        const grip = createElement("i", null, ["bi", "bi-grip-vertical"], 0, null)
-
-        let rowContent = [
-          createRowObject(["vertical-grip-col"], null, null, null, grip),
-          createRowObject(null, null, null, null, null),
-          createRowObject(null, null, null, null, null),
-          createRowObject(null, null, null, null, null),
-          createRowObject(null, null, null, null, transformation),
-          createRowObject(null, null, null, content[i]["column_name"], null),
-          createRowObject(null, null, null, content[i]["data_type"], null),
-          createRowObject(null, null, null, content[i]["dataset"] + "." + content[i]["table_name"] + "." + content[i][
-            "column_name"
-          ], null),
-          createRowObject(["btn-column"], null, null, null, viewButton),
-          createRowObject(["btn-column"], null, null, null, deleteButton),
-          createRowObject(["vertical-grip-col"], null, null, null, grip),
-        ];
-        let row = createRowObject(["align-middle"], rowId, rowContent, null, null, [['draggable',"true"],['ondragstart',"start()"],['ondragover',"dragover()"],['ondragend',"fieldPositionChange(this)"],['data-field-id',rowData['id']],['data-position',content[i]["position"]],['data-task-id',task_id]]);
-        addRow([row], parent);
-
-      }
-    }
-  }
-
-  function submitCopyTable() {
-    let connection_id = document.getElementById("id_field_source_connection").value;
-    let dataset = document.getElementById("id_field_source_dataset").value;
-    let table_name = document.getElementById("id_field_source_table_name").value;
-    if (table_name != "") {
-      let url = `/api/task/{{task.id}}/connection/${connection_id}/dataset/${dataset}/table/${table_name}/copy/`;
-
-      const xhttp = new XMLHttpRequest();
-      let spinnerId = "id_copy_table_spinner";
-
-      let parent = document.getElementById("id_copy_table");
-      parent.appendChild(createSpinner(spinnerId));
-
-      xhttp.responseType = "json";
-      xhttp.onload = function () {
-        if (spinnerId) {
-          let spinner = document.getElementById(spinnerId);
-          if (parent && parent.nodeType) {
-            parent.removeChild(spinner);
-          }
-        }
-        data = xhttp.response;
-        let message;
-        if (xhttp.status == 200) {
-          if ("message" in data) {
-            message = {
-              "desc": data["message"],
-              "name": data["type"]
-            }
-          } else {
-            message = HttpStatusEnum.get(xhttp.status);
-          }
-          addFieldToTable(data, "id_source_to_target");
-        } else {
-          message = HttpStatusEnum.get(xhttp.status);
-        }
-        createToast(message["desc"], message["name"], true);
-
-      }
-
-      xhttp.open("POST", url, true);
-      xhttp.setRequestHeader("X-CSRFToken", getCookie("csrftoken"))
-      xhttp.send();
-    }
-  }
-
-  function fieldPositionChange(element) {
-    const position = element.dataset["position"]
-    const url = `/api/task/${element.dataset["taskId"]}/field/${element.dataset["fieldId"]}/position/${position}/update/`
-    const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
-    xhttp.onload = function () {
-      if (xhttp.status !== 200) {
-        const message = HttpStatusEnum.get(xhttp.status)
-        createToast(`There has been an error updating the position of the column - ${message.desc}.  Please edit the field to change it's position.`, `Error - ${message.name}`, true)
-      }
-    }
-    xhttp.open('POST', url, true)
-    xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
-    xhttp.send()
-  }
 
 </script>
 <script src="/static/js/table-dragover.js" ></script>

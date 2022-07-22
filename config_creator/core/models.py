@@ -40,6 +40,7 @@ __all__ = [
     "changefieldposition",
     "DEFAULT_DATA_TYPE_ID",
     "SourceTable",
+    "changeorderposition",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -447,12 +448,12 @@ class Field(models.Model):
         on_delete=models.SET_DEFAULT,
         default=DEFAULT_DATA_TYPE_ID,
         null=False,
-        blank=False,
+        blank=True,
     )
     position = models.IntegerField(
         verbose_name="Ordinal Position",
         null=False,
-        blank=False,
+        blank=True,
         default=-1,
         help_text="Enter the column's position within the target table",
     )
@@ -542,6 +543,30 @@ class Field(models.Model):
                 task_id=self.task_id,
             ).save()
 
+    def todict(self) -> dict:
+        """
+        It takes a column object and returns a dictionary with the column's name, data type, source
+        name, source column, source data type, transformation, position, is_primary_key, is_nullable,
+        and id
+
+        Returns:
+          A dictionary with the column name, data type, source name, source column, source data type,
+        transformation, position, is primary key, is nullable, and id.
+        """
+        return {
+            "name": self.name,
+            "data_type": self.data_type.name,
+            "data_type_id": self.data_type_id,
+            "source_name": self.source_name,
+            "source_column": self.source_column,
+            "source_data_type": self.source_data_type,
+            "transformation": self.transformation,
+            "position": self.position,
+            "is_primary_key": self.is_primary_key,
+            "is_nullable": self.is_nullable,
+            "id": self.id,
+        }
+
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
     """
@@ -629,14 +654,84 @@ class Partition(models.Model):
 
 class HistoryOrder(models.Model):
     history = models.ForeignKey(
-        History, on_delete=models.CASCADE, blank=False, null=False
+        History,
+        on_delete=models.CASCADE,
+        blank=False,
+        null=False,
     )
-    position = models.IntegerField(null=False)
-    field = models.ForeignKey(Field, on_delete=models.CASCADE, null=False)
-    is_desc = models.BooleanField()
+    position = models.IntegerField(
+        null=False,
+    )
+    field = models.ForeignKey(
+        Field,
+        on_delete=models.CASCADE,
+        null=False,
+    )
+    is_desc = models.BooleanField(
+        verbose_name="Is Descending?",
+        default=False,
+        blank=True,
+        null=False,
+    )
 
     def __str__(self):
         return f"Order By - {self.position}"
+
+
+def changeorderposition(
+    history_order: HistoryOrder, original_position: int, position: int
+) -> int:
+    """
+    If the original position of the order is not the same as the new position, then get all the orders
+    for the task, order them by position, and then loop through them, updating the position of each
+    order to be one less than the original position if the original position is greater than the new
+    position, and one more than the original position if the original position is less than the new
+    position
+
+    Args:
+      history_order (HistoryOrder): HistoryOrder, original_position: int, position: int
+      original_position (int): the original position of the order
+      position (int): the new position of the order
+
+    Returns:
+      0
+    """
+    if original_position != position:
+        orders = HistoryOrder.objects.filter(
+            ~Q(id=history_order.id), task_id=history_order.task_id
+        ).order_by("position")
+        max_field_position = len(orders) + 1
+        if original_position > max_field_position:
+            original_position = max_field_position
+        if orders.exists():
+            for i, f in enumerate(orders):
+                # if field has default position (-1), or 0 position then set it to
+                # the field's index in returned queryset
+                if f.position < 1:
+                    f.position = i + 1
+
+                # if field's position is greater than total number of fields, this can stop
+                # re-order.  so set it to total number of fields
+                if f.position > max_field_position:
+                    f.position = max_field_position
+
+                if (
+                    f.position <= position
+                    and f.position > 0
+                    and f.position > original_position
+                    and original_position > 0
+                ):
+                    f.position = f.position - 1
+                elif (
+                    f.position > position
+                    and f.position > 0
+                    and f.position < original_position
+                    and original_position > 0
+                ):
+                    f.position = f.position + 1
+
+                f.save()
+    return 0
 
 
 class Delta(models.Model):

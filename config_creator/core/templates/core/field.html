@@ -16,88 +16,84 @@
       {% endif %}
     </div>
   </div>
-  <form id="id_form" method="post" action="{% url 'job-task-field-add' job_id=job.id task_id=task.id %}">
-    {% csrf_token %}
-    <div class="row g-5">
-      <div class="col-md-8 col-lg-9">
-        <input id="id_id" name="id" value="{{ field.id }}" hidden />
-        <input id="id_action" name="action" value="return" hidden />
-        <div class="row g-3">
-          <div class="lead">Target Column</div>
-          <div class="col-6">
-            <div class="form-floating">
-              <input class="form-control" id="id_name" name="name" type="text" value="{{ field.name }}" maxlength="255" required="" disabled />
-              <label for="id_name">Name:</label>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="form-check">
-              <input class="form-checkbox" id="id_is_primary_key" name="is_primary_key" type="checkbox" maxlength="255" required="" {% if field.is_primary_key %} checked {% endif %} disabled />
-              <label for="id_is_primary_key">Primary key Field</label>
-            </div>
-            <div class="form-check">
-              <input class="form-checkbox" id="id_is_nullable" name="is_nullable" type="checkbox" maxlength="255" required="" {% if field.is_nullable %} checked {% endif %} disabled />
-              <label for="id_is_nullable">Is Column Nullable</label>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="form-floating">
-              <input class="form-control" id="id_data_type" name="data_type" type="text" value="{{ field.data_type }}" maxlength="255" required="" disabled />
-              <label for="id_data_type">Data Type:</label>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="form-floating">
-              <input class="form-control" id="id_position" name="position" type="number" value="{{ field.position }}" maxlength="255" required="" disabled />
-              <label for="id_position">Ordinal Position:</label>
-            </div>
+  <div class="row g-5">
+    <div class="col-md-8 col-lg-9">
+      <input id="id_id" name="id" value="{{ field.id }}" hidden />
+      <input id="id_action" name="action" value="return" hidden />
+      <div class="row g-3">
+        <div class="lead">Target Column</div>
+        <div class="col-6">
+          <div class="form-floating">
+            <input class="form-control" id="id_name" name="name" type="text" value="{{ field.name }}" maxlength="255" required="" disabled />
+            <label for="id_name">Name:</label>
           </div>
         </div>
-        <div class="row g-3 py-1">
-          <div class="lead">Source Column</div>
-          <div class="col-6">
-            <div class="input-group mb-3">
-              <div class="form-floating flex-grow-1">
-                <input class="form-control" id="{{ field.source_column.id_for_label }}" name="source_column" type="text" value="{{ field.source_column }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_column.help_text }}"  maxlength="255" disabled />
-                <label for="id_source_column">Source Column:</label>
-              </div>
-            </div>
+        <div class="col-6">
+          <div class="form-check">
+            <input class="form-checkbox" id="id_is_primary_key" name="is_primary_key" type="checkbox" maxlength="255" required="" {% if field.is_primary_key %} checked {% endif %} disabled />
+            <label for="id_is_primary_key">Primary key Field</label>
           </div>
-          <div class="col-6">
-            <div class="input-group mb-3">
-              <div class="form-floating flex-grow-1">
-                <input class="form-control" id="{{ field.source_name.id_for_label }}" name="source_name" type="text" value="{{ field.source_name }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled />
-                <label for="id_source_name">Source Table:</label>
-              </div>
-            </div>
-          </div>
-          <div class="col-6">
-            <div class="form-floating">
-              <input class="form-control" id="id_source_data_type" name="source_data_Type" type="text" value="{{ field.source_data_type }}" maxlength="255" required="" disabled />
-              <label for="id_source_data_type">Source Data Type:</label>
-            </div>
+          <div class="form-check">
+            <input class="form-checkbox" id="id_is_nullable" name="is_nullable" type="checkbox" maxlength="255" required="" {% if field.is_nullable %} checked {% endif %} disabled />
+            <label for="id_is_nullable">Is Column Nullable</label>
           </div>
         </div>
-        <div class="row g-3 py-1">
-          <div class="lead">Transformation</div>
-          <div class="col-sm-12">
-            <div class="form-floating">
-              <textarea class="form-control" id="{{ field.transformation.id_for_label }}" name="source_name" type="text" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled>{{ field.transformation }}</textarea>
-              <label for="id_transformation">Transformation:</label>
-            </div>
+        <div class="col-6">
+          <div class="form-floating">
+            <input class="form-control" id="id_data_type" name="data_type" type="text" value="{{ field.data_type }}" maxlength="255" required="" disabled />
+            <label for="id_data_type">Data Type:</label>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-floating">
+            <input class="form-control" id="id_position" name="position" type="number" value="{{ field.position }}" maxlength="255" required="" disabled />
+            <label for="id_position">Ordinal Position:</label>
           </div>
         </div>
       </div>
-      <div class="col-md-4 col-lg-3">
-        <div class="row g-3">
-          <a class="w-100 btn btn-primary" type="submit" href="{% url 'job-task-field-update' job_id=job.id task_id=task.id pk=field.id %}" title=""><i class="bi bi-pencil"></i> Edit</a>
+      <div class="row g-3 py-1">
+        <div class="lead">Source Column</div>
+        <div class="col-6">
+          <div class="input-group mb-3">
+            <div class="form-floating flex-grow-1">
+              <input class="form-control" id="{{ field.source_column.id_for_label }}" name="source_column" type="text" value="{{ field.source_column }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_column.help_text }}"  maxlength="255" disabled />
+              <label for="id_source_column">Source Column:</label>
+            </div>
+          </div>
         </div>
-        <div class="row g-3 py-3">
-          <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-arrow-left"></i> Back to Task</a>
+        <div class="col-6">
+          <div class="input-group mb-3">
+            <div class="form-floating flex-grow-1">
+              <input class="form-control" id="{{ field.source_name.id_for_label }}" name="source_name" type="text" value="{{ field.source_name }}" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled />
+              <label for="id_source_name">Source Table:</label>
+            </div>
+          </div>
+        </div>
+        <div class="col-6">
+          <div class="form-floating">
+            <input class="form-control" id="id_source_data_type" name="source_data_Type" type="text" value="{{ field.source_data_type }}" maxlength="255" required="" disabled />
+            <label for="id_source_data_type">Source Data Type:</label>
+          </div>
         </div>
       </div>
-    </div>  
-    
-  </form>
+      <div class="row g-3 py-1">
+        <div class="lead">Transformation</div>
+        <div class="col-sm-12">
+          <div class="form-floating">
+            <textarea class="form-control" id="{{ field.transformation.id_for_label }}" name="source_name" type="text" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ field.source_name.help_text }}" maxlength="255" disabled>{{ field.transformation }}</textarea>
+            <label for="id_transformation">Transformation:</label>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4 col-lg-3">
+      <div class="row g-3">
+        <a class="w-100 btn btn-primary" type="submit" href="{% url 'job-task-field-update' job_id=job.id task_id=task.id pk=field.id %}" title=""><i class="bi bi-pencil"></i> Edit</a>
+      </div>
+      <div class="row g-3 py-3">
+        <a class="w-100 btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title=""><i class="bi bi-arrow-left"></i> Back to Task</a>
+      </div>
+    </div>
+  </div>  
 </div>
 {% endblock %}

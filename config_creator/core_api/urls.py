@@ -2,11 +2,19 @@ from .views import *
 from django.contrib.auth.decorators import login_required
 from django.urls import path
 
+from .views import PartitionView
+from .views import orderpositionchange
+
 urlpatterns = [
     path(
         "field/<int:pk>/delete/",
         login_required(FieldView.as_view()),
         name="api-field-delete",
+    ),
+    path(
+        "field/<int:pk>/",
+        login_required(FieldView.as_view()),
+        name="api-field",
     ),
     path(
         "job/<int:pk>/delete/",
@@ -44,8 +52,43 @@ urlpatterns = [
         name="api-data-type-comparison",
     ),
     path(
+        "data-type-map/<str:source>/",
+        login_required(datatypemap),
+        name="api-data-type-map",
+    ),
+    path(
         "task/<int:task_id>/field/<int:field_id>/position/<int:position>/update/",
         login_required(fieldpositionchange),
         name="api-task-field-position-update",
+    ),
+    path(
+        "task/<int:task_id>/history-order/<int:order_id>/position/<int:position>/update/",
+        login_required(orderpositionchange),
+        name="api-task-history-order-position-update",
+    ),
+    path(
+        "task/<int:task_id>/field/add/",
+        login_required(FieldView.as_view()),
+        name="api-field-add",
+    ),
+    path(
+        "task/<int:task_id>/field/<int:pk>/update/",
+        login_required(FieldView.as_view()),
+        name="api-field-update",
+    ),
+    path(
+        "diving-column/<int:pk>/delete/",
+        login_required(DrivingColumnView.as_view()),
+        name="api-diving-column-delete",
+    ),
+    path(
+        "partition/<int:pk>/delete/",
+        login_required(PartitionView.as_view()),
+        name="api-partition-delete",
+    ),
+    path(
+        "history-order/<int:pk>/delete/",
+        login_required(HistoryOrderView.as_view()),
+        name="api-history-order-delete",
     ),
 ]
