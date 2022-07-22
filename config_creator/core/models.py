@@ -5,6 +5,8 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
+from executing import Source
+from wordsegment import load, segment
 
 __all__ = [
     "JobType",
@@ -994,9 +996,46 @@ class SourceTable(models.Model):
         blank=False,
         null=False,
     )
+    alias = models.CharField(
+        verbose_name="Table Alias",
+        max_length=255,
+        blank=True,
+        null=False,
+        unique=True,
+    )
+    base_alias = models.CharField(
+        verbose_name="Base Table Alias",
+        max_length=255,
+        blank=True,
+        null=False,
+        unique=False,
+        help_text="Non-unique alias, used to identify number of occurences of the table.",
+    )
+
+    def save(self, *args, **kwargs):
+        load()
+        cleaned_table_name = re.sub(
+            r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
+        )
+        alias = "".join([w[:1] for w in segment(cleaned_table_name)])
+        m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
+        if m:
+            alias = m.group(1)
+
+        tables = SourceTable.objects.filter(base_alias=alias)
+
+        if tables.exists():
+            counter = len(tables) + 1
+            self.alias = f"{alias}_{counter}"
+        else:
+            self.alias = alias
+
+        self.base_alias = alias
+
+        super(SourceTable, self).save(*args, **kwargs)
 
     def __str__(self):
-        return f"{self.dataset_name}.{self.table_name}"
+        return f"{self.dataset_name}.{self.table_name} {self.alias}"
 
 
 def str_to_class(classname):
