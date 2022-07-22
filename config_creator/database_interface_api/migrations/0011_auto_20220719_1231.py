@@ -20,4 +20,4 @@ class Migration(migrations.Migration):
         ("database_interface_api", "0010_alter_connection_port"),
     ]
 
-    operations = []
+    operations = [migrations.RunPython(createjobtypesdata)]
