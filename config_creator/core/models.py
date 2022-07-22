@@ -1022,7 +1022,10 @@ class SourceTable(models.Model):
         if m:
             alias = m.group(1)
 
-        tables = SourceTable.objects.filter(base_alias=alias)
+        tables = SourceTable.objects.filter(
+            base_alias=alias,
+            task_id=self.task_id,
+        )
 
         if tables.exists():
             counter = len(tables) + 1
