@@ -12,10 +12,22 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
     for (let i = 0; i < content.length; i++) {
       const rowData = content[i]
       let rowId
+      let positionType
+      let deleteUrl
       if (['createColumn', 'editColumn', 'copyTable'].includes(action)) {
         rowId = 'id_field_' + rowData.id + '_row'
-      } else if (['historyDrivingColumn', 'editDrivingColumn'].includes(action)) {
+        deleteUrl = `/api/field/${rowData.id}/delete/`
+        positionType = 'field'
+      } else if (['createDrivingColumn'].includes(action)) {
         rowId = 'id_driving_column_' + rowData.id + '_row'
+        deleteUrl = `/api/field/${rowData.id}/delete/`
+      } else if (['createPartition'].includes(action)) {
+        rowId = 'id_driving_column_' + rowData.id + '_row'
+        deleteUrl = `/api/field/${rowData.id}/delete/`
+      } else if (['createHistoryOrder'].includes(action)) {
+        rowId = 'id_driving_column_' + rowData.id + '_row'
+        deleteUrl = `/api/field/${rowData.id}/delete/`
+        positionType = 'order'
       }
 
       const viewButton = createElement('button', null, ['btn', 'btn-secondary'], 0, null) // eslint-disable-line no-undef
@@ -41,7 +53,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       deleteButton.setAttribute('aria-current', 'page')
       deleteButton.setAttribute('data-bs-toggle', 'tooltip')
       deleteButton.setAttribute('data-bs-placement', 'right')
-      deleteButton.setAttribute('data-delete-url', `/api/field/${rowData.id}/delete/`)
+      deleteButton.setAttribute('data-delete-url', deleteUrl)
       deleteButton.setAttribute('data-delete-element-id', rowId)
       deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
       deleteButton.addEventListener('click', function () {
@@ -91,16 +103,25 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
           createRowObject(null, null, null, content[i].data_type, null),
           createRowObject(null, null, null, content[i].dataset + '.' + content[i].table_name + '.' + content[i].column_name, null)
         ], suffix)
+      } else if (['createDrivingColumn', 'createPartition'].includes(action)) {
+        rowContent = [
+          createRowObject(null, null, null, content[i].source_name + '.' + content[i].source_column, null),
+          createRowObject(['btn-column'], null, null, null, deleteButton)
+        ]
       } else {
         rowContent = [
           createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null)),
           createRowObject(null, null, null, content[i].source_name + '.' + content[i].source_column, null),
-          createRowObject(['btn-column'], null, null, null, viewButton),
           createRowObject(['btn-column'], null, null, null, deleteButton),
           createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null))
         ]
       }
-      const row = createRowObject(['align-middle'], rowId, rowContent, null, null, [['draggable', 'true'], ['ondragstart', 'start()'], ['ondragover', 'dragover()'], ['ondragend', 'fieldPositionChange(this)'], ['data-field-id', rowData.id], ['data-position', content[i].position], ['data-task-id', taskId]])
+      let row
+      if (positionType) {
+        row = createRowObject(['align-middle'], rowId, rowContent, null, null, [['draggable', 'true'], ['ondragstart', 'start()'], ['ondragover', 'dragover()'], ['ondragend', `positionChange(this, ${positionType})`], ['data-field-id', rowData.id], ['data-position', content[i].position], ['data-task-id', taskId]])
+      } else {
+        row = createRowObject(['align-middle'], rowId, rowContent, null, null, [['data-field-id', rowData.id], ['data-position', content[i].position], ['data-task-id', taskId]])
+      }
 
       if ('position' in content[i]) {
         addRow([row], parent, content[i].position)
@@ -169,21 +190,22 @@ function submitCopyTable () { // eslint-disable-line no-unused-vars
  * Args:
  *   element: The element that was moved.
  */
-function fieldPositionChange (element) { // eslint-disable-line no-unused-vars
+function positionChange (element, type) { // eslint-disable-line no-unused-vars
   const position = element.dataset.position
-  const url = `/api/task/${element.dataset.taskId}/field/${element.dataset.fieldId}/position/${position}/update/`
-  const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
-  xhttp.onload = function () {
-    if (xhttp.status !== 200) {
-      const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
-      createToast(`There has been an error updating the position of the column - ${message.desc}.  Please edit the field to change it's position.`, `Error - ${message.name}`, true) // eslint-disable-line no-undef
-    }
+  let url
+  if (type === 'field') {
+    url = `/api/task/${element.dataset.taskId}/field/${element.dataset.fieldId}/position/${position}/update/`
+  } else if (type === 'order') {
+    url = `/api/task/${element.dataset.taskId}/history-order/${element.dataset.fieldId}/position/${position}/update/`
   }
-  xhttp.open('POST', url, true)
-  xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
-  xhttp.send()
+
+  callModelApi(url, 'POST') // eslint-disable-line no-undef
 }
 
+/**
+ * It gets the source data type, target data type, and column name from the form, and then sends an
+ * AJAX request to the server to get the transformation code
+ */
 function dataComparison () { // eslint-disable-line no-unused-vars
   const source = document.getElementById('id_source_data_type').value
   let target
@@ -215,6 +237,14 @@ function dataComparison () { // eslint-disable-line no-unused-vars
   xhttp.send()
 }
 
+/**
+ * It takes an array of elements and an action, and then it loops through the elements and performs the
+ * action on each element
+ *
+ * Args:
+ *   elements: The elements to be reset.
+ *   action: 'reset' or 'edit'
+ */
 function resetInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
 
@@ -240,9 +270,6 @@ function resetInput (elements, action) {
           const selectChildren = elements[i].children
           for (let x = 0; x < selectChildren.length; x++) {
             selectChildren[x].removeAttribute('selected')
-            // if (selectChildren[x].value === '1') {
-            //   selectChildren[x].setAttribute('selected', 'true')
-            // }
           }
         }
       }
@@ -264,6 +291,17 @@ function resetInput (elements, action) {
   document.getElementById('id_field_modal_action').setAttribute('hidden', 'true')
 }
 
+/**
+ * It prepares the modal for the user to create, view, or edit a field
+ *
+ * Args:
+ *   usage: This is the action that the modal will perform. It can be one of the following:
+ *   fieldId: The id of the field to be edited.
+ *   target: The element that will be updated with the new data.
+ *   deleteElementId: The id of the element to be deleted.
+ *   jobId: The id of the job that the field is associated with.
+ *   taskId: The id of the task that the field is associated with.
+ */
 function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, taskId) {
   const modalElements = document.getElementById('id_field_modal').children
   const editButton = document.getElementById('id_field_modal_edit_button')
@@ -287,14 +325,14 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
     document.getElementById('id_id').setAttribute('hidden', 'true')
-  } else if (['historyDrivingColumn', 'historyPartition', 'historyHistoryOrder'].includes(usage)) {
+  } else if (['createDrivingColumn', 'createPartition', 'createHistoryOrder'].includes(usage)) {
     resetInput(modalElements, 'reset')
     resetInput(modalElements, 'edit')
-    if (usage === 'historyDrivingColumn') {
+    if (usage === 'createDrivingColumn') {
       title.textContent = 'Add History Driving Column'
-    } else if (usage === 'historyPartition') {
+    } else if (usage === 'createPartition') {
       title.textContent = 'Add History Partition Column'
-    } else if (usage === 'historyHistoryOrder') {
+    } else if (usage === 'createHistoryOrder') {
       title.textContent = 'Add History Order Column'
     }
     document.getElementById('id_name').setAttribute('disabled', 'true')
@@ -376,6 +414,16 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).show() // eslint-disable-line no-undef
 }
 
+/**
+ * It sends a form to the server, and then adds the field to the table
+ *
+ * Args:
+ *   target: The element that the new field will be added to.
+ *   deleteElementId: The id of the element to delete.
+ *   fieldId: The id of the field to update. If this is not provided, a new field will be created.
+ *   jobId: The id of the job that the field belongs to.
+ *   taskId: The id of the task that the field belongs to.
+ */
 function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint-disable-line no-unused-vars
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).hide() // eslint-disable-line no-undef
   document.getElementById('id_name').removeAttribute('disabled')
@@ -429,13 +477,12 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   submitButton.dataset.taskId = undefined
 }
 
-function dataTypeMap(dataType) {
+function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
   if (dataType && dataType !== '' && dataType !== 'undefined' && dataType !== 'null' && dataType !== undefined && dataType !== null) {
-    const xhttp = new XMLHttpRequest()
+    const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
 
     xhttp.responseType = 'json'
     xhttp.onload = function () {
-      
       const data = xhttp.response
       if (xhttp.status === 200) {
         const dataTypeOptions = document.getElementById('id_data_type').children
@@ -449,9 +496,9 @@ function dataTypeMap(dataType) {
         }
       }
     }
-    
+
     xhttp.open('GET', `/api/data-type-map/${dataType}/`, true)
-    xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+    xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
     xhttp.send()
   }
 }

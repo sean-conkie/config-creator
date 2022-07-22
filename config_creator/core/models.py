@@ -40,6 +40,7 @@ __all__ = [
     "changefieldposition",
     "DEFAULT_DATA_TYPE_ID",
     "SourceTable",
+    "changeorderposition",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -675,6 +676,62 @@ class HistoryOrder(models.Model):
 
     def __str__(self):
         return f"Order By - {self.position}"
+
+
+def changeorderposition(
+    history_order: HistoryOrder, original_position: int, position: int
+) -> int:
+    """
+    If the original position of the order is not the same as the new position, then get all the orders
+    for the task, order them by position, and then loop through them, updating the position of each
+    order to be one less than the original position if the original position is greater than the new
+    position, and one more than the original position if the original position is less than the new
+    position
+
+    Args:
+      history_order (HistoryOrder): HistoryOrder, original_position: int, position: int
+      original_position (int): the original position of the order
+      position (int): the new position of the order
+
+    Returns:
+      0
+    """
+    if original_position != position:
+        orders = HistoryOrder.objects.filter(
+            ~Q(id=history_order.id), task_id=history_order.task_id
+        ).order_by("position")
+        max_field_position = len(orders) + 1
+        if original_position > max_field_position:
+            original_position = max_field_position
+        if orders.exists():
+            for i, f in enumerate(orders):
+                # if field has default position (-1), or 0 position then set it to
+                # the field's index in returned queryset
+                if f.position < 1:
+                    f.position = i + 1
+
+                # if field's position is greater than total number of fields, this can stop
+                # re-order.  so set it to total number of fields
+                if f.position > max_field_position:
+                    f.position = max_field_position
+
+                if (
+                    f.position <= position
+                    and f.position > 0
+                    and f.position > original_position
+                    and original_position > 0
+                ):
+                    f.position = f.position - 1
+                elif (
+                    f.position > position
+                    and f.position > 0
+                    and f.position < original_position
+                    and original_position > 0
+                ):
+                    f.position = f.position + 1
+
+                f.save()
+    return 0
 
 
 class Delta(models.Model):
