@@ -79,7 +79,7 @@ def createlogicoperatordata(apps, schema_editor):
 def createoperatordata(apps, schema_editor):
     model = apps.get_model("core", "Operator")
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="EQ").exists():
         model(
             name="Equals",
             code="EQ",
@@ -87,7 +87,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="GT").exists():
         model(
             name="Greater Than",
             code="GT",
@@ -95,7 +95,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="GE").exists():
         model(
             name="Greater Than or Equal To",
             code="GE",
@@ -103,7 +103,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="NE").exists():
         model(
             name="Not Equal",
             code="NE",
@@ -111,7 +111,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="LG").exists():
         model(
             name="Less Than or Greater Than",
             code="LG",
@@ -119,7 +119,7 @@ def createoperatordata(apps, schema_editor):
             description="",
         ).save()
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="LT").exists():
         model(
             name="Less Than",
             code="LT",
@@ -127,7 +127,7 @@ def createoperatordata(apps, schema_editor):
             description="<",
         ).save()
 
-    if not model.objects.filter().exists():
+    if not model.objects.filter(code="LE").exists():
         model(
             name="Less Than or Equal To",
             code="LE",

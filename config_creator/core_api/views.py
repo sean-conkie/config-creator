@@ -154,7 +154,8 @@ class FieldView(views.APIView):
                             source_column=request.POST.get("source_column"),
                             is_source_to_target=True,
                         )
-                        field.is_history_key = True
+                        if action == "createPartition":
+                            field.is_history_key = True
                         field.save()
                         field_id = field.id
 
