@@ -37,12 +37,12 @@
   </div>
 </div>
 <form 
+
 {% if pk != None %}
   action="{% url 'connection-update' pk=pk %}"  
 {% else %}
   action="{% url 'connection-add' %}"  
 {% endif %}
-
 enctype="multipart/form-data" method="POST">
   <input id="id_id" name="id" value="{{ form.id.value }}" hidden />
   {% csrf_token %}
