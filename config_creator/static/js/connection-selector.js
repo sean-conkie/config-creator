@@ -444,7 +444,7 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
   }
 
   if (reLoadModal) {
-    const modalId = 'id_modal_content'
+    const modalId = 'id-modal-content'
     document.getElementById(modalId).textContent = ''
     callConnectionApi('/api/schema/', modalId)
   }
@@ -475,7 +475,7 @@ let returnType = {
   }
 }
 
-callConnectionApi('/api/schema/', 'id_modal_content')
+callConnectionApi('/api/schema/', 'id-modal-content')
 
 const myModalEl = document.getElementById('connection-modal')
 myModalEl.addEventListener('hidden.bs.modal', function (event) {

@@ -1,35 +1,8 @@
-.selector-dialog {
-  width: 80vw;
-  height: 80vh;
-  max-height: 80vh;
-  max-width: none;
-}
-
-.selector-content {
-  height: 80vh;
-}
-
-.selector-header {
-  padding: none;
-  margin: 1rem 1rem;
-}
-
-.modal-footer .btn {
-  min-width: 100px;
-}
-
-#id_modal_content {
-  height: inherit;
-  overflow-y: scroll;
-}
-
 .tree-dataset,
 .tree-connection {
   max-height: 80vh;
   -ms-overflow-style: none;
-  /* for Internet Explorer, Edge */
   scrollbar-width: none;
-  /* for Firefox */
   overflow-y: scroll;
   display: flex;
   margin-top: 1px;
@@ -39,7 +12,7 @@
 .tree-connection-summary {
   position: sticky;
   top: 0;
-  background: #ffffff;
+  background: #fff;
 }
 
 .tree-connection-summary {
@@ -50,7 +23,6 @@
 .tree-connection::-webkit-scrollbar,
 .min-vh-80::-webkit-scrollbar {
   display: none;
-  /* for Chrome, Safari, and Opera */
 }
 
 .tree-table-select,
@@ -66,10 +38,7 @@
   min-height: 80vh;
   overflow-y: scroll;
   -ms-overflow-style: none;
-  /* for Internet Explorer, Edge */
   scrollbar-width: none;
-  /* for Firefox */
-  overflow-y: scroll;
   display: flex;
 }
 
@@ -77,27 +46,19 @@
   min-height: 60vh;
   overflow-y: scroll;
   -ms-overflow-style: none;
-  /* for Internet Explorer, Edge */
   scrollbar-width: none;
-  /* for Firefox */
-  overflow-y: scroll;
 }
 
 .max-vh-80 {
   min-height: 60vh;
   overflow-y: scroll;
   -ms-overflow-style: none;
-  /* for Internet Explorer, Edge */
   scrollbar-width: none;
-  /* for Firefox */
-  overflow-y: scroll;
 }
 
 .spinner-border {
   margin-left: 5px;
 }
-
-
 
 main {
   display: flex;
@@ -217,7 +178,7 @@ summary {
 
 @media (min-width: 1400px) {
   .container {
-    max-width: max(1320px, 80vw) !important
+    max-width: max(1320px, 80vw) !important;
   }
 }
 
@@ -265,11 +226,8 @@ summary {
 table {
   border-collapse: collapse;
   -webkit-user-select: none;
-  /* Safari */
   -ms-user-select: none;
-  /* IE 10+ and Edge */
   user-select: none;
-  /* Standard syntax */
 }
 
 table.draggable tbody tr {
@@ -279,4 +237,29 @@ table.draggable tbody tr {
 
 table.draggable tbody tr:active {
   cursor: grabbing;
+}
+
+.selector-dialog {
+  width: 80vw;
+  height: 80vh;
+  max-height: 80vh;
+  max-width: none;
+}
+
+.selector-content {
+  height: 80vh;
+}
+
+.selector-header {
+  padding: none;
+  margin: 1rem;
+}
+
+.modal-footer .btn {
+  min-width: 100px;
+}
+
+#id-modal-content {
+  height: inherit;
+  overflow-y: scroll;
 }
