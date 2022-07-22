@@ -7,18 +7,31 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0029_auto_20220718_2118'),
+        ("core", "0029_auto_20220718_2118"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='field',
-            name='data_type',
-            field=models.ForeignKey(blank=True, default=1, null=True, on_delete=django.db.models.deletion.SET_DEFAULT, to='core.bigquerydatatype', verbose_name='Data Type'),
+            model_name="field",
+            name="data_type",
+            field=models.ForeignKey(
+                blank=True,
+                default=1,
+                null=True,
+                on_delete=django.db.models.deletion.SET_DEFAULT,
+                to="core.bigquerydatatype",
+                verbose_name="Data Type",
+            ),
         ),
         migrations.AlterField(
-            model_name='field',
-            name='position',
-            field=models.IntegerField(blank=True, default=-1, help_text="Enter the column's position within the target table", null=True, verbose_name='Ordinal Position'),
+            model_name="field",
+            name="position",
+            field=models.IntegerField(
+                blank=True,
+                default=-1,
+                help_text="Enter the column's position within the target table",
+                null=True,
+                verbose_name="Ordinal Position",
+            ),
         ),
     ]
