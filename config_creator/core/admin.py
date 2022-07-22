@@ -231,13 +231,28 @@ class ConditionAdmin(admin.ModelAdmin):
 
 @admin.register(Field)
 class FieldAdmin(admin.ModelAdmin):
-    list_display = ["name", "get_job", "is_source_to_target"]
+    list_display = [
+        "name",
+        "source_column",
+        "source_name",
+        "get_task",
+        "get_job",
+        "is_source_to_target",
+        "is_primary_key",
+        "is_history_key",
+    ]
 
     def get_job(self, obj):
         return obj.task.job.name
 
     get_job.admin_order_field = "job"
     get_job.short_description = "Job"
+
+    def get_task(self, obj):
+        return obj.task.name
+
+    get_task.admin_order_field = "task"
+    get_task.short_description = "Task"
 
     def save_model(self, request, obj, form, change):
         original_position = Field.objects.get(id=obj.id).position if obj.id else -1
