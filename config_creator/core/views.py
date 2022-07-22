@@ -1626,6 +1626,43 @@ def get_filecontent(pk: int) -> dict:
             }
             for j in Join.objects.select_related().filter(task_id=task.id)
         ]
+        history = (
+            History.objects.get(task_id=task.id)
+            if History.objects.filter(task_id=task.id).exists()
+            else None
+        )
+        if history:
+            params["history"] = {
+                "partition": [
+                    {
+                        "source_name": f.field.source_name,
+                        "source_column": f.field.source_column,
+                    }
+                    for f in Partition.objects.select_related().filter(
+                        history_id=history.id
+                    )
+                ],
+                "driving_column": [
+                    {
+                        "name": f.field.name,
+                        "source_name": f.field.source_name,
+                        "source_column": f.field.source_column,
+                        "transformation": f.field.transformation,
+                    }
+                    for f in DrivingColumn.objects.filter(history_id=history.id)
+                ],
+                "order": [
+                    {
+                        "source_name": f.field.source_name,
+                        "source_column": f.field.source_column,
+                        "transformation": f.field.transformation,
+                        "id_desc": f.is_desc,
+                    }
+                    for f in HistoryOrder.objects.filter(
+                        history_id=history.id
+                    ).order_by("position")
+                ],
+            }
 
         params["destination_table"] = task.destination_table
         params["destination_dataset"] = task.destination_dataset
