@@ -1,6 +1,6 @@
 {
   "rules": {
-    "property-no-vendor-prefix": false,
-    "length-zero-no-unit": false
+    "property-no-vendor-prefix": null,
+    "length-zero-no-unit": null
   }
 }
