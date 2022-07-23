@@ -1,3 +1,7 @@
+#id_selection {
+  max-width: 60vw;
+}
+
 .tree-dataset,
 .tree-connection {
   max-height: 80vh;
