@@ -22,7 +22,7 @@
                   {% for col in driving_column %}
                   <tr class="align-middle" id="id_driving_column_{{col.id}}_row" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
                     <td>
-                      {% if col.field.source_name != "" and col.field.source_name != None %}<span>{{ col.field.source_name }}.</span><strong>{{ col.field.source_column }}</strong>{% else %}{{ col.field.source_column }}{% endif %}
+                      <span>{{ col.field.source_table.dataset_name }}.{{ col.field.source_table.table_name }}.</span><strong>{{ col.field.source_column }}</strong>
                     </td>
                     <td class="btn-column"><button class="btn btn-danger driving-column-delete" id="id_driving_column_delete_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
@@ -56,7 +56,7 @@
                   {% for col in partition %}
                   <tr class="align-middle" id="id_partition_{{col.id}}_row" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
                     <td>
-                      {% if col.field.source_name != "" and col.field.source_name != None %}<span>{{ col.field.source_name }}.</span><strong>{{ col.field.source_column }}</strong>{% else %}{{ col.field.source_column }}{% endif %}
+                      <span>{{ col.field.source_table.dataset_name }}.{{ col.field.source_table.table_name }}.</span><strong>{{ col.field.source_column }}</strong>
                     </td>
                     <td class="btn-column"><button class="btn btn-danger partition-delete" id="id_partition_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
@@ -93,7 +93,7 @@
                   <tr class="align-middle" id="id_order_{{col.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="positionChange(this, 'order')" data-field-id="{{ col.id }}" data-position="{{ col.position }}" data-task-id="{{ task.id }}">
                     <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
                     <td>
-                      {% if col.field.source_name != "" and col.field.source_name != None %}<span>{{ col.field.source_name }}.</span><strong>{{ col.field.source_column }}</strong>{% else %}{{ col.field.source_column }}{% endif %}
+                      <span>{{ col.field.source_table.dataset_name }}.{{ col.field.source_table.table_name }}.</span><strong>{{ col.field.source_column }}</strong>
                     </td>
                     <td class="btn-column"><button class="btn btn-danger order-delete" id="id_order_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"

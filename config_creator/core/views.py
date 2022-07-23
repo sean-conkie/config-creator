@@ -43,7 +43,6 @@ __all__ = [
     "jobtaskdeleteview",
     "editjobtaskview",
     "editjobtaskproperty",
-    "editfieldview",
     "fieldview",
     "fielddeleteview",
     "editjoinview",
@@ -243,7 +242,17 @@ def editjobview(request, pk=None):
 
         property_object = job.get_property_object()
 
-        if property_object:
+        if property_object and pk:
+            return redirect(
+                reverse(
+                    "job-property-update",
+                    kwargs={
+                        "job_id": job.id,
+                        "pk": property_object.id,
+                    },
+                ),
+            )
+        elif property_object:
             return redirect(
                 reverse(
                     "job-property-add",
@@ -603,85 +612,6 @@ def editjobtaskproperty(request, job_id, task_id, pk=None):
 # endregion
 
 # region field views
-def editfieldview(
-    request,
-    job_id,
-    task_id,
-    pk=None,
-):
-    if request.method == "POST":
-
-        form = FieldForm(
-            request.POST,
-        )
-        task = JobTask.objects.get(id=task_id)
-        if request.POST.get("source_name", "") == "":
-            form.instance.source_name = task.driving_table
-
-        if request.POST.get("source_column", "") == "":
-            form.instance.source_column = request.POST.get("name", "")
-
-        if pk:
-            message = f"{request.POST.get('name', 'Field')} updated successfully."
-            form.instance.id = pk
-            original_position = Field.objects.get(id=pk).position
-        else:
-            message = f"{request.POST.get('name', 'Field')} created successfully."
-            original_position = -1
-
-        form.instance.task_id = task_id
-
-        if form.is_valid():
-            form.save()
-            changefieldposition(
-                Field.objects.get(id=form.instance.id),
-                original_position,
-                form.instance.position,
-            )
-            messages.success(request, message)
-
-        if request.POST.get("action") == "return":
-            return redirect(
-                reverse(
-                    "job-task",
-                    kwargs={
-                        "job_id": job_id,
-                        "pk": task_id,
-                    },
-                ),
-            )
-        else:
-            return redirect(
-                reverse(
-                    "job-task-field-add",
-                    kwargs={
-                        "job_id": job_id,
-                        "task_id": task_id,
-                    },
-                ),
-            )
-    else:
-        if pk:
-            field = Field.objects.select_related().get(id=pk)
-            form = FieldForm(instance=field)
-        else:
-            form = FieldForm()
-
-        job = Job.objects.get(id=job_id)
-        task = JobTask.objects.get(id=task_id)
-
-        return render(
-            request,
-            "core/field_form.html",
-            {
-                "form": form,
-                "task": task,
-                "job": job,
-                "field_id": pk,
-            },
-        )
-
-
 def fielddeleteview(request, job_id, task_id, pk):
     if request.method == "POST":
         Field.objects.get(id=pk).delete()

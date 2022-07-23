@@ -1,5 +1,7 @@
 import os
 
+from .models import *
+from core.models import JobTask, SourceTable
 from django.conf import settings
 from google.cloud import bigquery
 from lib.baseclasses import ConnectionType
@@ -149,11 +151,76 @@ class CSVClient:
 
 def get_schema(
     connection: dict,
+    task_id: int = None,
+    user_id: int = None,
 ) -> dict:
 
     client = None
     query = None
-    if connection.get("connection_type") == ConnectionType.BIGQUERY:
+    if connection.get("connection_type") == ConnectionType.LOCAL:
+        # check if user has a connection with same project
+        # if they do, create query and run it with source table filter
+        # if they don't build the details from what has been committed
+        connections = Connection.objects.filter(
+            user_id=user_id, connectionstring=connection.get("name")
+        )
+        connection = None
+        if connections.exists():
+            user_connection = connections[0]
+            connection_type = ConnectionType(user_connection.connectiontype.id)
+
+            connection = {
+                "id": 0,
+                "name": user_connection.name,
+                "credentials": user_connection.credentials,
+                "connection_string": user_connection.connectionstring,
+                "user_name": user_connection.user_name,
+                "host": user_connection.host,
+                "sid": user_connection.sid,
+                "port": user_connection.port,
+                "schema": user_connection.schema,
+                "secret_key": user_connection.secret_key,
+                "connection_type": connection_type,
+            }
+
+        task_datasets = [
+            table.dataset_name
+            for table in SourceTable.objects.filter(task_id=task_id)
+            if table.source_project == connection.get("name")
+            or table.source_project is None
+        ]
+
+        dataset_source = (
+            JobTask.objects.select_related()
+            .get(id=task_id)
+            .job.get_property_object()
+            .dataset_source
+        )
+
+        if dataset_source not in task_datasets:
+            task_datasets.extend(dataset_source)
+
+        if connection.get("connection_type") == ConnectionType.BIGQUERY:
+            client = IBQClient(connection.get("connection_string"))
+            dataset_condition = ",".join([f"'{c}'" for c in task_datasets])
+            query = f"select schema_name table_schema from `region-eu`.INFORMATION_SCHEMA.SCHEMATA where schema_name in ({dataset_condition}) order by 1"
+
+        else:
+
+            return {
+                "result": [
+                    {
+                        "name": r,
+                        "content": [],
+                        "type": "dataset",
+                        "connection_id": connection.get("id"),
+                        "connection_name": connection.get("name"),
+                    }
+                    for r in task_datasets
+                ],
+            }
+
+    elif connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
         query = "select schema_name table_schema from `region-eu`.INFORMATION_SCHEMA.SCHEMATA order by 1"
 
@@ -172,6 +239,7 @@ def get_schema(
                 "content": [],
                 "type": "dataset",
                 "connection_id": connection.get("id"),
+                "connection_name": connection.get("name"),
             }
             for r in rs.get("result", [])
         ],
@@ -183,11 +251,75 @@ def get_schema(
 def get_database_schema(
     connection: dict,
     database: str,
+    task_id: int = None,
+    user_id: int = None,
 ) -> dict:
 
     client = None
     query = None
-    if connection.get("connection_type") == ConnectionType.BIGQUERY:
+
+    if connection.get("connection_type") == ConnectionType.LOCAL:
+        # check if user has a connection with same project
+        # if they do, create query and run it with source table filter
+        # if they don't build the details from what has been committed
+        connections = Connection.objects.filter(
+            user_id=user_id, connectionstring=connection.get("name")
+        )
+        connection = None
+        if connections.exists():
+            user_connection = connections[0]
+            connection_type = ConnectionType(user_connection.connectiontype.id)
+
+            connection = {
+                "id": 0,
+                "name": user_connection.name,
+                "credentials": user_connection.credentials,
+                "connection_string": user_connection.connectionstring,
+                "user_name": user_connection.user_name,
+                "host": user_connection.host,
+                "sid": user_connection.sid,
+                "port": user_connection.port,
+                "schema": user_connection.schema,
+                "secret_key": user_connection.secret_key,
+                "connection_type": connection_type,
+            }
+
+        task_tables = [
+            f"select '{table.table_name}' table_name, '{table.alias}' alias "
+            for table in SourceTable.objects.filter(task_id=task_id)
+            if table.source_project == connection.get("name")
+            or table.source_project is None
+        ]
+
+        driving_table = JobTask.objects.select_related().get(id=task_id).driving_table
+
+        if driving_table not in task_tables:
+            task_tables.extend([f"select '{driving_table}' table_name, 'a' alias "])
+
+        if connection.get("connection_type") == ConnectionType.BIGQUERY:
+            client = IBQClient(connection.get("connection_string"))
+            table_condition = " union all ".join(task_tables)
+            query = f"select s.table_schema, concat(s.table_name, ' ', st.alias) table_name, s.column_name, s.data_type, s.ordinal_position, s.is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS s inner join ({table_condition}) st on s.table_name = st.table_name order by 2, 5"
+
+        else:
+
+            return {
+                "result": [
+                    {
+                        "dataset": database,
+                        "table_name": r,
+                        "column_name": None,
+                        "data_type": None,
+                        "ordinal_position": None,
+                        "is_nullable": None,
+                        "type": "column",
+                        "connection_id": connection.get("id"),
+                    }
+                    for r in task_tables
+                ],
+            }
+
+    elif connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
         query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS order by 2, 5"
 
@@ -211,7 +343,9 @@ def get_database_schema(
                 "type": "column",
                 "connection_id": connection.get("id"),
             }
-            for index, row in client.data[client.data.table_name.eq(table)].iterrows()
+            for index, row in client.data[client.data.table_name.eq(table)]
+            .sort_values(by=["table_name", "ordinal_position"])
+            .iterrows()
         ]
 
         tables.append(
