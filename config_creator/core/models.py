@@ -578,7 +578,15 @@ class Field(models.Model):
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        outp = []
+        """
+        If the column has a transformation, return the transformation and the name. If the column has a
+        source table and column, return the source table and column and the name. If the column has a
+        source table and no column, return the source table and the name. If the column has no source
+        table, return the name
+
+        Returns:
+          The name of the column, the table it is in, and the dataset it is in.
+        """
         name = ""
         table = ""
         column = ""

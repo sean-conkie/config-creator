@@ -5,6 +5,12 @@ from django import views
 from lib.baseclasses import ConnectionType as eConnectionType
 from rest_framework import renderers, response, request, status, views
 
+__all__ = [
+    "SchemaView",
+    "get_connection",
+    "get_connections",
+]
+
 
 class SchemaView(views.APIView):
 

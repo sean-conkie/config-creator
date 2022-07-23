@@ -314,7 +314,7 @@ function callConnectionApi (url, modalId) {
 
         const data = JSON.parse(this.responseText)
         if ({}.propertyIsEnumerable.call(data, 'result')) {
-          const html = parseObject(data.result, 1, null)
+          const html = parseObject(data.result, 1)
           if (html && html.nodeType) {
             parent.appendChild(html)
           }
