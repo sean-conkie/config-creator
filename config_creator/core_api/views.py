@@ -1,5 +1,6 @@
 import re
 
+from copy import deepcopy
 from core.forms import FieldForm
 from core.models import (
     BigQueryDataType,
@@ -17,6 +18,7 @@ from core.models import (
     Partition,
     SourceTable,
     str_to_class,
+    get_source_table,
 )
 from database_interface_api.dbhelper import get_table
 from database_interface_api.views import get_connection
@@ -98,7 +100,19 @@ class FieldView(views.APIView):
         return_status = None
         if action:
             if action in ["createColumn", "editColumn"]:
-                form = FieldForm(request.POST)
+                m = re.search(
+                    r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+                    request.POST.get("source_name", ""),
+                    re.IGNORECASE,
+                )
+                source_table = get_source_table(
+                    m.group("dataset_name"),
+                    m.group("table_name"),
+                    m.group("alias"),
+                )
+                request_post = deepcopy(request.POST)
+                request_post["source_table"] = source_table.id
+                form = FieldForm(request_post)
                 if pk:
                     form.instance.id = pk
                 message = (

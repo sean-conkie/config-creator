@@ -234,7 +234,7 @@ class FieldAdmin(admin.ModelAdmin):
     list_display = [
         "name",
         "source_column",
-        "source_name",
+        "source_table",
         "get_task",
         "get_job",
         "is_source_to_target",
