@@ -493,13 +493,13 @@ def get_source_table(
     > If a SourceTable object exists with the given task_id, dataset_name, table_name, and alias, return
     it. Otherwise, create a new SourceTable object with the given task_id, dataset_name, and table_name,
     and return it
-    
+
     Args:
       task_id (int): The id of the task that the source table is associated with.
       dataset_name (str): The name of the dataset that the table is in.
       table_name (str): The name of the table in the dataset.
       alias (str): The alias of the table.
-    
+
     Returns:
       A SourceTable object
     """
