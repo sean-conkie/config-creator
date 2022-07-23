@@ -1,4 +1,3 @@
-from django.db import connection
 from .dbhelper import get_database_schema, get_schema
 from .models import Connection, ConnectionType
 from core.models import JobTask, SourceTable

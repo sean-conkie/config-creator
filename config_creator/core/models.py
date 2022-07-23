@@ -5,7 +5,6 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
-from executing import Source
 from wordsegment import load, segment
 
 __all__ = [
