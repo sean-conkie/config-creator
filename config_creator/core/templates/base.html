@@ -67,7 +67,6 @@
     </main>
     
     <script>
-
       const toastList = document.getElementsByClassName("toast");
       for (var i = 0; i < toastList.length; i++) {
         const toast = new bootstrap.Toast(toastList[i]);
@@ -82,50 +81,5 @@
     </script>
     <script src="/static/js/main.js" ></script>
     <script src="/static/js/connection-selector.js" ></script>
-    <script>
-
-
-    let returnType = {
-      selector: 'column',
-      column: {
-        target: 'id_source_column',
-        type: 'columnName'
-      },
-      datatype: {
-        target: 'id_source_data_type',
-        type: 'dataType'
-      },
-      table: {
-        target: 'id_source_name',
-        type: 'tableFull'
-      },
-      dataset: {
-        target: null,
-        type: null
-      },
-      connection: {
-        target: null,
-        type: null
-      },
-      task: {{task.id}}
-    }      
-
-      {% if task.id != None %}
-        callConnectionApi('/api/task/{{ task.id }}/schema/', 'id-modal-content')
-      {% else %}
-        callConnectionApi('/api/schema/', 'id-modal-content')
-      {% endif %}
-
-      const myModalEl = document.getElementById('connection-modal')
-      myModalEl.addEventListener('hidden.bs.modal', function (event) {
-        document.getElementById('id_selection').textContent = ''
-        document.getElementById('id_submit_button').removeAttribute('onclick')
-        document.getElementById('id_submit_button').classList.add('visually-hidden')
-        const details = document.getElementsByTagName('details')
-        for (let i = 0; i < details.length; i++) {
-          details[i].removeAttribute('open')
-        }
-      })
-    </script>
 </body>
 </html>

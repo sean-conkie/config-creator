@@ -234,7 +234,7 @@ class FieldAdmin(admin.ModelAdmin):
     list_display = [
         "name",
         "source_column",
-        "source_table",
+        "source_name",
         "get_task",
         "get_job",
         "is_source_to_target",
@@ -360,28 +360,3 @@ class JobTaskAdmin(admin.ModelAdmin):
             obj.createdby = request.user
         obj.updatedby = request.user
         super().save_model(request, obj, form, change)
-
-
-@admin.register(SourceTable)
-class SourceTableAdmin(admin.ModelAdmin):
-    list_display = [
-        "table_name",
-        "dataset_name",
-        "source_project",
-        "get_task",
-        "get_job",
-        "alias",
-        "base_alias",
-    ]
-
-    def get_job(self, obj):
-        return obj.task.job.name
-
-    get_job.admin_order_field = "job"
-    get_job.short_description = "Job"
-
-    def get_task(self, obj):
-        return obj.task.name
-
-    get_task.admin_order_field = "task"
-    get_task.short_description = "Task"

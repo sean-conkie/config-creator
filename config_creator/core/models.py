@@ -5,8 +5,6 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
-from executing import Source
-from wordsegment import load, segment
 
 __all__ = [
     "JobType",
@@ -43,7 +41,6 @@ __all__ = [
     "DEFAULT_DATA_TYPE_ID",
     "SourceTable",
     "changeorderposition",
-    "get_source_table",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -279,9 +276,9 @@ class Job(models.Model):
         property_class = str_to_class(f"{self.type.code.title()}JobProperties")
         if property_class:
             if property_class.objects.filter(job_id=self.id).exists():
-                return property_class.objects.get(
+                return property_class.objects.filter(
                     job_id=self.id,
-                )
+                )[0]
             else:
                 return property_class(
                     job_id=self.id,
@@ -371,6 +368,26 @@ class JobTask(models.Model):
     def __str__(self):
         return self.name
 
+    def save(self, *args, **kwargs):
+        super(JobTask, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.driving_table:
+            m = re.search(pattern, self.driving_table, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.id,
+            ).save()
+
     def get_property_object(self):
 
         """
@@ -421,104 +438,6 @@ class BigQueryDataType(models.Model):
         return self.name
 
 
-class SourceTable(models.Model):
-    task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
-    source_project = models.CharField(
-        verbose_name="Source Project",
-        max_length=255,
-        blank=True,
-        null=True,
-    )
-    dataset_name = models.CharField(
-        verbose_name="Dataset Name",
-        max_length=255,
-        blank=False,
-        null=False,
-    )
-    table_name = models.CharField(
-        verbose_name="Table Name",
-        max_length=255,
-        blank=False,
-        null=False,
-    )
-    alias = models.CharField(
-        verbose_name="Table Alias",
-        max_length=255,
-        blank=True,
-        null=False,
-        unique=True,
-    )
-    base_alias = models.CharField(
-        verbose_name="Base Table Alias",
-        max_length=255,
-        blank=True,
-        null=False,
-        unique=False,
-        help_text="Non-unique alias, used to identify number of occurences of the table.",
-    )
-
-    def save(self, *args, **kwargs):
-        if self.id is None:
-            load()
-            cleaned_table_name = re.sub(
-                r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
-            )
-            alias = "".join([w[:1] for w in segment(cleaned_table_name)])
-            m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
-            if m:
-                alias = m.group(1)
-
-            tables = SourceTable.objects.filter(
-                base_alias=alias,
-                task_id=self.task_id,
-            )
-
-            if tables.exists():
-                counter = len(tables) + 1
-                self.alias = f"{alias}_{counter}"
-            else:
-                self.alias = alias
-
-            self.base_alias = alias
-
-        super(SourceTable, self).save(*args, **kwargs)
-
-    def __str__(self):
-        return f"{self.dataset_name}.{self.table_name} {self.alias}"
-
-
-def get_source_table(
-    dataset_name: str, table_name: str, alias: str = None
-) -> SourceTable:
-    """
-    If a SourceTable exists with the given dataset_name, table_name, and alias, return it; otherwise,
-    create it and return it
-
-    Args:
-      dataset_name (str): The name of the dataset that the table is in.
-      table_name (str): The name of the table in the dataset.
-      alias (str): The alias of the table. If not provided, the alias will be the table name.
-
-    Returns:
-      A SourceTable object
-    """
-    if SourceTable.objects.filter(
-        dataset_name=dataset_name,
-        table_name=table_name,
-        alias=alias,
-    ).exists():
-        return SourceTable.objects.get(
-            dataset_name=dataset_name,
-            table_name=table_name,
-            alias=alias,
-        )
-    else:
-        return SourceTable(
-            dataset_name=dataset_name,
-            table_name=table_name,
-        ).save()
-
-
 class Field(models.Model):
     name = models.CharField(
         verbose_name="Name", max_length=255, blank=True, null=True, help_text=""
@@ -545,20 +464,19 @@ class Field(models.Model):
         null=True,
         help_text="",
     )
-    source_table = models.ForeignKey(
-        SourceTable,
-        verbose_name="Source Table",
-        on_delete=models.CASCADE,
-        null=False,
-        blank=True,
-        help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
-    )
     source_data_type = models.CharField(
         verbose_name="Source Data Type",
         max_length=255,
         blank=True,
         null=True,
         help_text="Data type for the column at source",
+    )
+    source_name = models.CharField(
+        verbose_name="Source Table",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
     )
     transformation = models.TextField(
         verbose_name="Column Transformation",
@@ -590,8 +508,8 @@ class Field(models.Model):
 
             return f"{self.transformation}{name}"
 
-        if self.source_table:
-            table = f"{self.source_table.dataset_name}.{self.source_table.table_name}."
+        if self.source_name:
+            table = f"{self.source_name}."
 
         if self.source_column:
             column = f"{self.source_column}"
@@ -601,6 +519,29 @@ class Field(models.Model):
             name = f"{self.name}"
 
         return f"{table}{column}{name}"
+
+    def save(self, *args, **kwargs):
+        super(Field, self).save(*args, **kwargs)
+        # add table to source table list if not exists
+        m = None
+        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
+        if self.source_name:
+            m = re.search(pattern, self.source_name, re.IGNORECASE)
+
+        if self.transformation and not m:
+            m = re.search(pattern, self.transformation, re.IGNORECASE)
+
+        if (
+            m
+            and not SourceTable.objects.filter(
+                dataset_name=m.group("dataset_name"), table_name=m.group("table")
+            ).exists()
+        ):
+            SourceTable(
+                dataset_name=m.group("dataset_name"),
+                table_name=m.group("table"),
+                task_id=self.task_id,
+            ).save()
 
     def todict(self) -> dict:
         """
@@ -616,8 +557,7 @@ class Field(models.Model):
             "name": self.name,
             "data_type": self.data_type.name,
             "data_type_id": self.data_type_id,
-            "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}",
-            "source_table_alias": self.source_table.alias,
+            "source_name": self.source_name,
             "source_column": self.source_column,
             "source_data_type": self.source_data_type,
             "transformation": self.transformation,
@@ -1032,6 +972,31 @@ class BatchCustomJobTaskProperties(BaseJobTaskProperties):
         null=False,
         help_text="Enter the name of the sql fiel to be used by this task",
     )
+
+
+class SourceTable(models.Model):
+    task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
+    source_project = models.CharField(
+        verbose_name="Source Project",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    dataset_name = models.CharField(
+        verbose_name="Dataset Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    table_name = models.CharField(
+        verbose_name="Table Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+
+    def __str__(self):
+        return f"{self.dataset_name}.{self.table_name}"
 
 
 def str_to_class(classname):

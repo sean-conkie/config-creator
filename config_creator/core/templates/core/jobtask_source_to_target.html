@@ -45,7 +45,7 @@
             </td>
             <td>{{ field.data_type }}</td>
             <td>
-              <span>{{ field.source_table.dataset_name }}.{{ field.source_table.table_name }}.</span><strong>{{ field.source_column }}</strong>
+              {% if field.source_name != "" and field.source_name != None %}<span>{{ field.source_name }}.</span><strong>{{ field.source_column }}</strong>{% else %}{{ field.source_column }}{% endif %}
             </td>
             <td class="btn-column"><button class="btn btn-secondary field-view" id="id_field_{{ field.id }}_view" 
               type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"

@@ -1,7 +1,5 @@
-from django.db import connection
 from .dbhelper import get_database_schema, get_schema
 from .models import Connection, ConnectionType
-from core.models import JobTask, SourceTable
 from django import views
 from lib.baseclasses import ConnectionType as eConnectionType
 from rest_framework import renderers, response, request, status, views
@@ -12,95 +10,49 @@ class SchemaView(views.APIView):
     renderer_classes = [renderers.JSONRenderer]
 
     def get(
-        self,
-        request: request,
-        connection_id: int = None,
-        connection_name: int = None,
-        database: str = None,
-        task_id: int = None,
+        self, request: request, connection_id: int = None, database: str = None
     ) -> response.Response:
 
-        if database and connection_name:
-            outp = get_database_schema(
-                get_connection(
-                    request.user.id,
-                    0,
-                    connection_name,
-                ),
-                database,
-                task_id,
-                request.user.id,
-            )
-
-        elif connection_name:
-            outp = get_schema(
-                get_connection(
-                    request.user.id,
-                    0,
-                    connection_name,
-                ),
-                task_id,
-                request.user.id,
-            )
-        elif database:
-            outp = get_database_schema(
-                get_connection(
-                    request.user.id,
-                    connection_id,
-                ),
-                database,
-                task_id,
-                request.user.id,
-            )
+        if database:
+            outp = get_database_schema(get_connection(request, connection_id), database)
         elif connection_id:
-            outp = get_schema(
-                get_connection(request.user.id, connection_id),
-                task_id,
-            )
+            outp = get_schema(get_connection(request, connection_id))
         else:
-            outp = get_connections(request, task_id)
+            outp = get_connections(request)
 
         return response.Response(data=outp, status=status.HTTP_200_OK)
 
 
-def get_connection(user_id: int, connection_id: int, name: str = None) -> dict:
-    if connection_id == 0:
-        connection_type = eConnectionType(connection_id)
+def get_connection(request, connection_id: int) -> dict:
 
-        return {
-            "id": connection_id,
-            "name": name if name else "This Task",
-            "credentials": None,
-            "connection_string": None,
-            "user_name": None,
-            "host": None,
-            "sid": None,
-            "port": None,
-            "schema": None,
-            "secret_key": None,
-            "connection_type": connection_type,
-        }
+    connection = Connection.objects.get(id=connection_id, user=request.user)
+    connection_type = eConnectionType(connection.connectiontype.id)
 
-    else:
-        connection = Connection.objects.get(id=connection_id, user_id=user_id)
-        connection_type = eConnectionType(connection.connectiontype.id)
-
-        return {
-            "id": connection.id,
-            "name": connection.name,
-            "credentials": connection.credentials,
-            "connection_string": connection.connectionstring,
-            "user_name": connection.user_name,
-            "host": connection.host,
-            "sid": connection.sid,
-            "port": connection.port,
-            "schema": connection.schema,
-            "secret_key": connection.secret_key,
-            "connection_type": connection_type,
-        }
+    return {
+        "id": connection.id,
+        "name": connection.name,
+        "credentials": connection.credentials,
+        "connection_string": connection.connectionstring,
+        "user_name": connection.user_name,
+        "host": connection.host,
+        "sid": connection.sid,
+        "port": connection.port,
+        "schema": connection.schema,
+        "secret_key": connection.secret_key,
+        "connection_type": connection_type,
+    }
 
 
-def get_connections(request: request, task_id: int = None) -> dict:
+def get_connections(request: request) -> dict:
+    """
+    > This function returns a dictionary of connections for a user, grouped by connection type
+
+    Args:
+      request (request): request
+
+    Returns:
+      A dictionary of connections
+    """
     connections = (
         Connection.objects.select_related().filter(user=request.user).order_by("name")
     )
@@ -124,45 +76,6 @@ def get_connections(request: request, task_id: int = None) -> dict:
                 "name": connection.name,
                 "type": "connection",
                 "id": connection.id,
-            }
-        )
-
-    if task_id:
-        source_tables = [
-            {
-                "name": table.source_project,
-                "type": "connection",
-                "id": 0,
-            }
-            for table in SourceTable.objects.filter(task_id=task_id).order_by(
-                "source_project"
-            )
-            if table.source_project
-        ]
-
-        source_project = (
-            JobTask.objects.select_related()
-            .get(id=task_id)
-            .job.get_property_object()
-            .source_project
-        )
-
-        if source_project not in source_tables:
-            source_tables.extend(
-                [
-                    {
-                        "name": source_project,
-                        "type": "connection",
-                        "id": 0,
-                    }
-                ]
-            )
-
-        tree_source.append(
-            {
-                "name": "This Task",
-                "content": source_tables,
-                "type": "connection-type",
             }
         )
 

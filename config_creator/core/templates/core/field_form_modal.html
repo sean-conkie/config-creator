@@ -48,7 +48,7 @@
                   <div class="lead">Source Column</div>
                   <div class="col-6">
                     <div class="input-group mb-3">
-                      <button class="input-group-text" id="id_source_column_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
+                      <button class="input-group-text" id="id_source_column_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
                       <div class="form-floating flex-grow-1">
                         {{ field_form.source_column }}
                         {{ field_form.source_column.label_tag }}
@@ -57,10 +57,10 @@
                   </div>
                   <div class="col-6">
                     <div class="input-group mb-3">
-                      <button class="input-group-text" id="id_source_name_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
+                      <button class="input-group-text" id="id_source_name_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
                       <div class="form-floating flex-grow-1">
-                        <input id="id_source_name" name="source_name" type="text" maxlength="255" />
-                        <label for="id_source_name" >Source Table:</label>
+                        {{ field_form.source_name }}
+                        {{ field_form.source_name.label_tag }}
                       </div>
                     </div>
                   </div>
@@ -132,14 +132,6 @@
           "function": "dataTypeMap(this.value)",
           "type": "input"
         }],
-        ["id_source_name_tree", {
-            "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, false, {{task.id}})",
-            "type": "click"
-        }],
-        ["id_source_column_tree", {
-            "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, false, {{task.id}})",
-            "type": "click"
-        }]
       ]);
       
       fieldModalListenerMap.forEach(addListener);
