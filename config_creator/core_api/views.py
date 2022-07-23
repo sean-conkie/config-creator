@@ -106,6 +106,7 @@ class FieldView(views.APIView):
                     re.IGNORECASE,
                 )
                 source_table = get_source_table(
+                    task_id,
                     m.group("dataset_name"),
                     m.group("table_name"),
                     m.group("alias"),

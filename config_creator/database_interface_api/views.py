@@ -1,10 +1,15 @@
-from django.db import connection
 from .dbhelper import get_database_schema, get_schema
 from .models import Connection, ConnectionType
 from core.models import JobTask, SourceTable
 from django import views
 from lib.baseclasses import ConnectionType as eConnectionType
 from rest_framework import renderers, response, request, status, views
+
+__all__ = [
+    "SchemaView",
+    "get_connection",
+    "get_connections",
+]
 
 
 class SchemaView(views.APIView):

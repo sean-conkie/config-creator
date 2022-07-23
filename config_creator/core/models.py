@@ -5,7 +5,6 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
-from executing import Source
 from wordsegment import load, segment
 
 __all__ = [
@@ -488,32 +487,40 @@ class SourceTable(models.Model):
 
 
 def get_source_table(
-    dataset_name: str, table_name: str, alias: str = None
+    task_id: int, dataset_name: str, table_name: str, alias: str = None
 ) -> SourceTable:
     """
-    If a SourceTable exists with the given dataset_name, table_name, and alias, return it; otherwise,
-    create it and return it
+    > If a SourceTable object exists with the given task_id, dataset_name, table_name, and alias, return
+    it. Otherwise, create a new SourceTable object with the given task_id, dataset_name, and table_name,
+    and return it
 
     Args:
+      task_id (int): The id of the task that the source table is associated with.
       dataset_name (str): The name of the dataset that the table is in.
       table_name (str): The name of the table in the dataset.
-      alias (str): The alias of the table. If not provided, the alias will be the table name.
+      alias (str): The alias of the table.
 
     Returns:
       A SourceTable object
     """
+    if dataset_name is None or table_name is None:
+        return None
+
     if SourceTable.objects.filter(
+        task_id=task_id,
         dataset_name=dataset_name,
         table_name=table_name,
         alias=alias,
     ).exists():
         return SourceTable.objects.get(
+            task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
             alias=alias,
         )
     else:
         return SourceTable(
+            task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
         ).save()
@@ -579,7 +586,15 @@ class Field(models.Model):
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        outp = []
+        """
+        If the column has a transformation, return the transformation and the name. If the column has a
+        source table and column, return the source table and column and the name. If the column has a
+        source table and no column, return the source table and the name. If the column has no source
+        table, return the name
+
+        Returns:
+          The name of the column, the table it is in, and the dataset it is in.
+        """
         name = ""
         table = ""
         column = ""

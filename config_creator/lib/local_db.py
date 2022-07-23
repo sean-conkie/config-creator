@@ -1,12 +1,11 @@
-import sqlite3
-from sqlite3 import Error
+from sqlite3 import connect, Error, version
 
 
 def create_connection(db_file):
     conn = None
     try:
-        conn = sqlite3.connect(db_file)
-        print(sqlite3.version)
+        conn = connect(db_file)
+        print(version)
     except Error as e:
         print(e)
     finally:

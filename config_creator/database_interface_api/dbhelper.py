@@ -294,7 +294,7 @@ def get_database_schema(
         driving_table = JobTask.objects.select_related().get(id=task_id).driving_table
 
         if driving_table not in task_tables:
-            task_tables.extend([f"select '{driving_table}' table_name, 'a' alias "])
+            task_tables.extend([f"select '{driving_table}' table_name, 'src' alias "])
 
         if connection.get("connection_type") == ConnectionType.BIGQUERY:
             client = IBQClient(connection.get("connection_string"))
