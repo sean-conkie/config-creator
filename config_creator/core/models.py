@@ -487,32 +487,40 @@ class SourceTable(models.Model):
 
 
 def get_source_table(
-    dataset_name: str, table_name: str, alias: str = None
+    task_id: int, dataset_name: str, table_name: str, alias: str = None
 ) -> SourceTable:
     """
-    If a SourceTable exists with the given dataset_name, table_name, and alias, return it; otherwise,
-    create it and return it
-
+    > If a SourceTable object exists with the given task_id, dataset_name, table_name, and alias, return
+    it. Otherwise, create a new SourceTable object with the given task_id, dataset_name, and table_name,
+    and return it
+    
     Args:
+      task_id (int): The id of the task that the source table is associated with.
       dataset_name (str): The name of the dataset that the table is in.
       table_name (str): The name of the table in the dataset.
-      alias (str): The alias of the table. If not provided, the alias will be the table name.
-
+      alias (str): The alias of the table.
+    
     Returns:
       A SourceTable object
     """
+    if dataset_name is None or table_name is None:
+        return None
+
     if SourceTable.objects.filter(
+        task_id=task_id,
         dataset_name=dataset_name,
         table_name=table_name,
         alias=alias,
     ).exists():
         return SourceTable.objects.get(
+            task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
             alias=alias,
         )
     else:
         return SourceTable(
+            task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
         ).save()

@@ -512,10 +512,22 @@ def editjobtaskview(request, job_id, pk=None):
         )
         task.staging_dataset = request.POST["staging_dataset"]
         task.type = TaskType.objects.get(id=request.POST["type"])
-        task.createdby = request.user
+        if not task.id:
+            task.createdby = request.user
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            request.POST.get("driving_table", ""),
+            re.IGNORECASE,
+        )
+        get_source_table(
+            task.id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            "src",
+        )
 
         if (
             task.table_type != TableType.objects.get(code="TYPE1")
