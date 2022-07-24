@@ -1,7 +1,7 @@
 import re
 
 from copy import deepcopy
-from core.forms import FieldForm
+from core.forms import FieldForm, JoinForm
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -15,6 +15,7 @@ from core.models import (
     HistoryOrder,
     Job,
     JobTask,
+    Join,
     Partition,
     SourceTable,
     str_to_class,
@@ -222,6 +223,95 @@ class FieldView(views.APIView):
             return_status = status.HTTP_400_BAD_REQUEST
 
         return response.Response(data=data, status=return_status)
+
+
+class JoinView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        join = Join.objects.get(id=pk) if Join.objects.filter(id=pk).exists() else None
+        if join:
+            outp = {
+                "message": f"Join '{join.name}' deleted.",
+                "type": "success",
+            }
+            join.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Join with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def get(self, request: request, pk: int) -> response.Response:
+        join = Join.objects.get(id=pk) if Join.objects.filter(id=pk).exists() else None
+        if join:
+            outp = join.todict()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {}
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data={"result": outp}, status=return_status)
+
+    def post(self, request: request, task_id: int, pk: int = None) -> response.Response:
+
+        task = JobTask.objects.get(id=task_id)
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            request.POST.get("left", task.driving_table),
+            re.IGNORECASE,
+        )
+
+        left_table = get_source_table(
+            task_id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            m.group("alias"),
+        )
+
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            request.POST.get("right", ""),
+            re.IGNORECASE,
+        )
+
+        right_table = get_source_table(
+            task_id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            m.group("alias"),
+        )
+
+        request_post = deepcopy(request.POST)
+        request_post["left_table"] = left_table.id
+        request_post["right_table"] = right_table.id
+        form = JoinForm(request_post)
+        if pk:
+            form.instance.id = pk
+        message = "Join updated." if pk else "Join created."
+        form.instance.task_id = task_id
+        if form.is_valid():
+            form.save()
+            data = {
+                "message": message,
+                "type": "Success",
+                "result": {
+                    "content": [Join.objects.get(id=form.instance.id).todict()],
+                },
+            }
+
+            return_status = status.HTTP_200_OK
+        else:
+            return_status = status.HTTP_400_BAD_REQUEST
+
+        return response.Response(data={"result": data}, status=return_status)
 
 
 class DrivingColumnView(views.APIView):

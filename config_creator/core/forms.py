@@ -90,8 +90,8 @@ class JoinForm(forms.ModelForm):
         model = Join
         fields = [
             "type",
-            "left",
-            "right",
+            "left_table",
+            "right_table",
         ]
 
 

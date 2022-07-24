@@ -268,10 +268,10 @@ class FieldAdmin(admin.ModelAdmin):
 @admin.register(Join)
 class JoinAdmin(admin.ModelAdmin):
 
-    list_display = ["type", "right", "task", "get_job"]
+    list_display = ["type", "left_table", "right_table", "task", "get_job"]
     list_filter = ["task", "type"]
     search_fields = ["right"]
-    ordering = ["right", "task"]
+    ordering = ["right_table", "task"]
     inlines = [JoinConditionInLine]
     filter_horizontal = ()
     fieldsets = (
@@ -288,8 +288,8 @@ class JoinAdmin(admin.ModelAdmin):
             "Tables",
             {
                 "fields": (
-                    "left",
-                    "right",
+                    "left_table",
+                    "right_table",
                 )
             },
         ),
