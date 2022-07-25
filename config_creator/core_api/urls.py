@@ -93,22 +93,22 @@ urlpatterns = [
         name="api-history-order-delete",
     ),
     path(
-        "join/<int:pk>/",
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/",
         login_required(JoinView.as_view()),
         name="api-join",
     ),
     path(
-        "join/add/",
+        "job/<int:job_id>/task/<int:task_id>/join/add/",
         login_required(JoinView.as_view()),
         name="api-join-add",
     ),
     path(
-        "join/<int:pk>/update/",
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/update/",
         login_required(JoinView.as_view()),
         name="api-join-update",
     ),
     path(
-        "join/<int:pk>/delete/",
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/delete/",
         login_required(JoinView.as_view()),
         name="api-join-delete",
     ),

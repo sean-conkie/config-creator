@@ -8,7 +8,7 @@
   <div class="accordion-collapse collapse show" id="collapse-source-to-target"
     aria-labelledby="heading-source-to-target">
     <div class="row g-3 py-3">
-      <table class="table table-hover draggable">
+      <table class="table table-hover draggable" id="id_source_to_target_table">
         <thead>
           <tr>
             <th scope="col"></th>
@@ -69,7 +69,7 @@
       <div class="row">
         <div class="col-md-4 col-lg-3">
           <button class="btn btn-primary" id="id_add_column_button" type="button"><i class="bi bi-plus"></i> Add Column</button>
-          <button class="btn btn-info" id="id_copy_table" type="button"><i class="fa-solid fa-copy"></i> Copy
+          <button class="btn btn-info" id="id_copy_table" type="button" data-task-id="{{ task.id }}"><i class="fa-solid fa-copy"></i> Copy
             Table</button>
           <input id="id_field_source_table_name" hidden />
           <input id="id_field_source_dataset" hidden />
@@ -83,11 +83,11 @@
 <script>
   let listenerMap = new Map([
     ["id_copy_table", {
-      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true)",
+      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true); document.getElementById('id_field_source_connection').dataset['taskId'] = this.dataset['taskId'];",
       "type": "click"
     }],
     ["id_field_source_connection", {
-      "function": "submitCopyTable()",
+      "function": "submitCopyTable(this.dataset['taskId'])",
       "type": "input"
     }],
     ["id_add_column_button", {

@@ -5,7 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
-from wordsegment import load, segment
+from wordsegment import segment
 
 __all__ = [
     "JobType",
@@ -458,7 +458,6 @@ class SourceTable(models.Model):
 
     def save(self, *args, **kwargs):
         if self.id is None:
-            load()
             cleaned_table_name = re.sub(
                 r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
             )
@@ -519,11 +518,13 @@ def get_source_table(
             alias=alias,
         )
     else:
-        return SourceTable(
+        saved = SourceTable(
             task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
-        ).save()
+        )
+        saved.save()
+        return saved
 
 
 class Field(models.Model):
@@ -864,10 +865,17 @@ class Join(models.Model):
         return f"{self.task.name}: join to {self.right_table}"
 
     def todict(self):
+        """
+        It returns a dictionary of the object's attributes
+
+        Returns:
+          A dictionary of the join object.
+        """
         return {
+            "id": self.id,
             "type": self.type.name,
-            "left_table": self.left_table,
-            "right_table": self.right_table,
+            "left_table": self.left_table.__str__(),
+            "right_table": self.right_table.__str__(),
             "conditions": [
                 condition.todict()
                 for condition in Condition.objects.filter(join_id=self.id)
@@ -927,6 +935,7 @@ class Condition(models.Model):
 
     def todict(self):
         return {
+            "id": self.id,
             "operator": self.operator.name,
             "logic_operator": self.logic_operator.name,
             "left": self.left,

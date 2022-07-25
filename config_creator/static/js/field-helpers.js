@@ -43,6 +43,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
 
       const viewButton = createElement('button', null, ['btn', 'btn-secondary'], 0, null) // eslint-disable-line no-undef
       viewButton.setAttribute('title', 'View')
+      viewButton.setAttribute('type', 'button')
       viewButton.setAttribute('aria-current', 'page')
       viewButton.setAttribute('data-bs-toggle', 'tooltip')
       viewButton.setAttribute('data-bs-placement', 'right')
@@ -61,6 +62,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
 
       const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
+      deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')
       deleteButton.setAttribute('data-bs-toggle', 'tooltip')
       deleteButton.setAttribute('data-bs-placement', 'right')
@@ -145,21 +147,25 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
 }
 
 /**
- * It sends a POST request to the server, which then returns a JSON object containing the table's
- * schema
+ * It sends a POST request to the server, and if the server responds with a 200 status code, it adds
+ * the response to the table
+ *
+ * Args:
+ *   taskId: The id of the task that is being created.
  */
-function submitCopyTable () { // eslint-disable-line no-unused-vars
+function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
   const connectionId = document.getElementById('id_field_source_connection').value
   const dataset = document.getElementById('id_field_source_dataset').value
   const tableName = document.getElementById('id_field_source_table_name').value
   if (tableName !== '') {
-    const url = `/api/task/{{task.id}}/connection/${connectionId}/dataset/${dataset}/table/${tableName}/copy/`
+    const url = `/api/task/${taskId}/connection/${connectionId}/dataset/${dataset}/table/${tableName}/copy/`
 
     const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
     const spinnerId = 'id_copy_table_spinner'
 
-    const parent = document.getElementById('id_copy_table')
-    parent.appendChild(createSpinner(spinnerId)) // eslint-disable-line no-undef
+    const parent = document.getElementById('id_source_to_target_table')
+    parent.style.position = 'relative'
+    parent.appendChild(createSpinner(spinnerId, 'large')) // eslint-disable-line no-undef
 
     xhttp.responseType = 'json'
     xhttp.onload = function () {
@@ -182,7 +188,7 @@ function submitCopyTable () { // eslint-disable-line no-unused-vars
         } else {
           message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
         }
-        addFieldToTable(data, 'id_source_to_target') // eslint-disable-line no-undef
+        addFieldToTable(data, 'id_source_to_target', 'createColumn', null, taskId) // eslint-disable-line no-undef
       } else {
         message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       }
@@ -256,7 +262,7 @@ function dataComparison () { // eslint-disable-line no-unused-vars
  *   elements: The elements to be reset.
  *   action: 'reset' or 'edit'
  */
-function resetInput (elements, action) {
+function resetFieldInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
 
   for (let i = 0; i < elements.length; i++) {
@@ -292,7 +298,7 @@ function resetInput (elements, action) {
     }
 
     if (elements[i].hasChildNodes()) {
-      resetInput(elements[i].children, action)
+      resetFieldInput(elements[i].children, action)
     }
   }
 
@@ -331,14 +337,14 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
   const title = document.getElementById('id_field_modal_title')
 
   if (usage === 'createColumn') {
-    resetInput(modalElements, 'reset')
+    resetFieldInput(modalElements, 'reset')
     title.textContent = 'Create New Column'
-    resetInput(modalElements, 'edit')
+    resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
     document.getElementById('id_id').setAttribute('hidden', 'true')
   } else if (['createDrivingColumn', 'createPartition', 'createHistoryOrder'].includes(usage)) {
-    resetInput(modalElements, 'reset')
-    resetInput(modalElements, 'edit')
+    resetFieldInput(modalElements, 'reset')
+    resetFieldInput(modalElements, 'edit')
     if (usage === 'createDrivingColumn') {
       title.textContent = 'Add History Driving Column'
     } else if (usage === 'createPartition') {
@@ -355,7 +361,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     document.getElementById('id_transformation').setAttribute('disabled', 'true')
     submitButton.classList.remove('visually-hidden')
   } else if (['viewColumn', 'viewDrivingColumn'].includes(usage)) {
-    resetInput(modalElements, 'reset')
+    resetFieldInput(modalElements, 'reset')
     title.textContent = 'Column Details'
     editButton.classList.remove('visually-hidden')
 
@@ -404,7 +410,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
       title.textContent = 'History Order Column'
     }
   } else if (['editColumn', 'editDrivingColumn'].includes(usage)) {
-    resetInput(modalElements, 'edit')
+    resetFieldInput(modalElements, 'edit')
     title.textContent = 'Edit Column Details'
     submitButton.classList.remove('visually-hidden')
 

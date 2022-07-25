@@ -7,9 +7,9 @@
   <div class="accordion-collapse collapse" id="collapse-joins" aria-labelledby="heading-joins">
     <div class="row g-3 py-3">
       {% if joins|length > 0 %}
-      <div class="row g-3 py-1">
+      <div class="row g-3 py-1" id="id_join_container_parent">
         {% for join in joins %}
-        <div class="container py-3 px-3 bg-light rounded">
+        <div class="container py-3 px-3 bg-light rounded" id="id_join_container_{{ join.join.id }}">
           <div class="row g-3 py-1">
             <div class="col-md-12 col-lg-12">
               <h5>{{ join.join.type}} {{  join.join.left_table }} to {{ join.join.right_table }}</h5>
@@ -54,7 +54,7 @@
                 <a class="w-100 btn btn-info" type="button" href="{% url 'job-task-join-condition-add' job_id=job.id task_id=task.id join_id=join.join.id %}" title=""><i class="bi bi-plus"></i> Add Condition</a> 
               </div>
               <div class="col-md-2 col-lg-2">
-                <a class="w-100 btn btn-danger" type="button" href="{% url 'job-task-join-delete' job_id=job.id task_id=task.id pk=join.join.id %}" title=""><i class="bi bi-trash3"></i> Delete Join</a> 
+                <button class="w-100 btn btn-danger join-delete" id="id_delete_join_{{ join.join.id }}" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-join-id="{{ join.join.id }}"><i class="bi bi-trash3"></i> Delete Join</button> 
               </div>
             </div>
           </div>
@@ -63,20 +63,25 @@
       </div>
       {% endif %}
       <div class="col-md-4 col-lg-3">
-        <a class="btn btn-primary" type="button" href="{% url 'job-task-join-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Join</a> 
+        <button class="btn btn-primary" id="id_add_join" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}"><i class="bi bi-plus"></i> Add Join</button> 
       </div>
     </div>
   </div>
 </div>
 <script>
   let joinListenerMap = new Map()
-  const joinDeleteButtonList = document.getElementsByClassName("where-delete");
+  const joinDeleteButtonList = document.getElementsByClassName("join-delete");
   for (var i = 0; i < joinDeleteButtonList.length; i++) {
     joinListenerMap.set(joinDeleteButtonList[i].id, {
-      "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
+      'function': 'deleteJoin(this.dataset["jobId"], this.dataset["taskId"], this.dataset["joinId"])',
       "type": "click"
     })
   }
 
+  joinListenerMap.set("id_add_join", {
+    'function': 'prepareJoinModal(this.dataset["jobId"], this.dataset["taskId"], null)',
+    'type': 'click'
+  })
+  
   joinListenerMap.forEach(addListener);
   </script>
