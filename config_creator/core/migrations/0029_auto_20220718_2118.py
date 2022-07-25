@@ -123,8 +123,8 @@ def createoperatordata(apps, schema_editor):
         model(
             name="Less Than",
             code="LT",
-            symbol=">",
-            description="<",
+            symbol="<",
+            description="",
         ).save()
 
     if not model.objects.filter(code="LE").exists():
