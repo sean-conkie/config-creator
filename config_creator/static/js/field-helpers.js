@@ -171,7 +171,7 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
         } else {
           message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
         }
-        addFieldToTable(data, 'id_source_to_target', 'createColumn', null, taskId // eslint-disable-line no-undef
+        addFieldToTable(data, 'id_source_to_target', 'copyTable', null, taskId // eslint-disable-line no-undef
       } else {
         message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       }
