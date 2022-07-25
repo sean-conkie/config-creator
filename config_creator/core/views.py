@@ -480,6 +480,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
                 }
             ),
             "joins": joins,
+            "join_form": JoinForm(),
             "where": where,
             "delta": delta,
             "dependencies": dependencies,

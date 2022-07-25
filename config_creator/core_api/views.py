@@ -1,7 +1,7 @@
 import re
 
 from copy import deepcopy
-from core.forms import FieldForm
+from core.forms import FieldForm, JoinForm
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -15,6 +15,7 @@ from core.models import (
     HistoryOrder,
     Job,
     JobTask,
+    Join,
     Partition,
     SourceTable,
     str_to_class,
@@ -219,6 +220,139 @@ class FieldView(views.APIView):
                 "message": f"No action provided.",
                 "type": "error",
             }
+            return_status = status.HTTP_400_BAD_REQUEST
+
+        return response.Response(data=data, status=return_status)
+
+
+class JoinView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(
+        self, request: request, job_id: int, task_id: int, pk: int
+    ) -> response.Response:
+        """
+        > Delete a join with the given id
+
+        Args:
+          request (request): request - the request object
+          job_id (int): The id of the job that the task belongs to.
+          task_id (int): The id of the task that the join belongs to.
+          pk (int): The primary key of the join to delete.
+
+        Returns:
+          A response object.
+        """
+
+        join = Join.objects.get(id=pk) if Join.objects.filter(id=pk).exists() else None
+        if join:
+            outp = {
+                "message": f"Join deleted.",
+                "type": "success",
+            }
+            join.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Join with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def get(self, request: request, pk: int) -> response.Response:
+        """
+        If a join exists with the given primary key, return it as a dictionary, otherwise return an
+        empty dictionary
+
+        Args:
+          request (request): request - this is the request object that is passed to the view.
+          pk (int): The primary key of the join object.
+
+        Returns:
+          A dictionary with a key of "result" and a value of the output of the join.todict() method.
+        """
+        join = Join.objects.get(id=pk) if Join.objects.filter(id=pk).exists() else None
+        if join:
+            outp = join.todict()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {}
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data={"result": outp}, status=return_status)
+
+    def post(
+        self, request: request, job_id: int, task_id: int, pk: int = None
+    ) -> response.Response:
+        """
+        > This function creates a new join or updates an existing join
+
+        Args:
+          request (request): request
+          job_id (int): The id of the job that the task belongs to.
+          task_id (int): The id of the task that the join belongs to.
+          pk (int): The primary key of the join. If it's None, then we're creating a new join.
+
+        Returns:
+          A response object.
+        """
+
+        task = JobTask.objects.get(id=task_id)
+        left = (
+            f"{task.driving_table} src"
+            if request.POST.get("left") == ""
+            else request.POST.get("left")
+        )
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            left,
+            re.IGNORECASE,
+        )
+
+        left_table = get_source_table(
+            task_id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            m.group("alias"),
+        )
+
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            request.POST.get("right", ""),
+            re.IGNORECASE,
+        )
+
+        right_table = get_source_table(
+            task_id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            m.group("alias"),
+        )
+
+        request_post = deepcopy(request.POST)
+        request_post["left_table"] = left_table.id
+        request_post["right_table"] = right_table.id
+        form = JoinForm(request_post)
+        if pk:
+            form.instance.id = pk
+        message = "Join updated." if pk else "Join created."
+        form.instance.task_id = task_id
+        if form.is_valid():
+            form.save()
+            data = {
+                "message": message,
+                "type": "Success",
+                "result": {
+                    "content": [Join.objects.get(id=form.instance.id).todict()],
+                },
+            }
+
+            return_status = status.HTTP_200_OK
+        else:
             return_status = status.HTTP_400_BAD_REQUEST
 
         return response.Response(data=data, status=return_status)
@@ -539,13 +673,21 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    table = get_table(get_connection(request, connection_id), dataset, table_name)
+    table = get_table(
+        get_connection(request.user.id, connection_id), dataset, table_name
+    )
+    m = re.search(
+        r"(?P<table_name>\w+)(?:\s(?P<alias>\w+))?", table_name, re.IGNORECASE
+    )
+    source_table = get_source_table(
+        task_id, dataset, m.group("table_name"), m.group("alias")
+    )
 
     for i, column in enumerate(table.get("result", {}).get("content", [])):
         field = Field(
             name=column.get("column_name"),
             source_column=column.get("column_name"),
-            source_name=f"{column.get('dataset')}.{column.get('table_name')}",
+            source_table=source_table,
             source_data_type=column.get("data_type"),
             task=task,
             position=i,

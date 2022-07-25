@@ -5,7 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
-from wordsegment import load, segment
+from wordsegment import segment
 
 __all__ = [
     "JobType",
@@ -458,7 +458,6 @@ class SourceTable(models.Model):
 
     def save(self, *args, **kwargs):
         if self.id is None:
-            load()
             cleaned_table_name = re.sub(
                 r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
             )
@@ -519,11 +518,13 @@ def get_source_table(
             alias=alias,
         )
     else:
-        return SourceTable(
+        saved = SourceTable(
             task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
-        ).save()
+        )
+        saved.save()
+        return saved
 
 
 class Field(models.Model):
@@ -833,18 +834,21 @@ $THISMONTH = date of first day of current month
 
 
 class Join(models.Model):
-    left = models.CharField(
+    left_table = models.ForeignKey(
+        SourceTable,
         verbose_name="Left Table",
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Leave blank to default to driving table.",
-    )
-    right = models.CharField(
-        verbose_name="Right Table",
-        max_length=255,
-        blank=False,
+        on_delete=models.CASCADE,
         null=False,
+        blank=True,
+        related_name="left_table",
+    )
+    right_table = models.ForeignKey(
+        SourceTable,
+        verbose_name="Right Table",
+        on_delete=models.CASCADE,
+        null=False,
+        blank=True,
+        related_name="right_table",
     )
     type = models.ForeignKey(
         JoinType, on_delete=models.SET_DEFAULT, null=False, default=DEFAULT_JOIN_ID
@@ -852,42 +856,32 @@ class Join(models.Model):
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
 
     def __str__(self):
-        return f"{self.task.name} join to {self.right}"
+        """
+        The function returns a string that contains the name of the task and the name of the right table
 
-    def save(self, *args, **kwargs):
-        super(Join, self).save(*args, **kwargs)
-        # add table to source table list if not exists
-        m = None
-        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
-        if self.left:
-            m = re.search(pattern, self.left, re.IGNORECASE)
+        Returns:
+          The name of the task and the right table it is joining to.
+        """
+        return f"{self.task.name}: join to {self.right_table}"
 
-        if (
-            m
-            and not SourceTable.objects.filter(
-                dataset_name=m.group("dataset_name"), table_name=m.group("table")
-            ).exists()
-        ):
-            SourceTable(
-                dataset_name=m.group("dataset_name"),
-                table_name=m.group("table"),
-                task_id=self.task_id,
-            ).save()
+    def todict(self):
+        """
+        It returns a dictionary of the object's attributes
 
-        if self.right:
-            m = re.search(pattern, self.right, re.IGNORECASE)
-
-        if (
-            m
-            and not SourceTable.objects.filter(
-                dataset_name=m.group("dataset_name"), table_name=m.group("table")
-            ).exists()
-        ):
-            SourceTable(
-                dataset_name=m.group("dataset_name"),
-                table_name=m.group("table"),
-                task_id=self.task_id,
-            ).save()
+        Returns:
+          A dictionary of the join object.
+        """
+        return {
+            "id": self.id,
+            "type": self.type.name,
+            "left_table": self.left_table.__str__(),
+            "right_table": self.right_table.__str__(),
+            "conditions": [
+                condition.todict()
+                for condition in Condition.objects.filter(join_id=self.id)
+            ],
+            "task_id": self.task_id,
+        }
 
 
 class Condition(models.Model):
@@ -938,6 +932,15 @@ class Condition(models.Model):
 
     def __str__(self):
         return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
+
+    def todict(self):
+        return {
+            "id": self.id,
+            "operator": self.operator.name,
+            "logic_operator": self.logic_operator.name,
+            "left": self.left,
+            "right": self.right,
+        }
 
 
 class BaseJobProperties(models.Model):

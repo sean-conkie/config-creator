@@ -4,18 +4,9 @@ from django.urls import path
 
 from .views import PartitionView
 from .views import orderpositionchange
+from .views import JoinView
 
 urlpatterns = [
-    path(
-        "field/<int:pk>/delete/",
-        login_required(FieldView.as_view()),
-        name="api-field-delete",
-    ),
-    path(
-        "field/<int:pk>/",
-        login_required(FieldView.as_view()),
-        name="api-field",
-    ),
     path(
         "job/<int:pk>/delete/",
         login_required(JobView.as_view()),
@@ -67,6 +58,16 @@ urlpatterns = [
         name="api-task-history-order-position-update",
     ),
     path(
+        "field/<int:pk>/",
+        login_required(FieldView.as_view()),
+        name="api-field",
+    ),
+    path(
+        "field/<int:pk>/delete/",
+        login_required(FieldView.as_view()),
+        name="api-field-delete",
+    ),
+    path(
         "task/<int:task_id>/field/add/",
         login_required(FieldView.as_view()),
         name="api-field-add",
@@ -90,5 +91,25 @@ urlpatterns = [
         "history-order/<int:pk>/delete/",
         login_required(HistoryOrderView.as_view()),
         name="api-history-order-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/",
+        login_required(JoinView.as_view()),
+        name="api-join",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/add/",
+        login_required(JoinView.as_view()),
+        name="api-join-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/update/",
+        login_required(JoinView.as_view()),
+        name="api-join-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/delete/",
+        login_required(JoinView.as_view()),
+        name="api-join-delete",
     ),
 ]
