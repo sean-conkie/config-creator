@@ -27,17 +27,27 @@
                   <th scope="col"></th>
                   <th scope="col"></th>
                   <th scope="col"></th>
-                  <th scope="col"></th>
                 </thead>
-                <tbody class="text-center align-middle">
+                <tbody class="text-center align-middle" id="id_join_table_body_{{ join.join.id }}">
                   {% for condition in join.conditions %}
                       <tr id="id_join_condition_{{ condition.condition.id }}_row">
                         <td>{{ condition.condition.logic_operator }}</td>
-                        <td>{{ condition.condition.left }}</td>
+                        <td>
+                          {% if condition.condition.left.source_column != None%}
+                            {{ condition.condition.left.source_table.alias }}.{{ condition.condition.left.source_column }}
+                          {% else %}
+                            {{ condition.condition.left.transformation }}
+                          {% endif %}
+                        </td>
                         <td>{{ condition.condition.operator }}</td>
-                        <td>{{ condition.condition.right }}</td>
-                        <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task-join-condition-update' job_id=job.id task_id=task.id join_id=join.join.id pk=condition.condition.id %}" title="Edit" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
-                        <td class="btn-column"><button class="btn btn-danger join-delete" id="id_join_condition_delete_{{ condition.condition.id }}"
+                        <td>
+                          {% if condition.condition.right.source_column != None%}
+                            {{ condition.condition.right.source_table.alias }}.{{ condition.condition.right.source_column }}
+                          {% else %}
+                            {{ condition.condition.right.transformation }}
+                          {% endif %}
+                        </td>
+                        <td class="btn-column"><button class="btn btn-danger condition-delete" id="id_join_condition_delete_{{ condition.condition.id }}"
                           type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                           data-delete-url="{% url 'api-condition-delete' pk=condition.condition.id %}"
                           data-delete-element-id="id_join_condition_{{ condition.condition.id }}_row"><i class="bi bi-trash3"></i></button></td>
@@ -51,7 +61,7 @@
             </div>
             <div class="row g-3 py-1">
               <div class="col-md-2 col-lg-2">
-                <a class="w-100 btn btn-info" type="button" href="{% url 'job-task-join-condition-add' job_id=job.id task_id=task.id join_id=join.join.id %}" title=""><i class="bi bi-plus"></i> Add Condition</a> 
+                <button class="w-100 btn btn-info add-condition" id="id_add_condition_{{ join.join.id }}" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-join-id="{{ join.join.id }}" data-target-id="id_join_table_body_{{ join.join.id }}"><i class="bi bi-plus"></i> Add Condition</button>
               </div>
               <div class="col-md-2 col-lg-2">
                 <button class="w-100 btn btn-danger join-delete" id="id_delete_join_{{ join.join.id }}" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-join-id="{{ join.join.id }}"><i class="bi bi-trash3"></i> Delete Join</button> 
@@ -74,6 +84,22 @@
   for (var i = 0; i < joinDeleteButtonList.length; i++) {
     joinListenerMap.set(joinDeleteButtonList[i].id, {
       'function': 'deleteJoin(this.dataset["jobId"], this.dataset["taskId"], this.dataset["joinId"])',
+      "type": "click"
+    })
+  }
+
+  const conditionDeleteButtonList = document.getElementsByClassName("condition-delete")
+  for (var i = 0; i < conditionDeleteButtonList.length; i++) {
+    joinListenerMap.set(conditionDeleteButtonList[i].id, {
+      'function': 'deleteModelObject(this.dataset.deleteUrl, this.dataset.deleteElementId)',
+      "type": "click"
+    })
+  }
+
+  const conditionAddButtonList = document.getElementsByClassName("add-condition");
+  for (var i = 0; i < conditionAddButtonList.length; i++) {
+    joinListenerMap.set(conditionAddButtonList[i].id, {
+      'function': 'prepareConditionModal(this.dataset["jobId"], this.dataset["taskId"], this.dataset["joinId"], this.dataset["targetId"])',
       "type": "click"
     })
   }

@@ -250,6 +250,13 @@ table.draggable tbody tr:active {
   max-width: none;
 }
 
+.condition-dialog {
+  width: 90vw;
+  height: 80vh;
+  max-height: 80vh;
+  max-width: none;
+}
+
 .selector-content {
   height: 80vh;
 }

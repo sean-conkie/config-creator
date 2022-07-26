@@ -481,6 +481,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             ),
             "joins": joins,
             "join_form": JoinForm(),
+            "condition_form": ConditionForm(),
             "where": where,
             "delta": delta,
             "dependencies": dependencies,
@@ -1169,7 +1170,6 @@ def get_joins(task_id: str) -> list[dict]:
             "conditions": [
                 {
                     "condition": condition,
-                    # "fields": ConditionField.objects.filter(condition_id=condition.id),
                 }
                 for condition in Condition.objects.filter(join_id=j.id)
             ],

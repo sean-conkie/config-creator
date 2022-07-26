@@ -299,7 +299,7 @@ def get_database_schema(
         if connection.get("connection_type") == ConnectionType.BIGQUERY:
             client = IBQClient(connection.get("connection_string"))
             table_condition = " union all ".join(task_tables)
-            query = f"select s.table_schema, concat(s.table_name, ' ', st.alias) table_name, s.column_name, s.data_type, s.ordinal_position, s.is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS s inner join ({table_condition}) st on s.table_name = st.table_name order by 2, 5"
+            query = f"select s.table_schema, concat(s.table_name, ' ', st.alias) table_name, s.table_name raw_table_name, st.alias alias, s.column_name, s.data_type, s.ordinal_position, s.is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS s inner join ({table_condition}) st on s.table_name = st.table_name order by 2, 5"
 
         else:
 
@@ -321,7 +321,7 @@ def get_database_schema(
 
     elif connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
-        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS order by 2, 5"
+        query = f"select table_schema, table_name, table_name raw_table_name, null alias, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
         query = {
@@ -336,6 +336,8 @@ def get_database_schema(
             {
                 "dataset": row["table_schema"],
                 "table_name": row["table_name"],
+                "alias": row["alias"],
+                "raw_table_name": row["raw_table_name"],
                 "column_name": row["column_name"],
                 "data_type": row["data_type"],
                 "ordinal_position": row["ordinal_position"],

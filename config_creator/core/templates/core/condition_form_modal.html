@@ -1,0 +1,78 @@
+
+  
+  <div class="modal" id="id_condition_modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered condition-dialog">
+      <div class="modal-content">
+        <div class="modal-header selector-header">
+          <h5 class="modal-title" id="id_condition_modal_title">Add Condition</h5>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="container row g-3 py-3" id="id_condition_modal_content">
+          <form id="id_condition_form">
+            <input id="id_join_id" name="id" hidden />
+            <div class="row g-5 container">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Condition</th>
+                    <th>Left Field</th>
+                    <th>Operator</th>
+                    <th>Right Field</th>
+                  </tr>
+                </thead>
+                <tbody id="id_condition_modal_tbody">
+                  <tr>
+                    <td>
+                      {{condition_form.logic_operator}}
+                    </td>
+                    <td>
+                      <div class="input-group mb-3">
+                        <button class="input-group-text" id="id_condition_left_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
+                        <input id="id_condition_left_field" name="left_field" type="text" required/>
+                      </div>
+                    </td>
+                    <td>
+                      {{condition_form.operator}}
+                    </td>
+                    <td>
+                      <div class="input-group mb-3">
+                        <button class="input-group-text" id="id_condition_right_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
+                        <input id="id_condition_right_field" name="right_field" type="text" required/>
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>  
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Close</button>
+          <button class="btn btn-info" id="id_condition_modal_submit_button" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}">Submit</button>
+          <button class="btn btn-primary" id="id_condition_modal_submit_and_close_button" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}"><i class="bi bi-check-lg"></i> Submit and Close</button>
+        </div>
+      </div>
+    </div>  
+  </div>
+  <script>
+    
+    let conditionModalListenerMap = new Map()    
+    conditionModalListenerMap.set("id_condition_left_tree", {
+      "function": "setReturnType('column', 'id_condition_left_field', 'columnFull', null, null, null, null, null, false, {{ task.id }})",
+      "type": "click"
+    })
+    conditionModalListenerMap.set("id_condition_right_tree", {
+      "function": "setReturnType('column', 'id_condition_right_field', 'columnFull', null, null, null, null, null, false, {{ task.id }})",
+      "type": "click"
+    })
+    conditionModalListenerMap.set("id_condition_modal_submit_button", {
+      "function": "sendCondition(true, this.dataset['jobId'], this.dataset['taskId'], this.dataset['joinId'], this.dataset['targetId'], this.id)",
+      "type": "click"
+    })
+    conditionModalListenerMap.set("id_condition_modal_submit_and_close_button", {
+      "function": "sendCondition(false, this.dataset['jobId'], this.dataset['taskId'], this.dataset['joinId'], this.dataset['targetId'], this.id)",
+      "type": "click"
+    })
+      
+    conditionModalListenerMap.forEach(addListener)
+  </script>
