@@ -3,10 +3,12 @@ import os
 from .models import *
 from core.models import JobTask, SourceTable
 from django.conf import settings
+from django.db.models import Q
 from google.cloud import bigquery
 from lib.baseclasses import ConnectionType
 from lib.helper import isnullorwhitespace
 from pandas import DataFrame, read_csv
+from wordsegment import segment
 
 
 __all__ = ["get_schema", "get_database_schema", "get_table"]
@@ -72,8 +74,20 @@ class IBQClient(bigquery.Client):
 
 
 class CSVClient:
-    def __init__(self, path: str) -> None:
+    def __init__(
+        self,
+        path: str,
+        schema_filter: list[str] = None,
+        table_filter: dict = None,
+    ) -> None:
         self._path = os.path.normpath(os.path.join(settings.MEDIA_ROOT, path))
+        self._schema_filter = schema_filter
+        if table_filter:
+            self._table_filter = DataFrame(
+                data=table_filter,
+            )
+        else:
+            self._table_filter = None
         self._data = None
 
     @property
@@ -93,7 +107,7 @@ class CSVClient:
         """
         return self._data
 
-    def get_data(self, query=None):
+    def get_data(self, query: str = None) -> DataFrame:
         if os.path.exists(self._path):
 
             outp = read_csv(
@@ -108,9 +122,27 @@ class CSVClient:
                 ],
             )
 
+            if self._table_filter is not None:
+                outp = outp.join(
+                    self._table_filter.set_index("table_name"),
+                    how="inner",
+                    on="table_name",
+                )
+                outp["raw_table_name"] = outp["table_name"]
+                # outp.rename(columns={""})
+                outp["table_name"] = outp["table_name"] + " " + outp["alias"]
+            elif self._schema_filter:
+                outp = outp[outp["table_schema"].isin(self._schema_filter)]
+                outp["alias"] = [None for r in range(0, len(outp))]
+                outp["raw_table_name"] = outp["table_name"]
+
             if query == "schema":
                 unique_schemas = outp.table_schema.unique().tolist()
                 outp = DataFrame(unique_schemas, columns=["table_schema"])
+            elif query == "localschema":
+                unique_schemas = outp.table_schema.unique().tolist()
+                outp = DataFrame(unique_schemas, columns=["table_schema"])
+
             elif "table_name" in query.keys():
                 outp = outp[
                     (outp.table_schema == query.get("database"))
@@ -162,7 +194,8 @@ def get_schema(
         # if they do, create query and run it with source table filter
         # if they don't build the details from what has been committed
         connections = Connection.objects.filter(
-            user_id=user_id, connectionstring=connection.get("name")
+            Q(connectionstring=connection.get("name")) | Q(name=connection.get("name")),
+            user_id=user_id,
         )
         connection = None
         if connections.exists():
@@ -204,6 +237,12 @@ def get_schema(
             client = IBQClient(connection.get("connection_string"))
             dataset_condition = ",".join([f"'{c}'" for c in task_datasets])
             query = f"select schema_name table_schema from `region-eu`.INFORMATION_SCHEMA.SCHEMATA where schema_name in ({dataset_condition}) order by 1"
+        elif connection.get("connection_type") == ConnectionType.CSV:
+            query = "schema"
+            client = CSVClient(
+                connection.get("schema").name,
+                schema_filter=task_datasets,
+            )
 
         else:
 
@@ -263,7 +302,8 @@ def get_database_schema(
         # if they do, create query and run it with source table filter
         # if they don't build the details from what has been committed
         connections = Connection.objects.filter(
-            user_id=user_id, connectionstring=connection.get("name")
+            Q(connectionstring=connection.get("name")) | Q(name=connection.get("name")),
+            user_id=user_id,
         )
         connection = None
         if connections.exists():
@@ -283,23 +323,64 @@ def get_database_schema(
                 "secret_key": user_connection.secret_key,
                 "connection_type": connection_type,
             }
-
-        task_tables = [
-            f"select '{table.table_name}' table_name, '{table.alias}' alias "
-            for table in SourceTable.objects.filter(task_id=task_id)
-            if table.source_project == connection.get("name")
-            or table.source_project is None
-        ]
-
         driving_table = JobTask.objects.select_related().get(id=task_id).driving_table
-
-        if driving_table not in task_tables:
-            task_tables.extend([f"select '{driving_table}' table_name, 'src' alias "])
+        tables = SourceTable.objects.filter(task_id=task_id)
 
         if connection.get("connection_type") == ConnectionType.BIGQUERY:
+
+            task_tables = [
+                f"select '{table.table_name}' table_name, '{table.alias}' alias "
+                for table in tables
+                if table.source_project == connection.get("name")
+                or table.source_project is None
+            ]
+
+            if driving_table not in task_tables:
+                task_tables.extend(
+                    [f"select '{driving_table}' table_name, 'src' alias "]
+                )
+
             client = IBQClient(connection.get("connection_string"))
             table_condition = " union all ".join(task_tables)
             query = f"select s.table_schema, concat(s.table_name, ' ', st.alias) table_name, s.table_name raw_table_name, st.alias alias, s.column_name, s.data_type, s.ordinal_position, s.is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS s inner join ({table_condition}) st on s.table_name = st.table_name order by 2, 5"
+
+        elif connection.get("connection_type") == ConnectionType.CSV:
+
+            task_datasets = [
+                table.dataset_name
+                for table in SourceTable.objects.filter(task_id=task_id)
+                if table.source_project == connection.get("name")
+                or table.source_project is None
+            ]
+
+            dataset_source = (
+                JobTask.objects.select_related()
+                .get(id=task_id)
+                .job.get_property_object()
+                .dataset_source
+            )
+
+            if dataset_source not in task_datasets:
+                task_datasets.extend(dataset_source)
+
+            task_tables = {"table_name": [], "alias": []}
+            for table in tables:
+                if (
+                    table.source_project == connection.get("name")
+                    or table.source_project is None
+                ):
+                    task_tables["table_name"].append(table.table_name)
+                    task_tables["alias"].append(table.alias)
+
+            client = CSVClient(
+                connection.get("schema").name,
+                schema_filter=task_datasets,
+                table_filter=task_tables,
+            )
+
+            query = {
+                "database": database,
+            }
 
         else:
 
@@ -334,12 +415,13 @@ def get_database_schema(
     for table in client.data["table_name"].unique():
         cols = [
             {
-                "dataset": row["table_schema"],
-                "table_name": row["table_name"],
-                "alias": row["alias"],
-                "raw_table_name": row["raw_table_name"],
-                "column_name": row["column_name"],
-                "data_type": row["data_type"],
+                "dataset": row["table_schema"].lower(),
+                "table_name": row["table_name"].lower(),
+                "alias": row["alias"].lower(),
+                "raw_table_name": row["raw_table_name"].lower(),
+                "column_name": row["column_name"].lower(),
+                "target_name": "_".join([w for w in segment(row["column_name"])]),
+                "data_type": row["data_type"].lower(),
                 "ordinal_position": row["ordinal_position"],
                 "is_nullable": True if row["is_nullable"] == "YES" else False,
                 "type": "column",

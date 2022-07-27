@@ -27,7 +27,17 @@ function resetConditionInput (elements) {
   }
 }
 
-function prepareConditionModal(jobId, taskId, joinId, targetId) {
+/**
+ * It resets the condition modal's input fields, sets the modal's submit button's data attributes, and
+ * then shows the modal
+ *
+ * Args:
+ *   jobId: The id of the job that the task belongs to.
+ *   taskId: The id of the task that the condition is being added to.
+ *   joinId: The id of the join that the condition is being added to.
+ *   targetId: The id of the element that the condition is being applied to.
+ */
+function prepareConditionModal (jobId, taskId, joinId, targetId) { // eslint-disable-line no-unused-vars
   resetConditionInput(document.getElementById('id_condition_modal').children)
   document.getElementById('id_condition_modal_submit_button').setAttribute('data-job-id', jobId)
   document.getElementById('id_condition_modal_submit_button').setAttribute('data-task-id', taskId)
@@ -42,7 +52,18 @@ function prepareConditionModal(jobId, taskId, joinId, targetId) {
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).show() // eslint-disable-line no-undef
 }
 
-function addConditionObject(data, addToModal, jobId, taskId, targetId) {
+/**
+ * It adds a row to the table for each condition object returned by the API
+ *
+ * Args:
+ *   data: The data returned from the API call.
+ *   addToModal: If true, the condition will be added to the modal. If false, it will be added to the
+ * page.
+ *   jobId: The id of the job that the condition is being added to.
+ *   taskId: The id of the task that the condition is being added to.
+ *   targetId: The id of the table to add the rows to.
+ */
+function addConditionObject (data, addToModal, jobId, taskId, targetId) {
   if ('result' in data) {
     const parent = document.getElementById(targetId)
     const placeholder = parent.querySelector('.placeholder-row')
@@ -54,7 +75,7 @@ function addConditionObject(data, addToModal, jobId, taskId, targetId) {
 
     for (let i = 0; i < content.length; i++) {
       const rowData = content[i]
-      
+
       let left = null
       let right = null
       if (rowData.left.source_column) {
@@ -62,25 +83,24 @@ function addConditionObject(data, addToModal, jobId, taskId, targetId) {
       } else {
         left = rowData.left.transformation
       }
-      
+
       if (rowData.right.source_column) {
         right = `${rowData.right.source_table.alias}.${rowData.right.source_table.source_column}`
       } else {
         right = rowData.right.transformation
       }
 
-      let rowContent = [
-        createRowObject(null, null, null, rowData.logic_operator, null, null),
-        createRowObject(null, null, null, left, null, null),
-        createRowObject(null, null, null, rowData.operator, null, null),
-        createRowObject(null, null, null, right, null, null)
+      const rowContent = [
+        createRowObject(null, null, null, rowData.logic_operator, null, null), // eslint-disable-line no-undef
+        createRowObject(null, null, null, left, null, null), // eslint-disable-line no-undef
+        createRowObject(null, null, null, rowData.operator, null, null), // eslint-disable-line no-undef
+        createRowObject(null, null, null, right, null, null) // eslint-disable-line no-undef
       ]
 
       if (addToModal) {
-        addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), 1)
+        addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), 1) // eslint-disable-line no-undef
       }
 
-      const deleteButtonColumn = createElement('td', null, null, 0, null)
       const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
@@ -94,14 +114,26 @@ function addConditionObject(data, addToModal, jobId, taskId, targetId) {
         deleteModelObject(this.dataset.deleteUrl, this.dataset.deleteElementId) // eslint-disable-line no-undef
       })
 
-      rowContent.push(createRowObject(['btn-column'], null, null, null, deleteButton))
+      rowContent.push(createRowObject(['btn-column'], null, null, null, deleteButton)) // eslint-disable-line no-undef
 
-      addRow([createRowObject(null, `id_join_condition_${rowData.id}_row`, rowContent, null, null, null)], parent, null)
+      addRow([createRowObject(null, `id_join_condition_${rowData.id}_row`, rowContent, null, null, null)], parent, null) // eslint-disable-line no-undef
     }
   }
 }
 
-function sendCondition(persist, jobId, taskId, joinId, targetId, spinnerElementId) {
+/**
+ * It sends a POST request to the server with the form data from the condition modal, and then adds the
+ * condition to the DOM
+ *
+ * Args:
+ *   persist: boolean, whether or not to persist the modal
+ *   jobId: The id of the job that the task belongs to.
+ *   taskId: The id of the task that the condition is being added to.
+ *   joinId: The id of the join object.
+ *   targetId: The id of the element that will be the parent of the new condition.
+ *   spinnerElementId: The id of the element that will have the spinner added to it.
+ */
+function sendCondition (persist, jobId, taskId, joinId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
   if (persist === false) {
     bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).hide() // eslint-disable-line no-undef
   }
@@ -110,7 +142,7 @@ function sendCondition(persist, jobId, taskId, joinId, targetId, spinnerElementI
   if (spinnerElementId) {
     const parent = document.getElementById(spinnerElementId)
     spinnerId = spinnerElementId + '_spinner'
-    parent.appendChild(createSpinner(spinnerId))
+    parent.appendChild(createSpinner(spinnerId)) // eslint-disable-line no-undef
     parent.setAttribute('disabled', 'true')
   }
 
@@ -144,7 +176,7 @@ function sendCondition(persist, jobId, taskId, joinId, targetId, spinnerElementI
   }
 
   let url
-  if (joinId) {
+  if (joinId !== 'null' && joinId !== 'undefined') {
     url = `/api/job/${jobId}/task/${taskId}/join/${joinId}/condition/add/`
   } else {
     url = `/api/job/${jobId}/task/${taskId}/condition/add/`

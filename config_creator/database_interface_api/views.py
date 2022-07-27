@@ -163,6 +163,8 @@ def get_connections(request: request, task_id: int = None) -> dict:
                 ]
             )
 
+        source_tables = [dict(t) for t in {tuple(d.items()) for d in source_tables}]
+
         tree_source.append(
             {
                 "name": "This Task",

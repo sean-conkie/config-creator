@@ -166,6 +166,7 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
     const parent = document.getElementById('id_source_to_target_table')
     parent.style.position = 'relative'
     parent.appendChild(createSpinner(spinnerId, 'large')) // eslint-disable-line no-undef
+    parent.setAttribute('disabled', 'true')
 
     xhttp.responseType = 'json'
     xhttp.onload = function () {
@@ -173,6 +174,7 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
         const spinner = document.getElementById(spinnerId)
         if (parent && parent.nodeType) {
           parent.removeChild(spinner)
+          parent.removeAttribute('disabled')
         }
       }
       data = xhttp.response // eslint-disable-line no-undef

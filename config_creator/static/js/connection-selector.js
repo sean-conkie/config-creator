@@ -60,6 +60,7 @@ function createColumnElement (object, layer) {
   columnName.setAttribute('data-table-full', object.dataset + '.' + object.raw_table_name)
   columnName.setAttribute('data-dataset-name', object.dataset)
   columnName.setAttribute('data-data-type', object.data_type)
+  columnName.setAttribute('data-target-name', object.target_name)
   const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.raw_table_name + '_' + object.column_name
   columnName.setAttribute('id', id)
   const dataType = createElement('td', object.data_type, null, null, null)
@@ -420,6 +421,10 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
   if ((selector === 'column' || selector === 'table') && returnType.table.target) {
     document.getElementById(returnType.table.target).value = element.dataset[returnType.table.type]
     document.getElementById(returnType.table.target).dispatchEvent(new Event('input'))
+    const targetName = document.getElementById('id_name')
+    if (targetName !== null) {
+      targetName.value = (targetName.value === '') ? element.dataset.targetName : targetName.value
+    }
   }
   if (returnType.dataset.target) {
     document.getElementById(returnType.dataset.target).value = element.dataset[returnType.dataset.type]
