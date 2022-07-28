@@ -9,6 +9,7 @@ from core.models import (
     Condition,
     DATA_TYPE_MAPPING,
     DEFAULT_DATA_TYPE_ID,
+    Delta,
     DrivingColumn,
     Field,
     History,
@@ -767,6 +768,70 @@ class SourceTableView(views.APIView):
         else:
             outp = {
                 "message": f"Source Table with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class DeltaConditionView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: request, pk: int) -> response.Response:
+
+        delta = Delta.objects.filter(id=pk).exists()
+        if delta:
+            delta = Delta.objects.get(id=pk)
+            outp = {
+                "result": delta,
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Delta with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def post(self, request: request, pk: int) -> response.Response:
+
+        delta = Delta.objects.filter(id=pk).exists()
+        if delta:
+            delta = Delta.objects.get(id=pk)
+            delta.save()
+            outp = {
+                "message": f"Delta updated.",
+                "type": "success",
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Delta with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def delete(self, request: request, pk: int) -> response.Response:
+
+        delta = Delta.objects.filter(id=pk).exists()
+        if delta:
+            delta = Delta.objects.get(id=pk)
+            outp = {
+                "message": f"Delta deleted.",
+                "type": "success",
+            }
+            delta.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Delta with id '{pk}' does not exist.",
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND

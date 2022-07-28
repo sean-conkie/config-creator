@@ -2,6 +2,11 @@
 function resetDeltaInput (elements) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
   document.getElementById('id_delta_transformation').classList.remove('form-control')
+  document.getElementById('id_delta_transformation').value = ''
+  update(document.getElementById('id_delta_transformation').value, document.getElementById('id_delta_transformation').dataset['targetId']) 
+  document.getElementById('id_delta_lower_bound').classList.remove('form-control')
+  document.getElementById('id_delta_lower_bound').value = ''
+  update(document.getElementById('id_delta_lower_bound').value, document.getElementById('id_delta_lower_bound').dataset['targetId']) 
   for (let i = 0; i < elements.length; i++) {
     if (formElements.includes(elements[i].tagName)) {
       if (elements[i].tagName === 'INPUT') {

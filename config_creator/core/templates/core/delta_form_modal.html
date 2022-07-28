@@ -14,10 +14,11 @@
                 <div class="row g-3">
                   <div class="lead">Condition Details</div>
                   <div class="col-6">
-                      <div class="form-floating">
-                        {{ delta_form.lower_bound}}
-                        {{ delta_form.lower_bound.label_tag}}
-                      </div>
+                    <textarea class="editing editing-field" id="id_delta_lower_bound" name="lower_bound" spellcheck="false" oninput="update(this.value, this.dataset['targetId']); sync_scroll(this, this.dataset['targetId']);" onscroll="sync_scroll(this, this.dataset['targetId']);" onkeydown="check_tab(this, event, this.dataset['targetId']);" data-target-id="id_delta_lower_bound_highlighting"></textarea>
+                    <pre class="highlighting highlighting-field" id="id_delta_lower_bound_highlighting" aria-hidden="true">
+                      <code class="language-sql" id="highlighting-content"></code>
+                    </pre>
+                    <label class="editing-label" for="id_delta_lower_bound">Lower Bound:</label>
                   </div>
                   <div class="col-6">
                       <div class="form-floating">
@@ -49,7 +50,7 @@
                     </div>
                   </div>
                   <div class="row g-3">
-                    <div class="lead">Transformation</div>
+                    <div class="lead">Field Transformation</div>
                     <div class="col-sm-12">
                       <div class="form-floating" style="height: 20vh">
                         <textarea class="editing" id="id_delta_transformation" name="transformation" spellcheck="false" oninput="update(this.value, this.dataset['targetId']); sync_scroll(this, this.dataset['targetId']);" onscroll="sync_scroll(this, this.dataset['targetId']);" onkeydown="check_tab(this, event, this.dataset['targetId']);" data-target-id="id_delta_transformation_highlighting"></textarea>

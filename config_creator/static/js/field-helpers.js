@@ -267,6 +267,9 @@ function dataComparison () { // eslint-disable-line no-unused-vars
  */
 function resetFieldInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
+  document.getElementById('id_field_transformation').classList.remove('form-control')
+  document.getElementById('id_field_transformation').value = ''
+  update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset['targetId']) 
 
   for (let i = 0; i < elements.length; i++) {
     if (action === 'reset') {
