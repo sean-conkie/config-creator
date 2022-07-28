@@ -294,3 +294,51 @@ table.draggable tbody tr:active {
   display: flex;
   align-items: center;
 }
+
+
+.editing, .highlighting {
+  /* Both elements need the same text and space styling so they are directly on top of each other */
+  margin: 0.5rem 0;
+  border: 0;
+  width: calc(100% - 32px);
+  height: 150px;
+}
+
+.editing, .highlighting, .highlighting * {
+  /* Also add text styles to highlighting tokens */
+  font-size: 15pt;
+  font-family: monospace;
+  line-height: 20pt;
+  tab-size: 2;
+}
+
+.editing, .highlighting {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Move the textarea in front of the result */
+.editing {
+  z-index: 1;
+}
+
+.highlighting {
+  z-index: 0;
+}    
+
+.editing {
+  color: transparent;
+  background: transparent;
+  caret-color: white; /* Or choose your favorite color */
+}  
+
+.editing, .highlighting {
+  overflow: auto;
+  white-space: nowrap; /* Allows textarea to scroll horizontally */
+}
+
+/* No resize on textarea */
+.editing {
+  resize: none;
+}

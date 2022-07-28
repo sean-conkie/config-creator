@@ -32,7 +32,7 @@
           </div>
           {% if delta|length == 0 %}
             <div class="col-md-2 col-lg-2">
-              <button class="w-100 btn btn-primary" type="button" href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Delta Condition</a> 
+              <button class="w-100 btn btn-primary" type="button" id="id_add_delta_button" href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Delta Condition</button> 
             </div>
           {% endif %}
         </div>

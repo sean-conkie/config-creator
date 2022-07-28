@@ -12,4 +12,6 @@ Web app to create and update JSON config files which define datawarehouse tables
 [User Model](https://www.codingforentrepreneurs.com/blog/how-to-create-a-custom-django-user-model)
 
 ### Web (CSS, HTML, JavaScript)
-[Table Drag & Drop](https://www.therogerlab.com/sandbox/pages/how-to-reorder-table-rows-in-javascript?s=0ea4985d74a189e8b7b547976e7192ae.4122809346f6a15e41c9a43f6fcb5fd5)
+[Table Drag & Drop](https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/File_drag_and_drop)
+[Syntax Highlighting TextArea](https://css-tricks.com/creating-an-editable-textarea-that-supports-syntax-highlighted-code/)
+

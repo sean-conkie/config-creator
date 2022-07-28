@@ -245,10 +245,11 @@ function dataComparison () { // eslint-disable-line no-unused-vars
   xhttp.onload = function () {
     const data = xhttp.response
     if (xhttp.status === 200 && data) {
-      document.getElementById('id_transformation').value = data.replace('"', '').replace('"', '')
+      document.getElementById('id_field_transformation').value = data.replace('"', '').replace('"', '')// eslint-disable-line no-undef
     } else {
-      document.getElementById('id_transformation').value = ''
+      document.getElementById('id_field_transformation').value = ''
     }
+    update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset['targetId']) 
   }
 
   xhttp.open('GET', url, true)
