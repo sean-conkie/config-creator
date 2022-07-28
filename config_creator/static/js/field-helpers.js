@@ -249,7 +249,7 @@ function dataComparison () { // eslint-disable-line no-unused-vars
     } else {
       document.getElementById('id_field_transformation').value = ''
     }
-    update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset['targetId']) 
+    update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
   }
 
   xhttp.open('GET', url, true)
@@ -269,7 +269,7 @@ function resetFieldInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
   document.getElementById('id_field_transformation').classList.remove('form-control')
   document.getElementById('id_field_transformation').value = ''
-  update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset['targetId']) 
+  update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
 
   for (let i = 0; i < elements.length; i++) {
     if (action === 'reset') {
