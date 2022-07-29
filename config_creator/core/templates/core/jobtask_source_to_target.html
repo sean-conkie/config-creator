@@ -45,7 +45,7 @@
             </td>
             <td>{{ field.data_type }}</td>
             <td>
-              <span>{{ field.source_table.dataset_name }}.{{ field.source_table.table_name }}.</span><strong>{{ field.source_column }}</strong>
+              <span title="{{ field.source_table.dataset_name }}.{{ field.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ field.source_table.alias }}.</span><strong>{{ field.source_column }}</strong>
             </td>
             <td class="btn-column"><button class="btn btn-secondary field-view" id="id_field_{{ field.id }}_view" 
               type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
@@ -67,9 +67,11 @@
         </tbody>
       </table>
       <div class="row">
-        <div class="col-md-4 col-lg-3">
-          <button class="btn btn-primary" id="id_add_column_button" type="button"><i class="bi bi-plus"></i> Add Column</button>
-          <button class="btn btn-info" id="id_copy_table" type="button" data-task-id="{{ task.id }}"><i class="fa-solid fa-copy"></i> Copy
+        <div class="col-md-2 col-lg-2">
+          <button class="w-100 btn btn-primary" id="id_add_column_button" type="button"><i class="bi bi-plus"></i> Add Column</button>
+        </div>
+        <div class="col-md-2 col-lg-2">
+          <button class="w-100 btn btn-info" id="id_copy_table" type="button" data-task-id="{{ task.id }}"><i class="fa-solid fa-copy"></i> Copy
             Table</button>
           <input id="id_field_source_table_name" hidden />
           <input id="id_field_source_dataset" hidden />

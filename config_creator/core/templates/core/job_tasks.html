@@ -3,12 +3,40 @@
 {% block content %}
 {% load static %}
 <div class="container">
-  <div class="py-5 text-center">
+  <div class="py-1 text-center">
     <h2>Job</h2>
     <p class="lead">View or change your job and it's tasks.</p>
   </div>
+  <div class="row">
+    <div class="col-md-11 col-lg-11">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'home' %}" title="Home">Home</a></li>
+          <li class="breadcrumb-item"><a href="{% url 'jobs' %}" title="Jobs">Jobs</a></li>
+          <li class="breadcrumb-item active" aria-current="page">{{job.name}}</li>
+        </ol>
+      </nav>
+    </div>
+    <div class="col-md-1 col-lg-1">
+      <div class="dropdown">
+        <a class="d-flex align-items-center justify-content-center link-dark text-decoration-none" id="dropdownJobTask" href="#" title="" data-bs-toggle="dropdown" aria-expanded="false">
+          <i class="bi bi-three-dots"></i>
+        </a>
+        <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser3">
+          <li><a class="dropdown-item" href="{% url 'job-update' pk=job.id %}" title="Edit">Edit Job Details</a></li>
+          {% if property_id != None %}
+            <li><a class="dropdown-item" href="{% url 'job-property-update' job_id=job.id pk=property_id %}" title="Edit">Edit Job Properties</a></li>
+          {% else %}
+            <li><a class="dropdown-item" href="{% url 'job-property-add' job_id=job.id %}" title="Edit">Edit Job Properties</a></li>
+          {% endif %}
+          <li><hr class="dropdown-divider"/></li>
+          <li><a class="dropdown-item" id="id_download_config" href="{% url 'job-download' pk=job.id %}" title="Download">Download Config</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
   <div class="row g-5">
-    <div class="col-md-8 col-lg-9">
+    <div class="col-md-12 col-lg-12">
       <div class="row g-3">
         <p class="lead">Job Details</p>
         <div class="col-6">
@@ -31,23 +59,12 @@
         </div>
       </div>
     </div>
-    <div class="col-md-4 col-lg-3">
-      <div class="row g-3">
-        <a class="w-100 btn btn-secondary" type="submit" href="{% url 'job-update' pk=job.id %}" title=""><i class="bi bi-pencil"></i> Edit Job</a>
-      </div>
-      <div class="row g-3 py-3">
-        <a class="w-100 btn btn-outline-dark" type="submit" href="{% url 'jobs' %}" title=""><i class="bi bi-arrow-left"></i> Back to Jobs</a>
-      </div>
-      <div class="row g-3">
-        <a class="btn btn-info" id="id_download_config" type="button" href="{% url 'job-download' pk=job.id %}" title=""><i class="bi bi-box-arrow-down"></i> Download Config</a>
-      </div>
-    </div>
   </div>
   
 
   <div class="row g-5 py-3">
     <div class="lead">Properties</div>
-    <div class="col-md-8 col-lg-9">
+    <div class="col-md-12 col-lg-12">
       <div class="row g-3">
         {% for property in properties %}
           {% for key, value in property.items %}
@@ -61,15 +78,6 @@
         {% endfor %}
       </div>
     </div>
-    <div class="col-md-4 col-lg-3">
-      <div class="row g-3">
-        {% if property_id != None %}
-          <a class="w-100 btn btn-secondary" type="submit" href="{% url 'job-property-update' job_id=job.id pk=property_id %}" title=""><i class="bi bi-pencil"></i> Edit Job Properties</a>
-        {% else %}
-          <a class="w-100 btn btn-secondary" type="submit" href="{% url 'job-property-add' job_id=job.id %}" title=""><i class="bi bi-pencil"></i> Edit Job Properties</a>
-        {% endif %}
-      </div>
-    </div> 
   </div>
 
   <div class="row g-5 py-3">
@@ -104,8 +112,8 @@
           {% endif %}
         </tbody>
       </table>
-      <div class="col-md-4 col-lg-3">
-        <a class="btn btn-primary" type="button" href="{% url 'job-task-add' job_id=job.id %}" title=""><i class="bi bi-plus"></i> Add Task</a> 
+      <div class="col-md-2 col-lg-2">
+        <a class="w-100 btn btn-primary" type="button" href="{% url 'job-task-add' job_id=job.id %}" title=""><i class="bi bi-plus"></i> Add Task</a> 
       </div>
     </div> 
   </div>

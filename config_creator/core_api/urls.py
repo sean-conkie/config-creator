@@ -112,4 +112,44 @@ urlpatterns = [
         login_required(JoinView.as_view()),
         name="api-join-delete",
     ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/<int:pk>/",
+        login_required(ConditionView.as_view()),
+        name="api-condition",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/add/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:join_id>/condition/add/",
+        login_required(ConditionView.as_view()),
+        name="api-join-condition-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/<int:pk>/update/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/<int:pk>/delete/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/add/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/update/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/delete/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-delete",
+    ),
 ]

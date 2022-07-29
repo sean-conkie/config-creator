@@ -166,6 +166,7 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
     const parent = document.getElementById('id_source_to_target_table')
     parent.style.position = 'relative'
     parent.appendChild(createSpinner(spinnerId, 'large')) // eslint-disable-line no-undef
+    parent.setAttribute('disabled', 'true')
 
     xhttp.responseType = 'json'
     xhttp.onload = function () {
@@ -173,6 +174,7 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
         const spinner = document.getElementById(spinnerId)
         if (parent && parent.nodeType) {
           parent.removeChild(spinner)
+          parent.removeAttribute('disabled')
         }
       }
       data = xhttp.response // eslint-disable-line no-undef
@@ -243,10 +245,11 @@ function dataComparison () { // eslint-disable-line no-unused-vars
   xhttp.onload = function () {
     const data = xhttp.response
     if (xhttp.status === 200 && data) {
-      document.getElementById('id_transformation').value = data.replace('"', '').replace('"', '')
+      document.getElementById('id_field_transformation').value = data.replace('"', '').replace('"', '')// eslint-disable-line no-undef
     } else {
-      document.getElementById('id_transformation').value = ''
+      document.getElementById('id_field_transformation').value = ''
     }
+    update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
   }
 
   xhttp.open('GET', url, true)
@@ -264,6 +267,9 @@ function dataComparison () { // eslint-disable-line no-unused-vars
  */
 function resetFieldInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
+  document.getElementById('id_field_transformation').classList.remove('form-control')
+  document.getElementById('id_field_transformation').value = ''
+  update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
 
   for (let i = 0; i < elements.length; i++) {
     if (action === 'reset') {

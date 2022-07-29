@@ -75,8 +75,12 @@
                   <div class="lead">Transformation</div>
                   <div class="col-sm-12">
                     <div class="form-floating">
-                      {{ field_form.transformation }}
-                      {{ field_form.transformation.label_tag }}
+                      <div class="form-floating" style="height: 20vh">
+                        <textarea class="editing" id="id_field_transformation" name="transformation" spellcheck="false" oninput="update(this.value, this.dataset['targetId']); syncScroll(this, this.dataset['targetId']);" onscroll="syncScroll(this, this.dataset['targetId']);" onkeydown="checkTab(this, event, this.dataset['targetId']);" data-target-id="id_field_transformation_highlighting"></textarea>
+                        <pre class="highlighting" id="id_field_transformation_highlighting" aria-hidden="true">
+                          <code class="language-sql" id="id_field_transformation_highlighting-content"></code>
+                        </pre>
+                      </div>
                     </div>
                   </div>
                 </div>

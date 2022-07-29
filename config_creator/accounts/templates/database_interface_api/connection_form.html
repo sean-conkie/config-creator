@@ -2,160 +2,157 @@
 {% block title %}Connection{% endblock %}
 
 {% block content %}
-      <div class="container">
-<style>
-  .clearable-file-input {
-    display: inline;
-    min-height: 1.5rem;
-    padding-left: 1.5em;
-    margin-bottom: 0.125rem;
-  }
+<div class="container">
+  <style>
+    .clearable-file-input {
+      display: inline;
+      min-height: 1.5rem;
+      padding-left: 1.5em;
+      margin-bottom: 0.125rem;
+    }
 
-  .clearable-file-input[type=checkbox] {
-    border-radius: 0.25em;
-  }
+    .clearable-file-input[type=checkbox] {
+      border-radius: 0.25em;
+    }
 
-  .clearable-file-input .form-check-input {
-    margin-left: -1.5em;
-  }
-</style>
-<div class="py-5 text-center">
-  <h2>User Connections</h2>
-  {% if form.id.value == "" %}
-    <p class="lead">Add a new connection.</p>
-  {% else %}
-    <p class="lead">Change a connection.</p>
-  {% endif %}
-  <div class="container">
-    {% if form.errors %}
-      {% for err in form.get_invalid_login_error %}
-        <div class="alert alert-danger" role="alert">
-          {{err}}
-        </div>
-      {% endfor %}
+    .clearable-file-input .form-check-input {
+      margin-left: -1.5em;
+    }
+  </style>
+  <div class="py-1 text-center">
+    <h2>User Connections</h2>
+    {% if form.id.value == "" %}
+      <p class="lead">Add a new connection.</p>
+    {% else %}
+      <p class="lead">Change a connection.</p>
     {% endif %}
+    <div class="container">
+      {% if form.errors %}
+        {% for err in form.get_invalid_login_error %}
+          <div class="alert alert-danger" role="alert">
+            {{err}}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
   </div>
-</div>
-<form 
-
-{% if pk != None %}
-  action="{% url 'connection-update' pk=pk %}"  
-{% else %}
-  action="{% url 'connection-add' %}"  
-{% endif %}
-enctype="multipart/form-data" method="POST">
+  <form 
+  {% if pk != None %}
+    action="{% url 'connection-update' pk=pk %}"  
+  {% else %}
+    action="{% url 'connection-add' %}"  
+  {% endif %}
+  enctype="multipart/form-data" method="POST">
   <input id="id_id" name="id" value="{{ form.id.value }}" hidden />
   {% csrf_token %}
-  <div class="row g-5">
-    <div class="col-md-8 col-lg-9">
-      <div class="row g-3">
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.name }}
-            {{ form.name.label_tag }}
+    <div class="row g-5">
+      <div class="col-md-12 col-lg-12">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.name }}
+              {{ form.name.label_tag }}
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.connectiontype }}
+              {{ form.connectiontype.label_tag }}
+            </div>  
           </div>
         </div>
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.connectiontype }}
-            {{ form.connectiontype.label_tag }}
-          </div>  
-        </div>
       </div>
-    </div>
-    <div class="col-md-4 col-lg-3">
+    </div>  
+    <div class="row py-3 visually-hidden" id="bigquery">
+      <p class="lead">Enter Project Name</p>
       <div class="col-12">
         <div class="row g-3">
-          <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.connectionstring }}
+              {{ form.connectionstring.label_tag }}
+            </div>
+          </div>
+          <div class="col-6">
+            {{ form.credentials.label_tag }}
+            {{ form.credentials }}
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row py-3 visually-hidden" id="csv">
+      <p class="lead">Upload schema file</p>
+      <div class="col-12">
+        <div class="row g-3">
+          <div class="col-6">
+            {{ form.schema }}
+          </div>
+        </div>
+        <p>File should contain the following information;
+          <ul>
+            <li>table_schema     - The name of the source database</li>
+            <li>table_name       - The name of the source table</li>
+            <li>column_name      - The name of the source column</li>
+            <li>data_type        - The data type of the source column</li>
+            <li>ordinal_position - A number representing the columns position in the source table</li>
+            <li>is_nullable      - YES or NO representing if the source column is nullable</li>
+          </ul>
+        </p>
+        <p>It is recommended to limit the length of files to 1000 rows.</p>
+        <p>No header rows are required but columns should be in the order above.</p>
+      </div>
+    </div>
+    <div class="row py-3 visually-hidden" id="database">
+      <p class="lead">Enter connection details</p>
+      <div class="col-12">
+        <div class="row g-3">
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.user_name }}
+              {{ form.user_name.label_tag }}
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-floating">
+              <input id="id_password" name="password" type="password" />
+              <label for="id_password">Password:</label>
+            </div>
+          </div>
         </div>
         <div class="row g-3 py-3">
-          <a class="w-100 btn btn-secondary" href="{% url 'connections' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
-        </div>
-      </div>
-    </div>
-  </div>  
-  <div class="row py-3 visually-hidden" id="bigquery">
-    <p class="lead">Enter Project Name</p>
-    <div class="col-12">
-      <div class="row g-3">
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.connectionstring }}
-            {{ form.connectionstring.label_tag }}
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.host }}
+              {{ form.host.label_tag }}
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.port }}
+              {{ form.port.label_tag }}
+            </div>
           </div>
         </div>
-        <div class="col-6">
-          {{ form.credentials.label_tag }}
-          {{ form.credentials }}
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="row py-3 visually-hidden" id="csv">
-    <p class="lead">Upload schema file</p>
-    <div class="col-12">
-      <div class="row g-3">
-        <div class="col-6">
-          {{ form.schema }}
-        </div>
-      </div>
-      <p>File should contain the following information;
-        <ul>
-          <li>table_schema     - The name of the source database</li>
-          <li>table_name       - The name of the source table</li>
-          <li>column_name      - The name of the source column</li>
-          <li>data_type        - The data type of the source column</li>
-          <li>ordinal_position - A number representing the columns position in the source table</li>
-          <li>is_nullable      - YES or NO representing if the source column is nullable</li>
-        </ul>
-      </p>
-      <p>It is recommended to limit the length of files to 1000 rows.</p>
-      <p>No header rows are required but columns should be in the order above.</p>
-    </div>
-  </div>
-  <div class="row py-3 visually-hidden" id="database">
-    <p class="lead">Enter connection details</p>
-    <div class="col-12">
-      <div class="row g-3">
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.user_name }}
-            {{ form.user_name.label_tag }}
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="form-floating">
-            <input id="id_password" name="password" type="password" />
-            <label for="id_password">Password:</label>
-          </div>
-        </div>
-      </div>
-      <div class="row g-3 py-3">
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.host }}
-            {{ form.host.label_tag }}
-          </div>
-        </div>
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.port }}
-            {{ form.port.label_tag }}
-          </div>
-        </div>
-      </div>
-      <div class="row g-3 visually-hidden" id="id_sid">
-        <div class="col-6">
-          <div class="form-floating">
-            {{ form.sid }}
-            {{ form.sid.label_tag }}
+        <div class="row g-3 visually-hidden" id="id_sid">
+          <div class="col-6">
+            <div class="form-floating">
+              {{ form.sid }}
+              {{ form.sid.label_tag }}
+            </div>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</form>
+    <div class="row g-3 py-3 justify-content-end">
+      <div class="col-md-2 col-lg-2">
+        <a class="w-100 btn btn-secondary" href="{% url 'connections' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
       </div>
+      <div class="col-md-2 col-lg-2">
+        <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+      </div>
+    </div>
+  </form>
+</div>
 <script>
 
   function updateView(element) {

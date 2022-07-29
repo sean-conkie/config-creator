@@ -9,32 +9,27 @@
       <div class="row g-3 py-3">
         <div class="row g-3 py-1">
           <div class="col-lg-12 col-md-12">
-            {% if delta|length == 0 %}
-              <h5>No Delta conditions, the task will run as a full refresh.</h5>
-            {% else %}
               <table class="table table-hover">
                 <thead>
                   <th scope="col"></th>
                   <th scope="col"></th>
-                  <th scope="col"></th>
                 </thead>
-                <tbody class="align-middle">
+                <tbody class="align-middle" id="id_delta_tbody">
                   {% for d in delta %}
-                    <tr>
+                    <tr id="id_delta_row">
                       <td class="lead">select records where {{ d.field }} is {% if d.upper_bound != None and d.upper_bound > 0 %}between{% else %}greater than or equal to{% endif %} {{ d.lower_bound }} {% if d.upper_bound != None and d.upper_bound > 0 %} and {{ d.lower_bound }} plus {{d.upper_bound}}{% endif %}</td>
-                      <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task-delta-update' job_id=job.id task_id=task.id pk=d.id %}" title="Edit" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
-                      <td class="btn-column"><a class="btn btn-danger" href="{% url 'job-task-delta-delete' job_id=job.id task_id=task.id pk=d.id %}" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+                      <td class="btn-column"><button class="btn btn-danger" id="id_delta_delete" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" data-delta-id="{{ d.id }}" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-target-id="id_delta_row"><i class="bi bi-trash3"></i></button></td>
                     </tr>
                   {% endfor %}
+                  {% if delta|length == 0 %}
+                    <tr class="placeholder-row"><td colspan="2"><h5>No Delta conditions, the task will run as a full refresh.</h5></td></tr>
+                  {% endif %}
                 </tbody>
               </table>
-            {% endif %}
           </div>
-          {% if delta|length == 0 %}
-            <div class="col-md-4 col-lg-3">
-              <a class="btn btn-primary" type="button" href="{% url 'job-task-delta-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Delta Condition</a> 
-            </div>
-          {% endif %}
+          <div class="col-md-2 col-lg-2" id="id_button_column">
+              <button class="w-100 btn btn-primary" id="id_add_delta_button" type="button"><i class="bi bi-plus"></i> Add Delta Condition</button> 
+          </div>
         </div>
       </div>
     </div>

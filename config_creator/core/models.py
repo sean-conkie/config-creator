@@ -557,7 +557,7 @@ class Field(models.Model):
         SourceTable,
         verbose_name="Source Table",
         on_delete=models.CASCADE,
-        null=False,
+        null=True,
         blank=True,
         help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
     )
@@ -628,12 +628,13 @@ class Field(models.Model):
           A dictionary with the column name, data type, source name, source column, source data type,
         transformation, position, is primary key, is nullable, and id.
         """
-        return {
+        outp = {
             "name": self.name,
-            "data_type": self.data_type.name,
+            "data_type": self.data_type.name if self.data_type else None,
             "data_type_id": self.data_type_id,
-            "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}",
-            "source_table_alias": self.source_table.alias,
+            "source_table_alias": self.source_table.alias
+            if self.source_table
+            else None,
             "source_column": self.source_column,
             "source_data_type": self.source_data_type,
             "transformation": self.transformation,
@@ -642,6 +643,15 @@ class Field(models.Model):
             "is_nullable": self.is_nullable,
             "id": self.id,
         }
+
+        if self.source_table:
+            outp["source_name"] = (
+                f"{self.source_table.dataset_name}.{self.source_table.table_name}"
+                if self.source_table.dataset_name and self.source_table.table_name
+                else None
+            )
+
+        return outp
 
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
@@ -828,9 +838,19 @@ $THISMONTH = date of first day of current month
 """,
     )
     upper_bound = models.IntegerField(
+        blank=True,
         null=True,
         help_text="Input seconds to add to lower_bound, 86400 represents one day",
     )
+
+    def todict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task.id,
+            "lower_bound": self.lower_bound,
+            "upper_bound": self.upper_bound,
+            "field": self.field.todict(),
+        }
 
 
 class Join(models.Model):
@@ -938,8 +958,8 @@ class Condition(models.Model):
             "id": self.id,
             "operator": self.operator.name,
             "logic_operator": self.logic_operator.name,
-            "left": self.left,
-            "right": self.right,
+            "left": self.left.todict(),
+            "right": self.right.todict(),
         }
 
 

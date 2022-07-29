@@ -2,7 +2,7 @@
 {% block title %}Job Tasks{% endblock %}
 {% block content %}
 <div class="container">
-  <div class="py-5 text-center">
+  <div class="py-1 text-center">
     <h2>Jobs</h2>
     <p class="lead">View or change your in progress jobs.</p>
   </div>
@@ -37,8 +37,8 @@
       </tbody>
     </table>
   </div>  
-  <div class="col-md-4 col-lg-3">
-    <a class="btn btn-primary" type="button" href="{% url 'job-add' %}" title=""><i class="bi bi-plus"></i> Add Job</a> 
+  <div class="col-md-2 col-lg-2">
+    <a class="w-100 btn btn-primary" type="button" href="{% url 'job-add' %}" title=""><i class="bi bi-plus"></i> Add Job</a> 
   </div>
 </div>
 <script src="/static/js/lazy-listener.js"></script>
