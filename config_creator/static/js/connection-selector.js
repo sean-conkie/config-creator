@@ -57,7 +57,11 @@ function createColumnElement (object, layer) {
     columnName.setAttribute('data-column-full', object.dataset + '.' + object.raw_table_name + '.' + object.column_name)
   }
   columnName.setAttribute('data-table-name', object.raw_table_name)
-  columnName.setAttribute('data-table-full', object.dataset + '.' + object.raw_table_name)
+  if (object.alias) {
+    columnName.setAttribute('data-table-full', object.dataset + '.' + object.raw_table_name + ' ' + object.alias)
+  } else {
+    columnName.setAttribute('data-table-full', object.dataset + '.' + object.raw_table_name)
+  }
   columnName.setAttribute('data-dataset-name', object.dataset)
   columnName.setAttribute('data-data-type', object.data_type)
   columnName.setAttribute('data-target-name', object.target_name)

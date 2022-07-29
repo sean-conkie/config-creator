@@ -1,7 +1,7 @@
 import re
 
 from copy import deepcopy
-from core.forms import ConditionForm, FieldForm, JoinForm
+from core.forms import ConditionForm, DeltaForm, FieldForm, JoinForm
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -36,6 +36,7 @@ __all__ = [
     "copytable",
     "datatypecomparison",
     "datatypemap",
+    "DeltaConditionView",
     "fieldpositionchange",
     "JobView",
     "ConditionView",
@@ -798,27 +799,70 @@ class DeltaConditionView(views.APIView):
 
         return response.Response(data=outp, status=return_status)
 
-    def post(self, request: request, pk: int) -> response.Response:
+    def post(
+        self, request: request, job_id: int, task_id: int, pk: int = None
+    ) -> response.Response:
 
-        delta = Delta.objects.filter(id=pk).exists()
-        if delta:
-            delta = Delta.objects.get(id=pk)
-            delta.save()
+        if pk and Delta.objects.filter(task_id=task_id).exists():
+            outp = {
+                "message": "Task already has a Delta condition.",
+                "type": "Error",
+            }
+            return response.Response(data=outp, status=status.HTTP_409_CONFLICT)
+
+        request_post = deepcopy(request.POST)
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            request.POST.get("source_name", ""),
+            re.IGNORECASE,
+        )
+
+        source_table = get_source_table(
+            task_id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            m.group("alias"),
+        )
+        field = Field(
+            source_table=source_table,
+            source_column=request.POST.get("source_column"),
+            transformation=request.POST.get("transformation"),
+            task_id=task_id,
+            is_source_to_target=False,
+        )
+        field.save()
+
+        request_post["field"] = field
+        form = DeltaForm(request_post)
+        form.instance.task_id = task_id
+
+        if pk:
+            form.instance.id = pk
+
+        if form.is_valid():
+            form.save()
             outp = {
                 "message": f"Delta updated.",
-                "type": "success",
+                "type": "Success",
+                "result": {
+                    "content": [
+                        Delta.objects.get(id=form.instance.id).todict(),
+                    ],
+                },
             }
             return_status = status.HTTP_200_OK
         else:
             outp = {
-                "message": f"Delta with id '{pk}' does not exist.",
-                "type": "error",
+                "message": form.errors,
+                "type": "Errors",
             }
-            return_status = status.HTTP_404_NOT_FOUND
+            return_status = status.HTTP_400_BAD_REQUEST
 
         return response.Response(data=outp, status=return_status)
 
-    def delete(self, request: request, pk: int) -> response.Response:
+    def delete(
+        self, request: request, job_id: int, task_id: int, pk: int
+    ) -> response.Response:
 
         delta = Delta.objects.filter(id=pk).exists()
         if delta:

@@ -133,7 +133,11 @@ class CSVClient:
                 outp["table_name"] = outp["table_name"] + " " + outp["alias"]
             elif self._schema_filter:
                 outp = outp[outp["table_schema"].isin(self._schema_filter)]
+
+            if not "alias" in outp.columns:
                 outp["alias"] = [None for r in range(0, len(outp))]
+
+            if not "raw_table_name" in outp.columns:
                 outp["raw_table_name"] = outp["table_name"]
 
             if query == "schema":
@@ -417,8 +421,10 @@ def get_database_schema(
             {
                 "dataset": row["table_schema"].lower(),
                 "table_name": row["table_name"].lower(),
-                "alias": row["alias"].lower(),
-                "raw_table_name": row["raw_table_name"].lower(),
+                "alias": None if row["alias"] is None else row["alias"].lower(),
+                "raw_table_name": row["table_name"].lower()
+                if row["raw_table_name"] is None
+                else row["raw_table_name"].lower(),
                 "column_name": row["column_name"].lower(),
                 "target_name": "_".join([w for w in segment(row["column_name"])]),
                 "data_type": row["data_type"].lower(),

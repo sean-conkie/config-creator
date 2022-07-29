@@ -137,4 +137,19 @@ urlpatterns = [
         login_required(ConditionView.as_view()),
         name="api-condition-delete",
     ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/add/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/update/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/delete/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-delete",
+    ),
 ]

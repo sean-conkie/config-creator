@@ -838,9 +838,19 @@ $THISMONTH = date of first day of current month
 """,
     )
     upper_bound = models.IntegerField(
+        blank=True,
         null=True,
         help_text="Input seconds to add to lower_bound, 86400 represents one day",
     )
+
+    def todict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task.id,
+            "lower_bound": self.lower_bound,
+            "upper_bound": self.upper_bound,
+            "field": self.field.todict(),
+        }
 
 
 class Join(models.Model):
