@@ -288,6 +288,18 @@ class Job(models.Model):
 
         return None
 
+    def todict(self):
+        return {
+            "name": self.name,
+            "type": self.type.name,
+            "description": self.description,
+            "properties": self.get_property_object().todict(),
+            "created": self.created,
+            "createdby": self.createdby,
+            "lastupdate": self.lastupdate,
+            "updatedby": self.updatedby,
+        }
+
 
 class JobTask(models.Model):
     name = models.SlugField(
@@ -383,15 +395,34 @@ class JobTask(models.Model):
         )
         if property_class:
             if property_class.objects.filter(task_id=self.id).exists():
-                return property_class.objects.filter(
+                return property_class.objects.get(
                     task_id=self.id,
-                )[0]
+                )
             else:
                 return property_class(
                     task_id=self.id,
                 )
 
         return None
+
+    def todict(self):
+        task = {
+            "name": self.name,
+            "job": self.job.todict(),
+            "type": self.type.name,
+            "table_type": self.table_type.name,
+            "write_disposition": self.write_disposition.name,
+            "destination_dataset": self.destination_dataset,
+            "destination_table": self.destination_table,
+            "driving_table": self.driving_table,
+            "staging_dataset": self.staging_dataset,
+            "description": self.description,
+            "properties": self.get_property_object().todict(),
+            "created": self.created,
+            "createdby": self.createdby,
+            "lastupdate": self.lastupdate,
+            "updatedby": self.updatedby,
+        }
 
 
 class History(models.Model):
@@ -720,6 +751,12 @@ class Dependency(models.Model):
         JobTask, on_delete=models.CASCADE, null=False, related_name="dependant"
     )
 
+    def todict(self):
+        return {
+            "predecessor": self.predecessor.todict(),
+            "dependant": self.dependant.todict(),
+        }
+
 
 class DrivingColumn(models.Model):
     history = models.ForeignKey(
@@ -1005,9 +1042,25 @@ class BaseJobProperties(models.Model):
         null=True,
         help_text="Default source project",
     )
+    target_project = models.CharField(
+        verbose_name="Target Project",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Target project",
+    )
 
     class Meta:
         abstract = True
+
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+        }
 
 
 class BatchJobProperties(BaseJobProperties):
@@ -1019,6 +1072,16 @@ class BatchJobProperties(BaseJobProperties):
         null=False,
         help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
     )
+
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+            "prefix": self.prefix,
+        }
 
 
 class DagJobProperties(BaseJobProperties):
@@ -1054,6 +1117,19 @@ class DagJobProperties(BaseJobProperties):
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
 
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+            "tags": self.tags,
+            "owner": self.owner,
+            "email": self.email,
+            "imports": self.imports,
+        }
+
 
 class BaseJobTaskProperties(models.Model):
     task = models.OneToOneField(
@@ -1065,6 +1141,9 @@ class BaseJobTaskProperties(models.Model):
     class Meta:
         abstract = True
 
+    def todict(self):
+        return {}
+
 
 class BatchCustomJobTaskProperties(BaseJobTaskProperties):
     sql = models.CharField(
@@ -1075,6 +1154,9 @@ class BatchCustomJobTaskProperties(BaseJobTaskProperties):
         null=False,
         help_text="Enter the name of the sql fiel to be used by this task",
     )
+
+    def todict(self):
+        return {"sql": self.sql}
 
 
 def str_to_class(classname):
