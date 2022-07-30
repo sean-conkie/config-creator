@@ -156,6 +156,26 @@ urlpatterns = [
     path(
         "task/<int:task_id>/position/",
         login_required(newfieldposition),
-        name="api-delta-delete",
+        name="api-position",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/add/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/<int:pk>/update/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/<int:pk>/delete/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/<int:pk>/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor",
     ),
 ]

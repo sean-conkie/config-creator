@@ -1,7 +1,7 @@
 import re
 
 from copy import deepcopy
-from core.forms import ConditionForm, DeltaForm, FieldForm, JoinForm
+from core.forms import ConditionForm, DeltaForm, DependencyForm, FieldForm, JoinForm
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -10,6 +10,7 @@ from core.models import (
     DATA_TYPE_MAPPING,
     DEFAULT_DATA_TYPE_ID,
     Delta,
+    Dependency,
     DrivingColumn,
     Field,
     History,
@@ -46,6 +47,7 @@ __all__ = [
     "PartitionView",
     "HistoryOrderView",
     "newfieldposition",
+    "PredecessorView",
 ]
 
 
@@ -886,6 +888,88 @@ class DeltaConditionView(views.APIView):
         else:
             outp = {
                 "message": f"Delta with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class PredecessorView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: request, pk: int) -> response.Response:
+
+        dependency = Dependency.objects.filter(id=pk).exists()
+        if dependency:
+            dependency = Dependency.objects.get(id=pk)
+            outp = {
+                "result": dependency,
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Dependency with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def post(
+        self, request: request, job_id: int, task_id: int, pk: int = None
+    ) -> response.Response:
+
+        request_post = deepcopy(request.POST)
+
+        request_post["predecessor"] = JobTask.objects.get(
+            id=request.POST.get("predecessor")
+        )
+        request_post["dependant"] = JobTask.objects.get(id=task_id)
+        form = DependencyForm(request_post)
+
+        if pk:
+            form.instance.id = pk
+
+        if form.is_valid():
+            form.save()
+            outp = {
+                "message": f"Dependency updated.",
+                "type": "Success",
+                "result": {
+                    "content": [
+                        Dependency.objects.get(id=form.instance.id).todict(),
+                    ],
+                },
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": form.errors,
+                "type": "Errors",
+            }
+            return_status = status.HTTP_400_BAD_REQUEST
+
+        return response.Response(data=outp, status=return_status)
+
+    def delete(
+        self, request: request, job_id: int, task_id: int, pk: int
+    ) -> response.Response:
+
+        indb = Dependency.objects.filter(id=pk).exists()
+        if indb:
+            indb = Dependency.objects.get(id=pk)
+            outp = {
+                "message": f"Dependency deleted.",
+                "type": "success",
+            }
+            indb.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Dependency with id '{pk}' does not exist.",
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND

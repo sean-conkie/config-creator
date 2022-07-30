@@ -1,14 +1,6 @@
 
-/**
- * It adds a row to the table for each delta object returned by the API
- * 
- * Args:
- *   data: the data returned from the API call
- *   jobId: The ID of the job
- *   taskId: The ID of the task that the delta is being added to.
- *   targetId: The id of the table to add the row to.
- */
-function addDeltaObject (data, jobId, taskId, targetId) {
+
+function addPredecessorObject (data, jobId, taskId, targetId) {
   if ('result' in data) {
     const parent = document.getElementById(targetId)
     const placeholder = parent.querySelector('.placeholder-row')
@@ -91,27 +83,18 @@ function preparePredecessorModal () { // eslint-disable-line no-unused-vars
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_predecessor_modal')).show() // eslint-disable-line no-undef
 }
 
-/**
- * It sends a POST request to the server with the data from the form, and then it adds the delta object
- * to the page
- * 
- * Args:
- *   jobId: The ID of the job that the task belongs to.
- *   taskId: The id of the task that the delta is being added to.
- *   targetId: The id of the element that will be updated with the new delta object.
- *   spinnerElementId: The id of the element that will have the spinner added to it.
- */
-function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).hide() // eslint-disable-line no-undef
+
+function sendPredecessor (jobId, taskId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
   let spinnerId = null
   if (spinnerElementId) {
     const parent = document.getElementById(spinnerElementId)
+    parent.style.position = 'relative'
     spinnerId = spinnerElementId + '_spinner'
-    parent.appendChild(createSpinner(spinnerId)) // eslint-disable-line no-undef
+    parent.appendChild(createSpinner(spinnerId, 'large')) // eslint-disable-line no-undef
     parent.setAttribute('disabled', 'true')
   }
 
-  const form = document.getElementById('id_delta_form')
+  const form = document.getElementById('id_predecessor_form')
   const formData = new FormData(form) // eslint-disable-line no-undef
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
 
@@ -132,30 +115,21 @@ function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // esl
     if ((xhttp.status === 200 || xhttp.status === 404) && 'message' in data) {
       createToast(data.message, data.type, true) // eslint-disable-line no-undef
 
-      addDeltaObject(data, jobId, taskId, targetId)
-      resetDeltaInput(document.getElementById('id_delta_modal').children) // eslint-disable-line no-undef
-      document.getElementById('id_add_delta_button').classList.add('visually-hidden')
+      addPredecessorObject(data, jobId, taskId, targetId)
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('id_predecessor_modal')).hide() // eslint-disable-line no-undef
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef
     }
   }
 
-  xhttp.open('POST', `/api/job/${jobId}/task/${taskId}/delta/add/`, true)
+  xhttp.open('POST', `/api/job/${jobId}/task/${taskId}/predecessor/add/`, true)
   xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
   xhttp.send(formData)
 }
 
-/**
- * It deletes a delta from the database and the DOM
- * 
- * Args:
- *   jobId: the id of the job
- *   taskId: the id of the task that the delta is associated with
- *   deltaId: the id of the delta to delete
- */
-function deleteDelta (jobId, taskId, deltaId) { // eslint-disable-line no-unused-vars
-  document.getElementById('id_delta_tbody').style.position = 'relative'
-  deleteModelObject(`/api/job/${jobId}/task/${taskId}/delta/${deltaId}/update/`, 'id_delta_row', 'id_delta_tbody', 'large') // eslint-disable-line no-undef
-  document.getElementById('id_add_delta_button').classList.remove('visually-hidden')
+
+function deletePredecessor (jobId, taskId, predecessorId) { // eslint-disable-line no-unused-vars
+  document.getElementById('id_predecessor_table').style.position = 'relative'
+  deleteModelObject(`/api/job/${jobId}/task/${taskId}/predecessor/${predecessorId}/update/`, `id_predecessor_${predecessorId}_row`, 'id_predecessor_tbody', 'large') // eslint-disable-line no-undef
 }

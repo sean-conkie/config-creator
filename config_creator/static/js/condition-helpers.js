@@ -51,6 +51,14 @@ function prepareConditionModal (jobId, taskId, joinId, targetId) { // eslint-dis
   document.getElementById('id_condition_modal_submit_and_close_button').setAttribute('data-join-id', joinId)
   document.getElementById('id_condition_modal_submit_and_close_button').setAttribute('data-target-id', targetId)
   document.getElementById('id_condition_modal_submit_and_close_button').setAttribute('data-persist', false)
+
+  const tableRows = document.getElementById('id_condition_modal_tbody').children
+  for (let i = 0; i < tableRows.length; i++) {
+    if (tableRows[i].tagName === 'TR') {
+      tableRows[i].parentNode.removeChild(tableRows[i])
+    }
+  }
+
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).show() // eslint-disable-line no-undef
 }
 

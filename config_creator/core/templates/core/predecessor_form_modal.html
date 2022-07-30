@@ -13,7 +13,7 @@
               <div class="col-md-12 col-lg-12">
                 <div class="row g-3">
                     <div class="form-floating">
-                      <select class="form-select" id="{{ dependency_form.predecessor.id_for_label }}" name="field">
+                      <select class="form-select" id="{{ dependency_form.predecessor.id_for_label }}" name="predecessor">
                         <option selected>---------</option>
                         {% for task in tasks %}
                           <option value="{{ task.id }}">{{ task.name }}</option>
@@ -39,9 +39,23 @@
     const predecessorListenerMap = new Map([
       ["id_predecessor_add_button", {
           "function": "preparePredecessorModal()",
-          "type": "click"
+          'type': 'click'
+      }],
+      ['id_predecessor_submit_button', {
+          'function': 'sendPredecessor(this.dataset["jobId"], this.dataset["taskId"], "id_predecessor_tbody", "id_predecessor_form")',
+          'type': 'click'
       }]
     ])
+
+    
+
+    const predecessorDeleteButtonList = document.getElementsByClassName("predecessor-delete");
+    for (var i = 0; i < predecessorDeleteButtonList.length; i++) {
+      predecessorListenerMap.set(predecessorDeleteButtonList[i].id, {
+        'function': 'deletePredecessor(this.dataset["jobId"], this.dataset["taskId"], this.dataset["predecessorId"]);',
+        'type': 'click'
+      })
+    }
     
     predecessorListenerMap.forEach(addListener); 
   </script>
