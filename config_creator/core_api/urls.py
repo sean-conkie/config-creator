@@ -5,6 +5,7 @@ from django.urls import path
 from .views import PartitionView
 from .views import orderpositionchange
 from .views import JoinView
+from .views import newfieldposition
 
 urlpatterns = [
     path(
@@ -150,6 +151,11 @@ urlpatterns = [
     path(
         "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/delete/",
         login_required(DeltaConditionView.as_view()),
+        name="api-delta-delete",
+    ),
+    path(
+        "task/<int:task_id>/position/",
+        login_required(newfieldposition),
         name="api-delta-delete",
     ),
 ]

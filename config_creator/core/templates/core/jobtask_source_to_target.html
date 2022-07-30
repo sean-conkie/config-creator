@@ -26,7 +26,7 @@
         </thead>
         <tbody id="id_source_to_target">
           {% for field in fields %}
-          <tr class="align-middle" id="id_field_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="fieldPositionChange(this)" data-field-id="{{ field.id }}" data-position="{{ field.position }}" data-task-id="{{ task.id }}">
+          <tr class="align-middle" id="id_field_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="positionChange(this, 'field')" data-field-id="{{ field.id }}" data-position="{{ field.position }}" data-task-id="{{ task.id }}">
             <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
             <td class="vertical-grip-col">
               {% if field.is_primary_key == True %}<i class="bi bi-key" title="Key field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
@@ -85,7 +85,7 @@
 <script>
   let listenerMap = new Map([
     ["id_copy_table", {
-      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true); document.getElementById('id_field_source_connection').dataset['taskId'] = this.dataset['taskId'];",
+      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true, {{ task.id }}); document.getElementById('id_field_source_connection').dataset['taskId'] = this.dataset['taskId'];",
       "type": "click"
     }],
     ["id_field_source_connection", {

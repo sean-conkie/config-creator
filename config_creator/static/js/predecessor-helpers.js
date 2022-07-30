@@ -56,14 +56,9 @@ function addDeltaObject (data, jobId, taskId, targetId) {
  * Args:
  *   elements: The elements to be reset.
  */
-function resetDeltaInput (elements) {
+function resetPredecessorInput (elements) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
-  document.getElementById('id_delta_transformation').classList.remove('form-control')
-  document.getElementById('id_delta_transformation').value = ''
-  update(document.getElementById('id_delta_transformation').value, document.getElementById('id_delta_transformation').dataset.targetId) // eslint-disable-line no-undef
-  document.getElementById('id_delta_lower_bound').classList.remove('form-control')
-  document.getElementById('id_delta_lower_bound').value = ''
-  update(document.getElementById('id_delta_lower_bound').value, document.getElementById('id_delta_lower_bound').dataset.targetId) // eslint-disable-line no-undef
+  
   for (let i = 0; i < elements.length; i++) {
     if (formElements.includes(elements[i].tagName)) {
       if (elements[i].tagName === 'INPUT') {
@@ -86,17 +81,14 @@ function resetDeltaInput (elements) {
     }
 
     if (elements[i].hasChildNodes()) {
-      resetDeltaInput(elements[i].children)
+      resetPredecessorInput(elements[i].children)
     }
   }
 }
 
-/**
- * It resets the input fields in the modal and then shows the modal
- */
-function prepareDeltaModal () { // eslint-disable-line no-unused-vars
-  resetDeltaInput(document.getElementById('id_delta_modal').children)
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).show() // eslint-disable-line no-undef
+function preparePredecessorModal () { // eslint-disable-line no-unused-vars
+  resetPredecessorInput(document.getElementById('id_predecessor_form').children)
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_predecessor_modal')).show() // eslint-disable-line no-undef
 }
 
 /**
@@ -110,6 +102,7 @@ function prepareDeltaModal () { // eslint-disable-line no-unused-vars
  *   spinnerElementId: The id of the element that will have the spinner added to it.
  */
 function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).hide() // eslint-disable-line no-undef
   let spinnerId = null
   if (spinnerElementId) {
     const parent = document.getElementById(spinnerElementId)
@@ -142,7 +135,6 @@ function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // esl
       addDeltaObject(data, jobId, taskId, targetId)
       resetDeltaInput(document.getElementById('id_delta_modal').children) // eslint-disable-line no-undef
       document.getElementById('id_add_delta_button').classList.add('visually-hidden')
-      bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).hide() // eslint-disable-line no-undef
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef

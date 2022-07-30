@@ -58,11 +58,11 @@
     
     let conditionModalListenerMap = new Map()    
     conditionModalListenerMap.set("id_condition_left_tree", {
-      "function": "setReturnType('column', 'id_condition_left_field', 'columnFull', null, null, null, null, null, false, {{ task.id }})",
+      "function": "setReturnType('column', 'id_condition_left_field', 'columnFull', null, null, null, null, null, true, {{ task.id }})",
       "type": "click"
     })
     conditionModalListenerMap.set("id_condition_right_tree", {
-      "function": "setReturnType('column', 'id_condition_right_field', 'columnFull', null, null, null, null, null, false, {{ task.id }})",
+      "function": "setReturnType('column', 'id_condition_right_field', 'columnFull', null, null, null, null, null, true, {{ task.id }})",
       "type": "click"
     })
     conditionModalListenerMap.set("id_condition_modal_submit_button", {

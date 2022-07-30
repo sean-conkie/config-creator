@@ -30,6 +30,7 @@ from django.db.models import Q
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from wordsegment import segment
 
 __all__ = [
     "FieldView",
@@ -44,6 +45,7 @@ __all__ = [
     "DrivingColumnView",
     "PartitionView",
     "HistoryOrderView",
+    "newfieldposition",
 ]
 
 
@@ -627,7 +629,11 @@ class ConditionView(views.APIView):
                 re.IGNORECASE,
             )
 
-            left_table = SourceTable.objects.get(alias=m.group("alias")) if m else None
+            left_table = (
+                SourceTable.objects.get(alias=m.group("alias"), task_id=task_id)
+                if m
+                else None
+            )
 
         if left_table:
             left_field = Field(
@@ -664,11 +670,15 @@ class ConditionView(views.APIView):
                 re.IGNORECASE,
             )
 
-            right_table = SourceTable.objects.get(alias=m.group("alias")) if m else None
+            right_table = (
+                SourceTable.objects.get(alias=m.group("alias"), task_id=task_id)
+                if m
+                else None
+            )
 
         if right_table:
             right_field = Field(
-                source_table=left_table,
+                source_table=right_table,
                 source_column=m.group("field"),
             )
         else:
@@ -691,7 +701,7 @@ class ConditionView(views.APIView):
         if join_id:
             form.instance.join_id = join_id
         else:
-            form.instance.task_id = task_id
+            form.instance.where_id = task_id
 
         message = "Condition updated." if pk else "Condition created."
         if form.is_valid():
@@ -922,7 +932,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
 
     for i, column in enumerate(table.get("result", {}).get("content", [])):
         field = Field(
-            name=column.get("column_name"),
+            name="_".join([w for w in segment(column.get("column_name"))]),
             source_column=column.get("column_name"),
             source_table=source_table,
             source_data_type=column.get("data_type"),
@@ -973,11 +983,13 @@ def datatypecomparison(
     """
     data = None
 
+    cleansed_column = re.sub(r"(\s\w+)", "", column, re.IGNORECASE)
+
     if (
         target != DATA_TYPE_MAPPING.get(source.upper())
         and BigQueryDataType.objects.filter(name=target).exists()
     ):
-        data = f"safe_cast({column} as {target.lower()})"
+        data = f"safe_cast({cleansed_column} as {target.lower()})"
 
     return response.Response(data=data, status=status.HTTP_200_OK)
 
@@ -1031,3 +1043,15 @@ def orderpositionchange(
     order.save()
 
     return response.Response(data=None, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def newfieldposition(request: request, task_id: int) -> response.Response:
+    if Field.objects.filter(task_id=task_id).exists():
+        outp = {
+            "result": len(Field.objects.filter(task_id=task_id)) + 1,
+        }
+        return response.Response(data=outp, status=status.HTTP_200_OK)
+    else:
+        return response.Response(data=None, status=status.HTTP_400_BAD_REQUEST)

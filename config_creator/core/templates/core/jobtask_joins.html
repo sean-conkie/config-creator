@@ -6,8 +6,8 @@
   </div>
   <div class="accordion-collapse collapse" id="collapse-joins" aria-labelledby="heading-joins">
     <div class="row g-3 py-3">
-      {% if joins|length > 0 %}
       <div class="row g-3 py-1" id="id_join_container_parent">
+        {% if joins|length > 0 %}
         {% for join in joins %}
         <div class="container py-3 px-3 bg-light rounded" id="id_join_container_{{ join.join.id }}">
           <div class="row g-3 py-1">
@@ -54,7 +54,7 @@
                       </tr>
                   {% endfor %}
                   {% if join.conditions|length == 0 %}
-                    <tr><td class="text-center" colspan="6">No conditions linked to join!</td></tr>
+                    <tr class="placeholder-row"><td class="text-center" colspan="6">No conditions linked to join!</td></tr>
                   {% endif %}
                 </tbody>
               </table>
@@ -70,8 +70,8 @@
           </div>
         </div>
         {% endfor %}
+        {% endif %}
       </div>
-      {% endif %}
       <div class="col-md-2 col-lg-2">
         <button class="w-100 btn btn-primary" id="id_add_join" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}"><i class="bi bi-plus"></i> Add Join</button> 
       </div>

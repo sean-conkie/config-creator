@@ -457,7 +457,7 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
     dataType = 'dataType'
   }
   if (taskId) {
-    url = `/api/schema/${taskId}/`
+    url = `/api/task/${taskId}/schema/`
   }
 
   returnType = { // eslint-disable-line no-undef

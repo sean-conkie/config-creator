@@ -1,4 +1,5 @@
 import os
+import re
 
 from .models import *
 from core.models import JobTask, SourceTable
@@ -7,7 +8,7 @@ from django.db.models import Q
 from google.cloud import bigquery
 from lib.baseclasses import ConnectionType
 from lib.helper import isnullorwhitespace
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, isna
 from wordsegment import segment
 
 
@@ -315,7 +316,7 @@ def get_database_schema(
             connection_type = ConnectionType(user_connection.connectiontype.id)
 
             connection = {
-                "id": 0,
+                "id": user_connection.id,
                 "name": user_connection.name,
                 "credentials": user_connection.credentials,
                 "connection_string": user_connection.connectionstring,
@@ -421,7 +422,7 @@ def get_database_schema(
             {
                 "dataset": row["table_schema"].lower(),
                 "table_name": row["table_name"].lower(),
-                "alias": None if row["alias"] is None else row["alias"].lower(),
+                "alias": None if isna(row["alias"]) else row["alias"].lower(),
                 "raw_table_name": row["table_name"].lower()
                 if row["raw_table_name"] is None
                 else row["raw_table_name"].lower(),
@@ -463,9 +464,12 @@ def get_table(
 
     client = None
     query = None
+
+    m = re.search(r"^\b(?P<table_name>\w+)\b", table_name, re.IGNORECASE)
+    cleansed_table_name = m.group("table_name")
     if connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
-        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{table_name}' order by 2, 5"
+        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{cleansed_table_name}' order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
         query = {

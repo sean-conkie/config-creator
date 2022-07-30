@@ -445,7 +445,7 @@ class SourceTable(models.Model):
         max_length=255,
         blank=True,
         null=False,
-        unique=True,
+        unique=False,
     )
     base_alias = models.CharField(
         verbose_name="Base Table Alias",
@@ -461,10 +461,14 @@ class SourceTable(models.Model):
             cleaned_table_name = re.sub(
                 r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
             )
-            alias = "".join([w[:1] for w in segment(cleaned_table_name)])
-            m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
-            if m:
-                alias = m.group(1)
+
+            if self.alias:
+                alias = self.alias
+            else:
+                alias = "".join([w[:1] for w in segment(cleaned_table_name)])
+                m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
+                if m:
+                    alias = m.group(1)
 
             tables = SourceTable.objects.filter(
                 base_alias=alias,
@@ -522,6 +526,7 @@ def get_source_table(
             task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
+            alias=alias,
         )
         saved.save()
         return saved
