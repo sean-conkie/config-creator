@@ -178,4 +178,9 @@ urlpatterns = [
         login_required(PredecessorView.as_view()),
         name="api-predecessor",
     ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/tasks/",
+        login_required(possibletasks),
+        name="api-predecessor-tasks",
+    ),
 ]

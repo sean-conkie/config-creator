@@ -484,16 +484,6 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "condition_form": ConditionForm(),
             "delta_form": DeltaForm(),
             "dependency_form": DependencyForm(),
-            "tasks": JobTask.objects.filter(
-                ~Q(id=task.id),
-                ~Q(
-                    id__in=[
-                        dep.predecessor.id
-                        for dep in Dependency.objects.filter(dependant_id=task.id)
-                    ]
-                ),
-                job_id=job.id,
-            ),
             "where": where,
             "delta": delta,
             "dependencies": dependencies,

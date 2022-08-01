@@ -48,6 +48,7 @@ __all__ = [
     "HistoryOrderView",
     "newfieldposition",
     "PredecessorView",
+    "possibletasks",
 ]
 
 
@@ -1119,6 +1120,18 @@ def fieldpositionchange(
 def orderpositionchange(
     request: request, task_id: int, order_id: int, position: int
 ) -> response.Response:
+    """
+    It changes the position of an order in a task
+
+    Args:
+      request (request): request
+      task_id (int): The id of the task that the order belongs to.
+      order_id (int): The id of the order that is being moved.
+      position (int): int
+
+    Returns:
+      A response object with the data and status code.
+    """
     order = HistoryOrder.objects.get(id=order_id)
     if order.position == position:
         return response.Response(data=None, status=status.HTTP_304_NOT_MODIFIED)
@@ -1132,10 +1145,55 @@ def orderpositionchange(
 @api_view(http_method_names=["GET"])
 @permission_classes([IsAuthenticated])
 def newfieldposition(request: request, task_id: int) -> response.Response:
+    """
+    It returns the number of fields in a task + 1
+
+    Args:
+      request (request): request
+      task_id (int): The id of the task that the field is being added to.
+
+    Returns:
+      The number of fields in the task.
+    """
     if Field.objects.filter(task_id=task_id).exists():
         outp = {
             "result": len(Field.objects.filter(task_id=task_id)) + 1,
         }
         return response.Response(data=outp, status=status.HTTP_200_OK)
     else:
-        return response.Response(data=None, status=status.HTTP_400_BAD_REQUEST)
+        return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def possibletasks(request: request, job_id: int, task_id: int) -> response.Response:
+    """
+    > Return a list of possible tasks for a given job and task
+
+    Args:
+      request (request): request - this is the request object that is passed to the view.
+      job_id (int): The id of the job that the task belongs to.
+      task_id (int): The id of the task that we want to find the possible predecessors for.
+
+    Returns:
+      A list of dictionaries with the key and value of the task.
+    """
+    if JobTask.objects.filter(id=task_id).exists():
+        data = {
+            "result": [
+                {"key": t.id, "value": t.name}
+                for t in JobTask.objects.filter(
+                    ~Q(id=task_id),
+                    ~Q(
+                        id__in=[
+                            dep.predecessor.id
+                            for dep in Dependency.objects.filter(dependant_id=task_id)
+                        ]
+                    ),
+                    job_id=job_id,
+                )
+            ]
+        }
+        return response.Response(data=data, status=status.HTTP_200_OK)
+    else:
+        return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)

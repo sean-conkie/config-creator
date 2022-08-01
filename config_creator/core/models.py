@@ -293,11 +293,13 @@ class Job(models.Model):
             "name": self.name,
             "type": self.type.name,
             "description": self.description,
-            "properties": self.get_property_object().todict(),
+            "properties": self.get_property_object().todict()
+            if self.get_property_object()
+            else None,
             "created": self.created,
-            "createdby": self.createdby,
+            "createdby": self.createdby.get_full_name(),
             "lastupdate": self.lastupdate,
-            "updatedby": self.updatedby,
+            "updatedby": self.updatedby.get_full_name(),
         }
 
 
@@ -406,7 +408,7 @@ class JobTask(models.Model):
         return None
 
     def todict(self):
-        task = {
+        return {
             "name": self.name,
             "job": self.job.todict(),
             "type": self.type.name,
@@ -417,11 +419,13 @@ class JobTask(models.Model):
             "driving_table": self.driving_table,
             "staging_dataset": self.staging_dataset,
             "description": self.description,
-            "properties": self.get_property_object().todict(),
+            "properties": self.get_property_object().todict()
+            if self.get_property_object()
+            else None,
             "created": self.created,
-            "createdby": self.createdby,
+            "createdby": self.createdby.get_full_name(),
             "lastupdate": self.lastupdate,
-            "updatedby": self.updatedby,
+            "updatedby": self.updatedby.get_full_name(),
         }
 
 

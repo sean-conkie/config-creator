@@ -13,12 +13,7 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
     for (let i = 0; i < content.length; i++) {
       const rowData = content[i]
 
-      const part1 = (rowData.upper_bound) ? 'between' : 'greater than or equal to'
-      const part2 = (rowData.upper_bound) ? ` and ${rowData.lower_bound} plus ${rowData.upper_bound}` : ''
-      const deltaDescription = `select records where '${rowData.field.source_name}.${rowData.field.source_column}' is ${part1} ${rowData.lower_bound}${part2}`
-      const rowContent = [
-        createRowObject(null, null, null, deltaDescription, null, null) // eslint-disable-line no-undef
-      ]
+      let targetRowId = `id_predecessor_${rowData.id}_row`
 
       const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
@@ -26,18 +21,24 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
       deleteButton.setAttribute('aria-current', 'page')
       deleteButton.setAttribute('data-bs-toggle', 'tooltip')
       deleteButton.setAttribute('data-bs-placement', 'right')
-      deleteButton.setAttribute('data-delta-id', rowData.id)
+      deleteButton.setAttribute('data-predecessor-id', rowData.id)
       deleteButton.setAttribute('data-task-id', taskId)
       deleteButton.setAttribute('data-job-id', jobId)
-      deleteButton.setAttribute('data-target-id', 'id_delta_row')
+      deleteButton.setAttribute('data-target-id', targetRowId)
       deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
       deleteButton.addEventListener('click', function () {
-        deleteDelta(this.dataset.jobId, this.dataset.taskId, this.dataset.deltaId) // eslint-disable-line no-undef
+        deletePredecessor(this.dataset.jobId, this.dataset.taskId, this.dataset.predecessorId) // eslint-disable-line no-undef
       })
 
-      rowContent.push(createRowObject(['btn-column'], null, null, null, deleteButton)) // eslint-disable-line no-undef
+      const rowContent = [
+        createRowObject(null, null, null, rowData.predecessor.name, null),
+        createRowObject(null, null, null, rowData.predecessor.type, null),
+        createRowObject(null, null, null, rowData.predecessor.description, null),
+        createRowObject(null, null, null, rowData.predecessor.lastupdate, null),
+        createRowObject(['btn-column'], null, null, null, deleteButton) // eslint-disable-line no-undef
+      ] 
 
-      addRow([createRowObject(null, 'id_delta_row', rowContent, null, null, null)], parent, null) // eslint-disable-line no-undef
+      addRow([createRowObject(null, targetRowId, rowContent, null, null, null)], parent, null) // eslint-disable-line no-undef
     }
   }
 }
@@ -78,8 +79,36 @@ function resetPredecessorInput (elements) {
   }
 }
 
-function preparePredecessorModal () { // eslint-disable-line no-unused-vars
+function preparePredecessorModal (jobId, taskId) { // eslint-disable-line no-unused-vars
   resetPredecessorInput(document.getElementById('id_predecessor_form').children)
+  const select = document.getElementById('id_predecessor')
+  let url = `/api/job/${jobId}/task/${taskId}/predecessor/tasks/`
+  const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
+
+  let options = select.children
+
+  for (c = 0; c < options.length; c++) {
+    if (options[c].value !== '---------') {
+      select.removeChild(options[c])
+    }
+  }
+
+  xhttp.responseType = 'json'
+  xhttp.onload = function () {
+    const result = xhttp.response.result
+    for (let i = 0; i < result.length; i++) {
+      let option = createElement('option')
+      option.value = result[i].key
+      option.textContent = result[i].value
+      select.appendChild(option)
+    }
+
+  }
+
+  xhttp.open('GET', url, true)
+  xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
+  xhttp.send()
+
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_predecessor_modal')).show() // eslint-disable-line no-undef
 }
 

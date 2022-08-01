@@ -25,13 +25,13 @@
                 <td>{{ dependency.predecessor.type }}</td>
                 <td>{{ dependency.predecessor.description }}</td>
                 <td>{{ dependency.predecessor.lastupdate }}</td>
-                <td class="btn-column"><button class="btn btn-danger predecessor-delete" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" data-job-id="job.id" data-task-id="task_id" data-predecessor-id="dependency.id"><i class="bi bi-trash3"></i></button></td>
+                <td class="btn-column"><button class="btn btn-danger predecessor-delete" id="id_predecessor_{{ dependency.id }}_delete" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-predecessor-id="{{ dependency.id }}"><i class="bi bi-trash3"></i></button></td>
               </tr>
             {% endfor %}
           </tbody>
         </table>
         <div class="col-md-2 col-lg-2">
-          <button class="w-100 btn btn-primary" id="id_predecessor_add_button" type="button"><i class="bi bi-plus"></i> Add Predecessor</button> 
+          <button class="w-100 btn btn-primary" id="id_predecessor_add_button" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}"><i class="bi bi-plus"></i> Add Predecessor</button> 
         </div>
       </div>
     </div>
