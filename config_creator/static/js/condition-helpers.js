@@ -54,7 +54,7 @@ function prepareConditionModal (jobId, taskId, joinId, targetId) { // eslint-dis
 
   const tableRows = document.getElementById('id_condition_modal_tbody').children
   for (let i = 0; i < tableRows.length; i++) {
-    if (tableRows[i].tagName === 'TR') {
+    if (tableRows[i].tagName === 'TR' && tableRows[i].id !== 'id_condition_form_content') {
       tableRows[i].parentNode.removeChild(tableRows[i])
     }
   }

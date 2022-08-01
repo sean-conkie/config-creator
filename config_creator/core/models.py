@@ -707,38 +707,21 @@ def changefieldposition(field: Field, original_position: int, position: int) -> 
       0
     """
     if original_position != position:
-        fields = Field.objects.filter(~Q(id=field.id), task_id=field.task_id).order_by(
-            "position"
-        )
+        fields = Field.objects.filter(
+            ~Q(id=field.id), task_id=field.task_id, is_source_to_target=True
+        ).order_by("position")
         max_field_position = len(fields) + 1
         if original_position > max_field_position:
             original_position = max_field_position
         if fields.exists():
             for i, f in enumerate(fields):
-                # if field has default position (-1), or 0 position then set it to
-                # the field's index in returned queryset
-                if f.position < 1:
-                    f.position = i + 1
+                # identify what the current position iterator position is
+                if i + 1 >= position:
+                    current_position = i + 2
+                else:
+                    current_position = i + 1
 
-                # if field's position is greater than total number of fields, this can stop
-                # re-order.  so set it to total number of fields
-                if f.position > max_field_position:
-                    f.position = max_field_position
-
-                if (
-                    f.position <= position
-                    and f.position > 0
-                    and f.position > original_position
-                    and original_position > 0
-                ):
-                    f.position = f.position - 1
-                elif (
-                    f.position > position
-                    and f.position > 0
-                    and f.position < original_position
-                    and original_position > 0
-                ):
-                    f.position = f.position + 1
+                f.position = current_position
 
                 f.save()
     return 0

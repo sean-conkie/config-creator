@@ -113,17 +113,23 @@ class FieldView(views.APIView):
                     request.POST.get("source_name", ""),
                     re.IGNORECASE,
                 )
-                source_table = get_source_table(
-                    task_id,
-                    m.group("dataset_name"),
-                    m.group("table_name"),
-                    m.group("alias"),
-                )
                 request_post = deepcopy(request.POST)
-                request_post["source_table"] = source_table.id
+                if m:
+                    source_table = get_source_table(
+                        task_id,
+                        m.group("dataset_name"),
+                        m.group("table_name"),
+                        m.group("alias"),
+                    )
+                    request_post["source_table"] = source_table.id
                 form = FieldForm(request_post)
                 if pk:
                     form.instance.id = pk
+                    indb = Field.objects.get(id=pk)
+                    changefieldposition(
+                        indb, indb.position, int(request_post.get("position"))
+                    )
+
                 message = (
                     f"{request.POST.get('name', 'Field')} updated."
                     if pk
@@ -132,6 +138,9 @@ class FieldView(views.APIView):
                 form.instance.task_id = task_id
                 if form.is_valid():
                     form.save()
+                    if pk is None:
+                        indb = Field.objects.get(id=form.instance.id)
+                        changefieldposition(indb, -1, int(request_post.get("position")))
                     data = {
                         "message": message,
                         "type": "Success",
@@ -1159,9 +1168,14 @@ def newfieldposition(request: request, task_id: int) -> response.Response:
         outp = {
             "result": len(Field.objects.filter(task_id=task_id)) + 1,
         }
-        return response.Response(data=outp, status=status.HTTP_200_OK)
+    elif JobTask.objects.filter(id=task_id).exists():
+        outp = {
+            "result": 1,
+        }
     else:
         return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)
+
+    return response.Response(data=outp, status=status.HTTP_200_OK)
 
 
 @api_view(http_method_names=["GET"])

@@ -76,16 +76,28 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       /* eslint-disable no-undef */
       if (content[i].transformation) {
         transformation = createElement('i', null, ['fa-solid', 'fa-shuffle'], 0, null)
+        primary.title="Contains transformation" 
+        primary.setAttribute('aria-current',"page") 
+        primary.dataset['bsToggle'] = "tooltip" 
+        primary.dataset['bsPlacement'] = "top"
       }
 
       let nullable = null
       if (!content[i].is_nullable) {
         nullable = createElement('i', null, ['bi', 'bi-asterisk'], 0, null)
+        primary.title="Required field" 
+        primary.setAttribute('aria-current',"page") 
+        primary.dataset['bsToggle'] = "tooltip" 
+        primary.dataset['bsPlacement'] = "top"
       }
 
       let primary = null
       if (content[i].is_primary_key) {
         primary = createElement('i', null, ['bi', 'bi-key'], 0, null)
+        primary.title="Key field" 
+        primary.setAttribute('aria-current',"page") 
+        primary.dataset['bsToggle'] = "tooltip" 
+        primary.dataset['bsPlacement'] = "top"
       }
 
       let rowContent = []
@@ -104,17 +116,22 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null))
       ]
 
+      let sourceDiv = createElement('div')
+      let sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
+      let sourceColumn = createElement('strong', content[i].source_column)
+      sourceDiv.appendChild(sourceTableAlias)
+      sourceDiv.appendChild(sourceColumn)
       if (['createColumn', 'editColumn'].includes(action)) {
         rowContent = rowContent.concat(prefix, [
           createRowObject(null, null, null, content[i].name, null),
           createRowObject(null, null, null, content[i].data_type, null),
-          createRowObject(null, null, null, content[i].source_name + '.' + content[i].source_column, null)
+          createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
       } else if (['copyTable'].includes(action)) {
         rowContent = rowContent.concat(prefix, [
           createRowObject(null, null, null, content[i].column_name, null),
           createRowObject(null, null, null, content[i].data_type, null),
-          createRowObject(null, null, null, content[i].dataset + '.' + content[i].table_name + '.' + content[i].column_name, null)
+          createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
       } else if (['createDrivingColumn', 'createPartition'].includes(action)) {
         rowContent = [
@@ -408,7 +425,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
         document.getElementById('id_source_column').value = result.source_column
         document.getElementById('id_source_name').value = `${result.source_name} ${result.source_table_alias}`
         document.getElementById('id_source_data_type').value = result.source_data_type
-        document.getElementById('id_transformation').value = result.transformation
+        document.getElementById('id_field_transformation').value = result.transformation
+        update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
         document.getElementById('id_id').value = result.id
       } else {
         const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
@@ -441,7 +459,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
       document.getElementById('id_data_type').setAttribute('disabled', 'true')
       document.getElementById('id_position').setAttribute('disabled', 'true')
       document.getElementById('id_source_data_type').setAttribute('disabled', 'true')
-      document.getElementById('id_transformation').setAttribute('disabled', 'true')
+      document.getElementById('id_field_transformation').setAttribute('disabled', 'true')
       submitButton.classList.remove('visually-hidden')
     }
   }
