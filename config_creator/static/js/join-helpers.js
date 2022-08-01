@@ -102,7 +102,6 @@ function sendJoin (jobId, taskId, joinId) { // eslint-disable-line no-unused-var
 
       addJoinObject(data, jobId, taskId) // eslint-disable-line no-undef
       bootstrap.Modal.getOrCreateInstance(document.getElementById('id_join_modal')).hide() // eslint-disable-line no-undef
-
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef
@@ -248,8 +247,8 @@ function addJoinObject (data, jobId, taskId) {
       addConditionButton.setAttribute('type', 'button')
       addConditionButton.appendChild(createElement('i', null, ['bi', 'bi-plus'], 0, null))
       addConditionButton.appendChild(createElement('span', ' Add Condition'))
-      addConditionButton.addEventListener('click', function() {
-        prepareConditionModal(this.dataset["jobId"], this.dataset["taskId"], this.dataset["joinId"], this.dataset["targetId"])
+      addConditionButton.addEventListener('click', function () {
+        prepareConditionModal(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId, this.dataset.targetId)
       })
 
       const deleteJoinButton = createElement('button', null, ['w-100', 'btn', 'btn-danger', 'join-delete'], 0, null)
@@ -259,10 +258,10 @@ function addJoinObject (data, jobId, taskId) {
       deleteJoinButton.setAttribute('data-task-id', taskId)
       deleteJoinButton.setAttribute('data-join-id', rowData.id)
       deleteJoinButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null))
-      /* eslint-enable no-undef */
       deleteJoinButton.appendChild(createElement('span', ' Delete Join'))
-      deleteJoinButton.addEventListener('click', function() {
-        deleteJoin(this.dataset["jobId"], this.dataset["taskId"], this.dataset["joinId"])
+      /* eslint-enable no-undef */
+      deleteJoinButton.addEventListener('click', function () {
+        deleteJoin(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId)
       })
 
       addCol.append(addConditionButton)

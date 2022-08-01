@@ -1,7 +1,7 @@
 
 /**
  * It adds a row to the table for each delta object returned by the API
- * 
+ *
  * Args:
  *   data: the data returned from the API call
  *   jobId: The ID of the job
@@ -52,7 +52,7 @@ function addDeltaObject (data, jobId, taskId, targetId) {
 
 /**
  * It removes all the values from the form elements and resets the form to its default state
- * 
+ *
  * Args:
  *   elements: The elements to be reset.
  */
@@ -102,7 +102,7 @@ function prepareDeltaModal () { // eslint-disable-line no-unused-vars
 /**
  * It sends a POST request to the server with the data from the form, and then it adds the delta object
  * to the page
- * 
+ *
  * Args:
  *   jobId: The ID of the job that the task belongs to.
  *   taskId: The id of the task that the delta is being added to.
@@ -156,7 +156,7 @@ function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // esl
 
 /**
  * It deletes a delta from the database and the DOM
- * 
+ *
  * Args:
  *   jobId: the id of the job
  *   taskId: the id of the task that the delta is associated with

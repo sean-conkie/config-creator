@@ -448,7 +448,7 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
 /**
  * `setReturnType` is a function that takes in a bunch of parameters and sets the `returnType` variable
  * to an object that contains all of the parameters
- * 
+ *
  * Args:
  *   selector: The id of the element that will be populated with the selected value.
  *   columnTarget: The id of the input field where the column name will be returned.
@@ -518,7 +518,7 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
     callConnectionApi(url, modalId)
   }
   if (hideModalId) {
-    bootstrap.Modal.getOrCreateInstance(document.getElementById(hideModalId)).hide() // eslint-disable-line no-undef  
+    bootstrap.Modal.getOrCreateInstance(document.getElementById(hideModalId)).hide() // eslint-disable-line no-undef
   }
   bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show() // eslint-disable-line no-undef
 }

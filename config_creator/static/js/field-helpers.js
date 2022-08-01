@@ -76,28 +76,28 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       /* eslint-disable no-undef */
       if (content[i].transformation) {
         transformation = createElement('i', null, ['fa-solid', 'fa-shuffle'], 0, null)
-        primary.title="Contains transformation" 
-        primary.setAttribute('aria-current',"page") 
-        primary.dataset['bsToggle'] = "tooltip" 
-        primary.dataset['bsPlacement'] = "top"
+        transformation.title = 'Contains transformation'
+        transformation.setAttribute('aria-current', 'page')
+        transformation.dataset.bsToggle = 'tooltip'
+        transformation.dataset.bsPlacement = 'top'
       }
 
       let nullable = null
       if (!content[i].is_nullable) {
         nullable = createElement('i', null, ['bi', 'bi-asterisk'], 0, null)
-        primary.title="Required field" 
-        primary.setAttribute('aria-current',"page") 
-        primary.dataset['bsToggle'] = "tooltip" 
-        primary.dataset['bsPlacement'] = "top"
+        nullable.title = 'Required field'
+        nullable.setAttribute('aria-current', 'page')
+        nullable.dataset.bsToggle = 'tooltip'
+        nullable.dataset.bsPlacement = 'top'
       }
 
       let primary = null
       if (content[i].is_primary_key) {
         primary = createElement('i', null, ['bi', 'bi-key'], 0, null)
-        primary.title="Key field" 
-        primary.setAttribute('aria-current',"page") 
-        primary.dataset['bsToggle'] = "tooltip" 
-        primary.dataset['bsPlacement'] = "top"
+        primary.title = 'Key field'
+        primary.setAttribute('aria-current', 'page')
+        primary.dataset.bsToggle = 'tooltip'
+        primary.dataset.bsPlacement = 'top'
       }
 
       let rowContent = []
@@ -116,9 +116,9 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null))
       ]
 
-      let sourceDiv = createElement('div')
-      let sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
-      let sourceColumn = createElement('strong', content[i].source_column)
+      const sourceDiv = createElement('div')
+      const sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
+      const sourceColumn = createElement('strong', content[i].source_column)
       sourceDiv.appendChild(sourceTableAlias)
       sourceDiv.appendChild(sourceColumn)
       if (['createColumn', 'editColumn'].includes(action)) {
@@ -369,15 +369,14 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
     document.getElementById('id_id').setAttribute('hidden', 'true')
-    
+
     xhttp.onload = function () {
       document.getElementById('id_position').value = xhttp.response.result
     }
-    
+
     xhttp.open('GET', `/api/task/${taskId}/position/`, true)
     xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
     xhttp.send()
-
   } else if (['createDrivingColumn', 'createPartition', 'createHistoryOrder'].includes(usage)) {
     resetFieldInput(modalElements, 'reset')
     resetFieldInput(modalElements, 'edit')

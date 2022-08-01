@@ -1,5 +1,4 @@
 
-
 function addPredecessorObject (data, jobId, taskId, targetId) {
   if ('result' in data) {
     const parent = document.getElementById(targetId)
@@ -13,7 +12,7 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
     for (let i = 0; i < content.length; i++) {
       const rowData = content[i]
 
-      let targetRowId = `id_predecessor_${rowData.id}_row`
+      const targetRowId = `id_predecessor_${rowData.id}_row`
 
       const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
@@ -25,9 +24,10 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
       deleteButton.setAttribute('data-task-id', taskId)
       deleteButton.setAttribute('data-job-id', jobId)
       deleteButton.setAttribute('data-target-id', targetRowId)
-      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
+      /* eslint-disable no-undef */
+      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null))
       deleteButton.addEventListener('click', function () {
-        deletePredecessor(this.dataset.jobId, this.dataset.taskId, this.dataset.predecessorId) // eslint-disable-line no-undef
+        deletePredecessor(this.dataset.jobId, this.dataset.taskId, this.dataset.predecessorId)
       })
 
       const rowContent = [
@@ -35,23 +35,24 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
         createRowObject(null, null, null, rowData.predecessor.type, null),
         createRowObject(null, null, null, rowData.predecessor.description, null),
         createRowObject(null, null, null, rowData.predecessor.lastupdate, null),
-        createRowObject(['btn-column'], null, null, null, deleteButton) // eslint-disable-line no-undef
-      ] 
+        createRowObject(['btn-column'], null, null, null, deleteButton)
+      ]
 
-      addRow([createRowObject(null, targetRowId, rowContent, null, null, null)], parent, null) // eslint-disable-line no-undef
+      addRow([createRowObject(null, targetRowId, rowContent, null, null, null)], parent, null)
+      /* eslint-enable no-undef */
     }
   }
 }
 
 /**
  * It removes all the values from the form elements and resets the form to its default state
- * 
+ *
  * Args:
  *   elements: The elements to be reset.
  */
 function resetPredecessorInput (elements) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
-  
+
   for (let i = 0; i < elements.length; i++) {
     if (formElements.includes(elements[i].tagName)) {
       if (elements[i].tagName === 'INPUT') {
@@ -82,12 +83,12 @@ function resetPredecessorInput (elements) {
 function preparePredecessorModal (jobId, taskId) { // eslint-disable-line no-unused-vars
   resetPredecessorInput(document.getElementById('id_predecessor_form').children)
   const select = document.getElementById('id_predecessor')
-  let url = `/api/job/${jobId}/task/${taskId}/predecessor/tasks/`
+  const url = `/api/job/${jobId}/task/${taskId}/predecessor/tasks/`
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
 
-  let options = select.children
+  const options = select.children
 
-  for (c = 0; c < options.length; c++) {
+  for (let c = 0; c < options.length; c++) {
     if (options[c].value !== '---------') {
       select.removeChild(options[c])
     }
@@ -97,12 +98,11 @@ function preparePredecessorModal (jobId, taskId) { // eslint-disable-line no-unu
   xhttp.onload = function () {
     const result = xhttp.response.result
     for (let i = 0; i < result.length; i++) {
-      let option = createElement('option')
+      const option = createElement('option') // eslint-disable-line no-undef
       option.value = result[i].key
       option.textContent = result[i].value
       select.appendChild(option)
     }
-
   }
 
   xhttp.open('GET', url, true)
@@ -111,7 +111,6 @@ function preparePredecessorModal (jobId, taskId) { // eslint-disable-line no-unu
 
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_predecessor_modal')).show() // eslint-disable-line no-undef
 }
-
 
 function sendPredecessor (jobId, taskId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
   let spinnerId = null
@@ -156,7 +155,6 @@ function sendPredecessor (jobId, taskId, targetId, spinnerElementId) { // eslint
   xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
   xhttp.send(formData)
 }
-
 
 function deletePredecessor (jobId, taskId, predecessorId) { // eslint-disable-line no-unused-vars
   document.getElementById('id_predecessor_table').style.position = 'relative'
