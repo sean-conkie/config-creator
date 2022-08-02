@@ -108,7 +108,7 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
       ]
 
       if (addToModal) {
-        addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), 1) // eslint-disable-line no-undef
+        addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), document.getElementById('id_condition_modal_tbody').children.lenth) // eslint-disable-line no-undef
       }
 
       const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
@@ -177,8 +177,8 @@ function sendCondition (persist, jobId, taskId, joinId, targetId, spinnerElement
       addConditionObject(data, addToModal, jobId, taskId, targetId)
       if (addToModal === false) {
         bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).hide() // eslint-disable-line no-undef
-        resetConditionInput(document.getElementById('id_condition_modal').children)
       }
+      resetConditionInput(document.getElementById('id_condition_modal').children)
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef

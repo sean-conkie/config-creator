@@ -1,6 +1,6 @@
 from .dbhelper import get_database_schema, get_schema
 from .models import Connection, ConnectionType
-from core.models import JobTask, SourceTable
+from core.models import Job, JobTask, SourceTable
 from django import views
 from lib.baseclasses import ConnectionType as eConnectionType
 from rest_framework import renderers, response, request, status, views
@@ -29,7 +29,7 @@ class SchemaView(views.APIView):
             outp = get_database_schema(
                 get_connection(
                     request.user.id,
-                    0,
+                    connection_id,
                     connection_name,
                 ),
                 database,
@@ -41,7 +41,7 @@ class SchemaView(views.APIView):
             outp = get_schema(
                 get_connection(
                     request.user.id,
-                    0,
+                    connection_id,
                     connection_name,
                 ),
                 task_id,
@@ -69,7 +69,8 @@ class SchemaView(views.APIView):
 
 
 def get_connection(user_id: int, connection_id: int, name: str = None) -> dict:
-    if connection_id == 0:
+    connection_id = int(connection_id)
+    if connection_id < 1:
         connection_type = eConnectionType(connection_id)
 
         return {
@@ -172,5 +173,23 @@ def get_connections(request: request, task_id: int = None) -> dict:
                 "type": "connection-type",
             }
         )
+
+        job_properties = Job.objects.get(
+            id=JobTask.objects.get(id=task_id).job_id
+        ).get_property_object()
+        if job_properties:
+            tree_source.append(
+                {
+                    "name": "This Job",
+                    "content": [
+                        {
+                            "name": job_properties.target_project,
+                            "type": "connection",
+                            "id": -1,
+                        }
+                    ],
+                    "type": "connection-type",
+                }
+            )
 
     return {"result": tree_source}

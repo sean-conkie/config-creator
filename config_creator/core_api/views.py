@@ -629,9 +629,8 @@ class ConditionView(views.APIView):
         if m:
             left_table = get_source_table(
                 task_id,
-                m.group("dataset_name"),
-                m.group("table_name"),
-                m.group("alias"),
+                m.group("dataset"),
+                m.group("table"),
             )
 
         else:
@@ -670,9 +669,8 @@ class ConditionView(views.APIView):
         if m:
             right_table = get_source_table(
                 task_id,
-                m.group("dataset_name"),
-                m.group("table_name"),
-                m.group("alias"),
+                m.group("dataset"),
+                m.group("table"),
             )
 
         else:

@@ -164,7 +164,7 @@ function createDatasetElement (object, layer) {
       summary.appendChild(createElement('i', null, ['fa-solid', 'fa-database'], null, null))
       summary.insertAdjacentText('beforeend', ' ' + object.name)
       element.appendChild(summary)
-      if (object.connection_id === 0) {
+      if (object.connection_id < 1) {
         element.setAttribute('onclick', `getData(${object.connection_id}, '${object.connection_name}', '${object.name}', '${id}', ${returnType.task})`) // eslint-disable-line no-undef
       } else {
         element.setAttribute('onclick', `getData(${object.connection_id}, null, '${object.name}', '${id}', ${returnType.task})`) // eslint-disable-line no-undef
@@ -195,7 +195,7 @@ function createDatasetElement (object, layer) {
  */
 function createConnectionElement (object, layer) {
   const detail = createElement('details', null, ['tree-connection'], layer, null)
-  if (object.id === 0) {
+  if (object.id < 1) {
     detail.setAttribute('id', `id_connection_${object.name}`)
     detail.setAttribute('onclick', `getData(${object.id}, '${object.name}', null, 'id_connection_${object.name}', ${returnType.task})`) // eslint-disable-line no-undef
   } else {
@@ -234,7 +234,11 @@ function createConnectionElement (object, layer) {
 function createConnectionTypeElement (object, layer) {
   const detail = createElement('details', null, null, layer, null)
   if ({}.propertyIsEnumerable.call(object, 'name')) {
-    detail.appendChild(createElement('summary', object.name, ['tree-connection-type'], null, null))
+    const summary = createElement('summary', null, ['tree-connection-type'], null, null)
+    summary.appendChild(createElement('i', null, ['fa-solid', 'fa-circle-nodes'], null, null))
+    summary.appendChild(createElement('span', ` ${object.name}`))
+    detail.appendChild(summary)
+
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
@@ -357,7 +361,7 @@ function callConnectionApi (url, modalId) {
 function getData (id, connectionName, datasetName, elementId, taskId) { // eslint-disable-line no-unused-vars
   let url = null
 
-  if (id === 0) {
+  if (id < 1) {
     url = `/api/task/${taskId}/schema/`
   } else {
     url = '/api/schema/'

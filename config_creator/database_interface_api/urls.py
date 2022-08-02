@@ -1,6 +1,6 @@
 from .views import *
 from django.contrib.auth.decorators import login_required
-from django.urls import path
+from django.urls import path, re_path
 
 urlpatterns = [
     path(
@@ -18,8 +18,8 @@ urlpatterns = [
         login_required(SchemaView.as_view()),
         name="api-schema",
     ),
-    path(
-        "task/<int:task_id>/schema/<int:connection_id>/<str:connection_name>/",
+    re_path(
+        r"task\/(?P<task_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/$",
         login_required(SchemaView.as_view()),
         name="api-task-schema",
     ),
@@ -28,8 +28,8 @@ urlpatterns = [
         login_required(SchemaView.as_view()),
         name="api-database",
     ),
-    path(
-        "task/<int:task_id>/schema/<int:connection_id>/<str:connection_name>/<str:database>/",
+    re_path(
+        r"task\/(?P<task_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/(?P<database>[\w\-\d]+)\/$",
         login_required(SchemaView.as_view()),
         name="api-task-database",
     ),

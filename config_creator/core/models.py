@@ -492,6 +492,13 @@ class SourceTable(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        if self.source_project is None:
+            job_properties = Job.objects.get(
+                id=JobTask.objects.get(id=self.task_id).job_id
+            ).get_property_object()
+            if job_properties:
+                self.source_project = job_properties.source_project
+
         if self.id is None:
             cleaned_table_name = re.sub(
                 r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
