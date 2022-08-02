@@ -238,7 +238,6 @@ function createConnectionTypeElement (object, layer) {
     summary.appendChild(createElement('i', null, ['fa-solid', 'fa-circle-nodes'], null, null))
     summary.appendChild(createElement('span', ` ${object.name}`))
     detail.appendChild(summary)
-
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
