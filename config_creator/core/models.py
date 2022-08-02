@@ -530,6 +530,16 @@ class SourceTable(models.Model):
     def __str__(self):
         return f"{self.dataset_name}.{self.table_name} {self.alias}"
 
+    def todict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task_id,
+            "source_project": self.source_project,
+            "dataset_name": self.dataset_name,
+            "table_name": self.table_name,
+            "alias": self.alias,
+        }
+
 
 def get_source_table(
     task_id: int, dataset_name: str, table_name: str, alias: str = None
@@ -679,15 +689,20 @@ class Field(models.Model):
             "name": self.name,
             "data_type": self.data_type.name if self.data_type else None,
             "data_type_id": self.data_type_id,
+            "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}"
+            if self.source_table
+            else None,
             "source_table_alias": self.source_table.alias
             if self.source_table
             else None,
+            "source_table": self.source_table.todict() if self.source_table else None,
             "source_column": self.source_column,
             "source_data_type": self.source_data_type,
             "transformation": self.transformation,
             "position": self.position,
             "is_primary_key": self.is_primary_key,
             "is_nullable": self.is_nullable,
+            "is_history_key": self.is_history_key,
             "id": self.id,
         }
 
