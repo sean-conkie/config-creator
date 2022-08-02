@@ -1546,7 +1546,10 @@ def get_filecontent(pk: int) -> dict:
             elif c.right.source_table:
                 right = f"{c.right.source_table.alias}.{c.left.source_column}"
 
-            where["fields"] = [left, right,]
+            where["fields"] = [
+                left,
+                right,
+            ]
             params["where"].append(where)
 
         params["joins"] = [
