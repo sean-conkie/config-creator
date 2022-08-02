@@ -1,0 +1,56 @@
+
+  
+  <div class="modal" id="id_predecessor_modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header selector-header">
+          <h5 class="modal-title" id="id_predecessor_modal_title">Add Predecessor Task</h5>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="container row g-3 py-3" id="id_predecessor_modal_content">
+          <form id="id_predecessor_form">
+            <div class="row g-5">
+              <div class="col-md-12 col-lg-12">
+                <div class="row g-3">
+                    <div class="form-floating">
+                      <select class="form-select" id="id_predecessor" name="predecessor">
+                        <option selected>---------</option>
+                      </select>
+                      {{ dependency_form.predecessor.label_tag }}
+                    </div>
+                </div>
+              </div>
+            </div> 
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Close</button>
+          <button class="btn btn-primary" id="id_predecessor_submit_button" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-target-id="id_predecessor_tbody"><i class="bi bi-check-lg"></i> Submit</button>
+        </div>
+      </div>
+    </div>  
+  </div>
+
+  <script>
+    
+    const predecessorListenerMap = new Map([
+      ['id_predecessor_add_button', {
+          'function': 'preparePredecessorModal(this.dataset["jobId"], this.dataset["taskId"])',
+          'type': 'click'
+      }],
+      ['id_predecessor_submit_button', {
+          'function': 'sendPredecessor(this.dataset["jobId"], this.dataset["taskId"], "id_predecessor_tbody", "id_predecessor_form")',
+          'type': 'click'
+      }]
+    ])
+
+    const predecessorDeleteButtonList = document.getElementsByClassName("predecessor-delete");
+    for (var i = 0; i < predecessorDeleteButtonList.length; i++) {
+      predecessorListenerMap.set(predecessorDeleteButtonList[i].id, {
+        'function': 'deletePredecessor(this.dataset["jobId"], this.dataset["taskId"], this.dataset["predecessorId"]);',
+        'type': 'click'
+      })
+    }
+    
+    predecessorListenerMap.forEach(addListener); 
+  </script>

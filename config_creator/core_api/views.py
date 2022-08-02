@@ -1,7 +1,7 @@
 import re
 
 from copy import deepcopy
-from core.forms import ConditionForm, DeltaForm, FieldForm, JoinForm
+from core.forms import ConditionForm, DeltaForm, DependencyForm, FieldForm, JoinForm
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -10,6 +10,7 @@ from core.models import (
     DATA_TYPE_MAPPING,
     DEFAULT_DATA_TYPE_ID,
     Delta,
+    Dependency,
     DrivingColumn,
     Field,
     History,
@@ -30,6 +31,7 @@ from django.db.models import Q
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
+from wordsegment import segment
 
 __all__ = [
     "FieldView",
@@ -44,6 +46,9 @@ __all__ = [
     "DrivingColumnView",
     "PartitionView",
     "HistoryOrderView",
+    "newfieldposition",
+    "PredecessorView",
+    "possibletasks",
 ]
 
 
@@ -108,17 +113,23 @@ class FieldView(views.APIView):
                     request.POST.get("source_name", ""),
                     re.IGNORECASE,
                 )
-                source_table = get_source_table(
-                    task_id,
-                    m.group("dataset_name"),
-                    m.group("table_name"),
-                    m.group("alias"),
-                )
                 request_post = deepcopy(request.POST)
-                request_post["source_table"] = source_table.id
+                if m:
+                    source_table = get_source_table(
+                        task_id,
+                        m.group("dataset_name"),
+                        m.group("table_name"),
+                        m.group("alias"),
+                    )
+                    request_post["source_table"] = source_table.id
                 form = FieldForm(request_post)
                 if pk:
                     form.instance.id = pk
+                    indb = Field.objects.get(id=pk)
+                    changefieldposition(
+                        indb, indb.position, int(request_post.get("position"))
+                    )
+
                 message = (
                     f"{request.POST.get('name', 'Field')} updated."
                     if pk
@@ -127,6 +138,9 @@ class FieldView(views.APIView):
                 form.instance.task_id = task_id
                 if form.is_valid():
                     form.save()
+                    if pk is None:
+                        indb = Field.objects.get(id=form.instance.id)
+                        changefieldposition(indb, -1, int(request_post.get("position")))
                     data = {
                         "message": message,
                         "type": "Success",
@@ -615,9 +629,8 @@ class ConditionView(views.APIView):
         if m:
             left_table = get_source_table(
                 task_id,
-                m.group("dataset_name"),
-                m.group("table_name"),
-                m.group("alias"),
+                m.group("dataset"),
+                m.group("table"),
             )
 
         else:
@@ -627,7 +640,11 @@ class ConditionView(views.APIView):
                 re.IGNORECASE,
             )
 
-            left_table = SourceTable.objects.get(alias=m.group("alias")) if m else None
+            left_table = (
+                SourceTable.objects.get(alias=m.group("alias"), task_id=task_id)
+                if m
+                else None
+            )
 
         if left_table:
             left_field = Field(
@@ -652,9 +669,8 @@ class ConditionView(views.APIView):
         if m:
             right_table = get_source_table(
                 task_id,
-                m.group("dataset_name"),
-                m.group("table_name"),
-                m.group("alias"),
+                m.group("dataset"),
+                m.group("table"),
             )
 
         else:
@@ -664,11 +680,15 @@ class ConditionView(views.APIView):
                 re.IGNORECASE,
             )
 
-            right_table = SourceTable.objects.get(alias=m.group("alias")) if m else None
+            right_table = (
+                SourceTable.objects.get(alias=m.group("alias"), task_id=task_id)
+                if m
+                else None
+            )
 
         if right_table:
             right_field = Field(
-                source_table=left_table,
+                source_table=right_table,
                 source_column=m.group("field"),
             )
         else:
@@ -691,7 +711,7 @@ class ConditionView(views.APIView):
         if join_id:
             form.instance.join_id = join_id
         else:
-            form.instance.task_id = task_id
+            form.instance.where_id = task_id
 
         message = "Condition updated." if pk else "Condition created."
         if form.is_valid():
@@ -883,6 +903,88 @@ class DeltaConditionView(views.APIView):
         return response.Response(data=outp, status=return_status)
 
 
+class PredecessorView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request: request, pk: int) -> response.Response:
+
+        dependency = Dependency.objects.filter(id=pk).exists()
+        if dependency:
+            dependency = Dependency.objects.get(id=pk)
+            outp = {
+                "result": dependency,
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Dependency with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+    def post(
+        self, request: request, job_id: int, task_id: int, pk: int = None
+    ) -> response.Response:
+
+        request_post = deepcopy(request.POST)
+
+        request_post["predecessor"] = JobTask.objects.get(
+            id=request.POST.get("predecessor")
+        )
+        request_post["dependant"] = JobTask.objects.get(id=task_id)
+        form = DependencyForm(request_post)
+
+        if pk:
+            form.instance.id = pk
+
+        if form.is_valid():
+            form.save()
+            outp = {
+                "message": f"Dependency updated.",
+                "type": "Success",
+                "result": {
+                    "content": [
+                        Dependency.objects.get(id=form.instance.id).todict(),
+                    ],
+                },
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": form.errors,
+                "type": "Errors",
+            }
+            return_status = status.HTTP_400_BAD_REQUEST
+
+        return response.Response(data=outp, status=return_status)
+
+    def delete(
+        self, request: request, job_id: int, task_id: int, pk: int
+    ) -> response.Response:
+
+        indb = Dependency.objects.filter(id=pk).exists()
+        if indb:
+            indb = Dependency.objects.get(id=pk)
+            outp = {
+                "message": f"Dependency deleted.",
+                "type": "success",
+            }
+            indb.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Dependency with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
 @api_view(http_method_names=["POST"])
 @permission_classes([IsAuthenticated])
 def copytable(request, task_id, connection_id, dataset, table_name):
@@ -922,7 +1024,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
 
     for i, column in enumerate(table.get("result", {}).get("content", [])):
         field = Field(
-            name=column.get("column_name"),
+            name="_".join([w for w in segment(column.get("column_name"))]),
             source_column=column.get("column_name"),
             source_table=source_table,
             source_data_type=column.get("data_type"),
@@ -973,11 +1075,13 @@ def datatypecomparison(
     """
     data = None
 
+    cleansed_column = re.sub(r"(\s\w+)", "", column, re.IGNORECASE)
+
     if (
         target != DATA_TYPE_MAPPING.get(source.upper())
         and BigQueryDataType.objects.filter(name=target).exists()
     ):
-        data = f"safe_cast({column} as {target.lower()})"
+        data = f"safe_cast({cleansed_column} as {target.lower()})"
 
     return response.Response(data=data, status=status.HTTP_200_OK)
 
@@ -1023,6 +1127,18 @@ def fieldpositionchange(
 def orderpositionchange(
     request: request, task_id: int, order_id: int, position: int
 ) -> response.Response:
+    """
+    It changes the position of an order in a task
+
+    Args:
+      request (request): request
+      task_id (int): The id of the task that the order belongs to.
+      order_id (int): The id of the order that is being moved.
+      position (int): int
+
+    Returns:
+      A response object with the data and status code.
+    """
     order = HistoryOrder.objects.get(id=order_id)
     if order.position == position:
         return response.Response(data=None, status=status.HTTP_304_NOT_MODIFIED)
@@ -1031,3 +1147,65 @@ def orderpositionchange(
     order.save()
 
     return response.Response(data=None, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def newfieldposition(request: request, task_id: int) -> response.Response:
+    """
+    It returns the number of fields in a task + 1
+
+    Args:
+      request (request): request
+      task_id (int): The id of the task that the field is being added to.
+
+    Returns:
+      The number of fields in the task.
+    """
+    if Field.objects.filter(task_id=task_id).exists():
+        outp = {
+            "result": len(Field.objects.filter(task_id=task_id)) + 1,
+        }
+    elif JobTask.objects.filter(id=task_id).exists():
+        outp = {
+            "result": 1,
+        }
+    else:
+        return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)
+
+    return response.Response(data=outp, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def possibletasks(request: request, job_id: int, task_id: int) -> response.Response:
+    """
+    > Return a list of possible tasks for a given job and task
+
+    Args:
+      request (request): request - this is the request object that is passed to the view.
+      job_id (int): The id of the job that the task belongs to.
+      task_id (int): The id of the task that we want to find the possible predecessors for.
+
+    Returns:
+      A list of dictionaries with the key and value of the task.
+    """
+    if JobTask.objects.filter(id=task_id).exists():
+        data = {
+            "result": [
+                {"key": t.id, "value": t.name}
+                for t in JobTask.objects.filter(
+                    ~Q(id=task_id),
+                    ~Q(
+                        id__in=[
+                            dep.predecessor.id
+                            for dep in Dependency.objects.filter(dependant_id=task_id)
+                        ]
+                    ),
+                    job_id=job_id,
+                )
+            ]
+        }
+        return response.Response(data=data, status=status.HTTP_200_OK)
+    else:
+        return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)

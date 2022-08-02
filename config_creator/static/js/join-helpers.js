@@ -13,8 +13,10 @@ function resetJoinInput (elements) {
     if (formElements.includes(elements[i].tagName)) {
       if (elements[i].tagName === 'INPUT') {
         if (elements[i].type === 'checkbox') {
-          elements[i].removeAttribute('checked')
-          elements[i].value = 'false'
+          if (elements[i].checked === 'true') {
+            elements[i].setAttribute('checked', 'false')
+          }
+          elements[i].value = 'off'
         } else {
           elements[i].value = ''
         }
@@ -88,7 +90,6 @@ function prepareJoinModal (jobId, taskId, joinId) { // eslint-disable-line no-un
  *   joinId: The id of the join object. If it's null, then it's a new join object.
  */
 function sendJoin (jobId, taskId, joinId) { // eslint-disable-line no-unused-vars
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_join_modal')).hide() // eslint-disable-line no-undef
   const form = document.getElementById('id_join_form')
   const formData = new FormData(form) // eslint-disable-line no-undef
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
@@ -100,6 +101,7 @@ function sendJoin (jobId, taskId, joinId) { // eslint-disable-line no-unused-var
       createToast(data.message, data.type, true) // eslint-disable-line no-undef
 
       addJoinObject(data, jobId, taskId) // eslint-disable-line no-undef
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('id_join_modal')).hide() // eslint-disable-line no-undef
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef
@@ -244,7 +246,11 @@ function addJoinObject (data, jobId, taskId) {
       const addConditionButton = createElement('button', null, ['w-100', 'btn', 'btn-info'], 0, null)
       addConditionButton.setAttribute('type', 'button')
       addConditionButton.appendChild(createElement('i', null, ['bi', 'bi-plus'], 0, null))
-      addConditionButton.textContent = ' Add Condition'
+      addConditionButton.appendChild(createElement('span', ' Add Condition'))
+      addConditionButton.addEventListener('click', function () {
+        prepareConditionModal(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId, this.dataset.targetId)
+      })
+
       const deleteJoinButton = createElement('button', null, ['w-100', 'btn', 'btn-danger', 'join-delete'], 0, null)
       deleteJoinButton.setAttribute('type', 'button')
       deleteJoinButton.setAttribute('id', `id_delete_join_${rowData.id}`)
@@ -252,8 +258,11 @@ function addJoinObject (data, jobId, taskId) {
       deleteJoinButton.setAttribute('data-task-id', taskId)
       deleteJoinButton.setAttribute('data-join-id', rowData.id)
       deleteJoinButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null))
+      deleteJoinButton.appendChild(createElement('span', ' Delete Join'))
       /* eslint-enable no-undef */
-      deleteJoinButton.textContent = ' Delete Join'
+      deleteJoinButton.addEventListener('click', function () {
+        deleteJoin(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId)
+      })
 
       addCol.append(addConditionButton)
       deleteCol.append(deleteJoinButton)

@@ -288,6 +288,20 @@ class Job(models.Model):
 
         return None
 
+    def todict(self):
+        return {
+            "name": self.name,
+            "type": self.type.name,
+            "description": self.description,
+            "properties": self.get_property_object().todict()
+            if self.get_property_object()
+            else None,
+            "created": self.created,
+            "createdby": self.createdby.get_full_name(),
+            "lastupdate": self.lastupdate,
+            "updatedby": self.updatedby.get_full_name(),
+        }
+
 
 class JobTask(models.Model):
     name = models.SlugField(
@@ -383,15 +397,36 @@ class JobTask(models.Model):
         )
         if property_class:
             if property_class.objects.filter(task_id=self.id).exists():
-                return property_class.objects.filter(
+                return property_class.objects.get(
                     task_id=self.id,
-                )[0]
+                )
             else:
                 return property_class(
                     task_id=self.id,
                 )
 
         return None
+
+    def todict(self):
+        return {
+            "name": self.name,
+            "job": self.job.todict(),
+            "type": self.type.name,
+            "table_type": self.table_type.name,
+            "write_disposition": self.write_disposition.name,
+            "destination_dataset": self.destination_dataset,
+            "destination_table": self.destination_table,
+            "driving_table": self.driving_table,
+            "staging_dataset": self.staging_dataset,
+            "description": self.description,
+            "properties": self.get_property_object().todict()
+            if self.get_property_object()
+            else None,
+            "created": self.created,
+            "createdby": self.createdby.get_full_name(),
+            "lastupdate": self.lastupdate,
+            "updatedby": self.updatedby.get_full_name(),
+        }
 
 
 class History(models.Model):
@@ -445,7 +480,7 @@ class SourceTable(models.Model):
         max_length=255,
         blank=True,
         null=False,
-        unique=True,
+        unique=False,
     )
     base_alias = models.CharField(
         verbose_name="Base Table Alias",
@@ -457,14 +492,25 @@ class SourceTable(models.Model):
     )
 
     def save(self, *args, **kwargs):
+        if self.source_project is None:
+            job_properties = Job.objects.get(
+                id=JobTask.objects.get(id=self.task_id).job_id
+            ).get_property_object()
+            if job_properties:
+                self.source_project = job_properties.source_project
+
         if self.id is None:
             cleaned_table_name = re.sub(
                 r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
             )
-            alias = "".join([w[:1] for w in segment(cleaned_table_name)])
-            m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
-            if m:
-                alias = m.group(1)
+
+            if self.alias:
+                alias = self.alias
+            else:
+                alias = "".join([w[:1] for w in segment(cleaned_table_name)])
+                m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
+                if m:
+                    alias = m.group(1)
 
             tables = SourceTable.objects.filter(
                 base_alias=alias,
@@ -483,6 +529,16 @@ class SourceTable(models.Model):
 
     def __str__(self):
         return f"{self.dataset_name}.{self.table_name} {self.alias}"
+
+    def todict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task_id,
+            "source_project": self.source_project,
+            "dataset_name": self.dataset_name,
+            "table_name": self.table_name,
+            "alias": self.alias,
+        }
 
 
 def get_source_table(
@@ -522,6 +578,7 @@ def get_source_table(
             task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
+            alias=alias,
         )
         saved.save()
         return saved
@@ -632,15 +689,20 @@ class Field(models.Model):
             "name": self.name,
             "data_type": self.data_type.name if self.data_type else None,
             "data_type_id": self.data_type_id,
+            "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}"
+            if self.source_table
+            else None,
             "source_table_alias": self.source_table.alias
             if self.source_table
             else None,
+            "source_table": self.source_table.todict() if self.source_table else None,
             "source_column": self.source_column,
             "source_data_type": self.source_data_type,
             "transformation": self.transformation,
             "position": self.position,
             "is_primary_key": self.is_primary_key,
             "is_nullable": self.is_nullable,
+            "is_history_key": self.is_history_key,
             "id": self.id,
         }
 
@@ -667,38 +729,21 @@ def changefieldposition(field: Field, original_position: int, position: int) -> 
       0
     """
     if original_position != position:
-        fields = Field.objects.filter(~Q(id=field.id), task_id=field.task_id).order_by(
-            "position"
-        )
+        fields = Field.objects.filter(
+            ~Q(id=field.id), task_id=field.task_id, is_source_to_target=True
+        ).order_by("position")
         max_field_position = len(fields) + 1
         if original_position > max_field_position:
             original_position = max_field_position
         if fields.exists():
             for i, f in enumerate(fields):
-                # if field has default position (-1), or 0 position then set it to
-                # the field's index in returned queryset
-                if f.position < 1:
-                    f.position = i + 1
+                # identify what the current position iterator position is
+                if i + 1 >= position:
+                    current_position = i + 2
+                else:
+                    current_position = i + 1
 
-                # if field's position is greater than total number of fields, this can stop
-                # re-order.  so set it to total number of fields
-                if f.position > max_field_position:
-                    f.position = max_field_position
-
-                if (
-                    f.position <= position
-                    and f.position > 0
-                    and f.position > original_position
-                    and original_position > 0
-                ):
-                    f.position = f.position - 1
-                elif (
-                    f.position > position
-                    and f.position > 0
-                    and f.position < original_position
-                    and original_position > 0
-                ):
-                    f.position = f.position + 1
+                f.position = current_position
 
                 f.save()
     return 0
@@ -714,6 +759,12 @@ class Dependency(models.Model):
     dependant = models.ForeignKey(
         JobTask, on_delete=models.CASCADE, null=False, related_name="dependant"
     )
+
+    def todict(self):
+        return {
+            "predecessor": self.predecessor.todict(),
+            "dependant": self.dependant.todict(),
+        }
 
 
 class DrivingColumn(models.Model):
@@ -1000,9 +1051,25 @@ class BaseJobProperties(models.Model):
         null=True,
         help_text="Default source project",
     )
+    target_project = models.CharField(
+        verbose_name="Target Project",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Target project",
+    )
 
     class Meta:
         abstract = True
+
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+        }
 
 
 class BatchJobProperties(BaseJobProperties):
@@ -1014,6 +1081,16 @@ class BatchJobProperties(BaseJobProperties):
         null=False,
         help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
     )
+
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+            "prefix": self.prefix,
+        }
 
 
 class DagJobProperties(BaseJobProperties):
@@ -1049,6 +1126,19 @@ class DagJobProperties(BaseJobProperties):
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
 
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+            "tags": self.tags,
+            "owner": self.owner,
+            "email": self.email,
+            "imports": self.imports,
+        }
+
 
 class BaseJobTaskProperties(models.Model):
     task = models.OneToOneField(
@@ -1060,6 +1150,9 @@ class BaseJobTaskProperties(models.Model):
     class Meta:
         abstract = True
 
+    def todict(self):
+        return {}
+
 
 class BatchCustomJobTaskProperties(BaseJobTaskProperties):
     sql = models.CharField(
@@ -1070,6 +1163,9 @@ class BatchCustomJobTaskProperties(BaseJobTaskProperties):
         null=False,
         help_text="Enter the name of the sql fiel to be used by this task",
     )
+
+    def todict(self):
+        return {"sql": self.sql}
 
 
 def str_to_class(classname):

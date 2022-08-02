@@ -164,7 +164,7 @@ function createDatasetElement (object, layer) {
       summary.appendChild(createElement('i', null, ['fa-solid', 'fa-database'], null, null))
       summary.insertAdjacentText('beforeend', ' ' + object.name)
       element.appendChild(summary)
-      if (object.connection_id === 0) {
+      if (object.connection_id < 1) {
         element.setAttribute('onclick', `getData(${object.connection_id}, '${object.connection_name}', '${object.name}', '${id}', ${returnType.task})`) // eslint-disable-line no-undef
       } else {
         element.setAttribute('onclick', `getData(${object.connection_id}, null, '${object.name}', '${id}', ${returnType.task})`) // eslint-disable-line no-undef
@@ -195,7 +195,7 @@ function createDatasetElement (object, layer) {
  */
 function createConnectionElement (object, layer) {
   const detail = createElement('details', null, ['tree-connection'], layer, null)
-  if (object.id === 0) {
+  if (object.id < 1) {
     detail.setAttribute('id', `id_connection_${object.name}`)
     detail.setAttribute('onclick', `getData(${object.id}, '${object.name}', null, 'id_connection_${object.name}', ${returnType.task})`) // eslint-disable-line no-undef
   } else {
@@ -234,7 +234,10 @@ function createConnectionElement (object, layer) {
 function createConnectionTypeElement (object, layer) {
   const detail = createElement('details', null, null, layer, null)
   if ({}.propertyIsEnumerable.call(object, 'name')) {
-    detail.appendChild(createElement('summary', object.name, ['tree-connection-type'], null, null))
+    const summary = createElement('summary', null, ['tree-connection-type'], null, null)
+    summary.appendChild(createElement('i', null, ['fa-solid', 'fa-circle-nodes'], null, null))
+    summary.appendChild(createElement('span', ` ${object.name}`))
+    detail.appendChild(summary)
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
@@ -357,7 +360,7 @@ function callConnectionApi (url, modalId) {
 function getData (id, connectionName, datasetName, elementId, taskId) { // eslint-disable-line no-unused-vars
   let url = null
 
-  if (id === 0) {
+  if (id < 1) {
     url = `/api/task/${taskId}/schema/`
   } else {
     url = '/api/schema/'
@@ -438,14 +441,37 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
     document.getElementById(returnType.connection.target).value = element.dataset[returnType.connection.type]
     document.getElementById(returnType.connection.target).dispatchEvent(new Event('input'))
   }
+  if (returnType.modal) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById(returnType.modal)).show()
+  }
   bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide()
   /* eslint-enable no-undef */
 }
 
-function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId) { // eslint-disable-line no-unused-vars
+/**
+ * `setReturnType` is a function that takes in a bunch of parameters and sets the `returnType` variable
+ * to an object that contains all of the parameters
+ *
+ * Args:
+ *   selector: The id of the element that will be populated with the selected value.
+ *   columnTarget: The id of the input field where the column name will be returned.
+ *   columnType: The type of the column. This is used to determine the type of the column in the
+ * database.
+ *   dataTypeTarget: The id of the element that will be populated with the data type.
+ *   tableTarget: The id of the table input field
+ *   tableType: The type of table you want to return. For example, if you want to return a table from a
+ * database, you would pass in 'database'.
+ *   datasetTarget: The id of the dataset input field
+ *   connectionTarget: The id of the input field where the connection id will be stored.
+ *   reLoadModal: If true, the modal will be reloaded with the new schema.
+ *   taskId: The task id of the task you want to get the schema from.
+ *   hideModalId: The id of the modal to hide after the connection modal is shown.
+ */
+function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId) { // eslint-disable-line no-unused-vars
   let datasetType = null
   let connectionType = null
   let dataType = null
+  let modalId = null
   let url = '/api/schema/'
   if (datasetTarget) {
     datasetType = 'datasetName'
@@ -457,7 +483,10 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
     dataType = 'dataType'
   }
   if (taskId) {
-    url = `/api/schema/${taskId}/`
+    url = `/api/task/${taskId}/schema/`
+  }
+  if (hideModalId) {
+    modalId = hideModalId
   }
 
   returnType = { // eslint-disable-line no-undef
@@ -482,13 +511,17 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
       target: connectionTarget,
       type: connectionType
     },
-    task: taskId
+    task: taskId,
+    modal: modalId
   }
 
   if (reLoadModal) {
     const modalId = 'id-modal-content'
     document.getElementById(modalId).textContent = ''
     callConnectionApi(url, modalId)
+  }
+  if (hideModalId) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById(hideModalId)).hide() // eslint-disable-line no-undef
   }
   bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show() // eslint-disable-line no-undef
 }

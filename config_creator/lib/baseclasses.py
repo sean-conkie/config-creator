@@ -4,6 +4,7 @@ _all_ = ["ConnectionType"]
 
 
 class ConnectionType(Enum):
+    JOB = -1
     LOCAL = 0
     BIGQUERY = 1
     CSV = 2

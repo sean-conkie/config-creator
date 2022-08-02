@@ -6,8 +6,10 @@ function resetConditionInput (elements) {
     if (formElements.includes(elements[i].tagName)) {
       if (elements[i].tagName === 'INPUT') {
         if (elements[i].type === 'checkbox') {
-          elements[i].removeAttribute('checked')
-          elements[i].value = 'false'
+          if (elements[i].checked === 'true') {
+            elements[i].setAttribute('checked', 'false')
+          }
+          elements[i].value = 'off'
         } else {
           elements[i].value = ''
         }
@@ -49,6 +51,14 @@ function prepareConditionModal (jobId, taskId, joinId, targetId) { // eslint-dis
   document.getElementById('id_condition_modal_submit_and_close_button').setAttribute('data-join-id', joinId)
   document.getElementById('id_condition_modal_submit_and_close_button').setAttribute('data-target-id', targetId)
   document.getElementById('id_condition_modal_submit_and_close_button').setAttribute('data-persist', false)
+
+  const tableRows = document.getElementById('id_condition_modal_tbody').children
+  for (let i = 0; i < tableRows.length; i++) {
+    if (tableRows[i].tagName === 'TR' && tableRows[i].id !== 'id_condition_form_content') {
+      tableRows[i].parentNode.removeChild(tableRows[i])
+    }
+  }
+
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).show() // eslint-disable-line no-undef
 }
 
@@ -79,13 +89,13 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
       let left = null
       let right = null
       if (rowData.left.source_column) {
-        left = `${rowData.left.source_table.alias}.${rowData.left.source_table.source_column}`
+        left = `${rowData.left.source_table_alias}.${rowData.left.source_column}`
       } else {
         left = rowData.left.transformation
       }
 
       if (rowData.right.source_column) {
-        right = `${rowData.right.source_table.alias}.${rowData.right.source_table.source_column}`
+        right = `${rowData.right.source_table_alias}.${rowData.right.source_column}`
       } else {
         right = rowData.right.transformation
       }
@@ -98,7 +108,7 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
       ]
 
       if (addToModal) {
-        addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), 1) // eslint-disable-line no-undef
+        addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), document.getElementById('id_condition_modal_tbody').children.lenth) // eslint-disable-line no-undef
       }
 
       const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
@@ -134,9 +144,6 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
  *   spinnerElementId: The id of the element that will have the spinner added to it.
  */
 function sendCondition (persist, jobId, taskId, joinId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
-  if (persist === false) {
-    bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).hide() // eslint-disable-line no-undef
-  }
   let spinnerId = null
   const addToModal = persist
   if (spinnerElementId) {
@@ -168,6 +175,9 @@ function sendCondition (persist, jobId, taskId, joinId, targetId, spinnerElement
       createToast(data.message, data.type, true) // eslint-disable-line no-undef
 
       addConditionObject(data, addToModal, jobId, taskId, targetId)
+      if (addToModal === false) {
+        bootstrap.Modal.getOrCreateInstance(document.getElementById('id_condition_modal')).hide() // eslint-disable-line no-undef
+      }
       resetConditionInput(document.getElementById('id_condition_modal').children)
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef

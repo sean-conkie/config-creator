@@ -1,4 +1,13 @@
 
+/**
+ * It adds a row to the table for each delta object returned by the API
+ *
+ * Args:
+ *   data: the data returned from the API call
+ *   jobId: The ID of the job
+ *   taskId: The ID of the task that the delta is being added to.
+ *   targetId: The id of the table to add the row to.
+ */
 function addDeltaObject (data, jobId, taskId, targetId) {
   if ('result' in data) {
     const parent = document.getElementById(targetId)
@@ -41,6 +50,12 @@ function addDeltaObject (data, jobId, taskId, targetId) {
   }
 }
 
+/**
+ * It removes all the values from the form elements and resets the form to its default state
+ *
+ * Args:
+ *   elements: The elements to be reset.
+ */
 function resetDeltaInput (elements) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
   document.getElementById('id_delta_transformation').classList.remove('form-control')
@@ -53,8 +68,10 @@ function resetDeltaInput (elements) {
     if (formElements.includes(elements[i].tagName)) {
       if (elements[i].tagName === 'INPUT') {
         if (elements[i].type === 'checkbox') {
-          elements[i].removeAttribute('checked')
-          elements[i].value = 'false'
+          if (elements[i].checked === 'true') {
+            elements[i].setAttribute('checked', 'false')
+          }
+          elements[i].value = 'off'
         } else {
           elements[i].value = ''
         }
@@ -74,13 +91,25 @@ function resetDeltaInput (elements) {
   }
 }
 
+/**
+ * It resets the input fields in the modal and then shows the modal
+ */
 function prepareDeltaModal () { // eslint-disable-line no-unused-vars
   resetDeltaInput(document.getElementById('id_delta_modal').children)
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).show() // eslint-disable-line no-undef
 }
 
+/**
+ * It sends a POST request to the server with the data from the form, and then it adds the delta object
+ * to the page
+ *
+ * Args:
+ *   jobId: The ID of the job that the task belongs to.
+ *   taskId: The id of the task that the delta is being added to.
+ *   targetId: The id of the element that will be updated with the new delta object.
+ *   spinnerElementId: The id of the element that will have the spinner added to it.
+ */
 function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // eslint-disable-line no-unused-vars
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).hide() // eslint-disable-line no-undef
   let spinnerId = null
   if (spinnerElementId) {
     const parent = document.getElementById(spinnerElementId)
@@ -113,6 +142,7 @@ function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // esl
       addDeltaObject(data, jobId, taskId, targetId)
       resetDeltaInput(document.getElementById('id_delta_modal').children) // eslint-disable-line no-undef
       document.getElementById('id_add_delta_button').classList.add('visually-hidden')
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('id_delta_modal')).hide() // eslint-disable-line no-undef
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef
@@ -124,6 +154,14 @@ function sendDeltaCondition (jobId, taskId, targetId, spinnerElementId) { // esl
   xhttp.send(formData)
 }
 
+/**
+ * It deletes a delta from the database and the DOM
+ *
+ * Args:
+ *   jobId: the id of the job
+ *   taskId: the id of the task that the delta is associated with
+ *   deltaId: the id of the delta to delete
+ */
 function deleteDelta (jobId, taskId, deltaId) { // eslint-disable-line no-unused-vars
   document.getElementById('id_delta_tbody').style.position = 'relative'
   deleteModelObject(`/api/job/${jobId}/task/${taskId}/delta/${deltaId}/update/`, 'id_delta_row', 'id_delta_tbody', 'large') // eslint-disable-line no-undef

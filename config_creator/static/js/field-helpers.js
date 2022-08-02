@@ -48,7 +48,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       viewButton.setAttribute('data-bs-toggle', 'tooltip')
       viewButton.setAttribute('data-bs-placement', 'right')
       viewButton.setAttribute('data-action', 'viewColumn')
-      viewButton.setAttribute('data-field-id', rowId)
+      viewButton.setAttribute('data-field-id', rowData.id)
       viewButton.setAttribute('data-job-id', jobId)
       viewButton.setAttribute('data-task-id', taskId)
       viewButton.setAttribute('data-target', elementToAddId)
@@ -76,16 +76,28 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       /* eslint-disable no-undef */
       if (content[i].transformation) {
         transformation = createElement('i', null, ['fa-solid', 'fa-shuffle'], 0, null)
+        transformation.title = 'Contains transformation'
+        transformation.setAttribute('aria-current', 'page')
+        transformation.dataset.bsToggle = 'tooltip'
+        transformation.dataset.bsPlacement = 'top'
       }
 
       let nullable = null
       if (!content[i].is_nullable) {
         nullable = createElement('i', null, ['bi', 'bi-asterisk'], 0, null)
+        nullable.title = 'Required field'
+        nullable.setAttribute('aria-current', 'page')
+        nullable.dataset.bsToggle = 'tooltip'
+        nullable.dataset.bsPlacement = 'top'
       }
 
       let primary = null
       if (content[i].is_primary_key) {
         primary = createElement('i', null, ['bi', 'bi-key'], 0, null)
+        primary.title = 'Key field'
+        primary.setAttribute('aria-current', 'page')
+        primary.dataset.bsToggle = 'tooltip'
+        primary.dataset.bsPlacement = 'top'
       }
 
       let rowContent = []
@@ -104,17 +116,22 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null))
       ]
 
+      const sourceDiv = createElement('div')
+      const sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
+      const sourceColumn = createElement('strong', content[i].source_column)
+      sourceDiv.appendChild(sourceTableAlias)
+      sourceDiv.appendChild(sourceColumn)
       if (['createColumn', 'editColumn'].includes(action)) {
         rowContent = rowContent.concat(prefix, [
           createRowObject(null, null, null, content[i].name, null),
           createRowObject(null, null, null, content[i].data_type, null),
-          createRowObject(null, null, null, content[i].source_name + '.' + content[i].source_column, null)
+          createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
       } else if (['copyTable'].includes(action)) {
         rowContent = rowContent.concat(prefix, [
           createRowObject(null, null, null, content[i].column_name, null),
           createRowObject(null, null, null, content[i].data_type, null),
-          createRowObject(null, null, null, content[i].dataset + '.' + content[i].table_name + '.' + content[i].column_name, null)
+          createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
       } else if (['createDrivingColumn', 'createPartition'].includes(action)) {
         rowContent = [
@@ -190,7 +207,7 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
         } else {
           message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
         }
-        addFieldToTable(data, 'id_source_to_target', 'createColumn', null, taskId) // eslint-disable-line no-undef
+        addFieldToTable(data, 'id_source_to_target', 'copyTable', null, taskId) // eslint-disable-line no-undef
       } else {
         message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       }
@@ -210,12 +227,11 @@ function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
  *   element: The element that was moved.
  */
 function positionChange (element, type) { // eslint-disable-line no-unused-vars
-  const position = element.dataset.position
   let url
   if (type === 'field') {
-    url = `/api/task/${element.dataset.taskId}/field/${element.dataset.fieldId}/position/${position}/update/`
+    url = `/api/task/${element.dataset.taskId}/field/${element.dataset.fieldId}/position/${element.dataset.position}/update/`
   } else if (type === 'order') {
-    url = `/api/task/${element.dataset.taskId}/history-order/${element.dataset.fieldId}/position/${position}/update/`
+    url = `/api/task/${element.dataset.taskId}/history-order/${element.dataset.fieldId}/position/${element.dataset.position}/update/`
   }
 
   callModelApi(url, 'POST') // eslint-disable-line no-undef
@@ -278,8 +294,10 @@ function resetFieldInput (elements, action) {
         elements[i].setAttribute('disabled', 'true')
         if (elements[i].tagName === 'INPUT') {
           if (elements[i].type === 'checkbox') {
-            elements[i].removeAttribute('checked')
-            elements[i].value = 'false'
+            if (elements[i].checked === true) {
+              elements[i].checked = false
+            }
+            elements[i].value = 'off'
           } else {
             elements[i].value = ''
           }
@@ -342,12 +360,23 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
 
   const title = document.getElementById('id_field_modal_title')
 
+  const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
+  xhttp.responseType = 'json'
+
   if (usage === 'createColumn') {
     resetFieldInput(modalElements, 'reset')
     title.textContent = 'Create New Column'
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
     document.getElementById('id_id').setAttribute('hidden', 'true')
+
+    xhttp.onload = function () {
+      document.getElementById('id_position').value = xhttp.response.result
+    }
+
+    xhttp.open('GET', `/api/task/${taskId}/position/`, true)
+    xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
+    xhttp.send()
   } else if (['createDrivingColumn', 'createPartition', 'createHistoryOrder'].includes(usage)) {
     resetFieldInput(modalElements, 'reset')
     resetFieldInput(modalElements, 'edit')
@@ -371,32 +400,32 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     title.textContent = 'Column Details'
     editButton.classList.remove('visually-hidden')
 
-    const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
-
-    xhttp.responseType = 'json'
     xhttp.onload = function () {
       const data = xhttp.response
       if (xhttp.status === 200) {
         const result = data.result
         document.getElementById('id_name').value = result.name
         if (result.is_primary_key === true) {
-          document.getElementById('id_is_primary_key').setAttribute('checked', 'true')
+          document.getElementById('id_is_primary_key').checked = true
+          document.getElementById('id_is_primary_key').value = 'on'
         }
         if (result.is_nullable === true) {
-          document.getElementById('id_is_nullable').setAttribute('checked', 'true')
+          document.getElementById('id_is_nullable').checked = true
+          document.getElementById('id_is_nullable').value = 'on'
         }
         const dataTypeOptions = document.getElementById('id_data_type').children
         for (let x = 0; x < dataTypeOptions.length; x++) {
-          if (dataTypeOptions[x].value === result.data_type_id) {
+          if (dataTypeOptions[x].value === `${result.data_type_id}`) {
             dataTypeOptions[x].setAttribute('selected', 'true')
           }
         }
 
         document.getElementById('id_position').value = result.position
         document.getElementById('id_source_column').value = result.source_column
-        document.getElementById('id_source_name').value = result.source_name
+        document.getElementById('id_source_name').value = `${result.source_name} ${result.source_table_alias}`
         document.getElementById('id_source_data_type').value = result.source_data_type
-        document.getElementById('id_transformation').value = result.transformation
+        document.getElementById('id_field_transformation').value = result.transformation
+        update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
         document.getElementById('id_id').value = result.id
       } else {
         const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
@@ -419,6 +448,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetFieldInput(modalElements, 'edit')
     title.textContent = 'Edit Column Details'
     submitButton.classList.remove('visually-hidden')
+    document.getElementById('id_field_modal_action').value = usage
 
     if (usage === 'editDrivingColumn') {
       title.textContent = 'Edit History Driving Column'
@@ -428,7 +458,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
       document.getElementById('id_data_type').setAttribute('disabled', 'true')
       document.getElementById('id_position').setAttribute('disabled', 'true')
       document.getElementById('id_source_data_type').setAttribute('disabled', 'true')
-      document.getElementById('id_transformation').setAttribute('disabled', 'true')
+      document.getElementById('id_field_transformation').setAttribute('disabled', 'true')
       submitButton.classList.remove('visually-hidden')
     }
   }
@@ -448,14 +478,13 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
  *   taskId: The id of the task that the field belongs to.
  */
 function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint-disable-line no-unused-vars
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).hide() // eslint-disable-line no-undef
   document.getElementById('id_name').removeAttribute('disabled')
   document.getElementById('id_is_primary_key').removeAttribute('disabled')
   document.getElementById('id_is_nullable').removeAttribute('disabled')
   document.getElementById('id_data_type').removeAttribute('disabled')
   document.getElementById('id_position').removeAttribute('disabled')
   document.getElementById('id_source_data_type').removeAttribute('disabled')
-  document.getElementById('id_transformation').removeAttribute('disabled')
+  document.getElementById('id_field_transformation').removeAttribute('disabled')
   const form = document.getElementById('id_field_form')
   const formData = new FormData(form) // eslint-disable-line no-undef
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
@@ -475,6 +504,7 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
       }
 
       addFieldToTable(data, target, document.getElementById('id_field_modal_action').value, fieldId, jobId, taskId) // eslint-disable-line no-undef
+      bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).hide() // eslint-disable-line no-undef
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef

@@ -1,13 +1,14 @@
 import os
+import re
 
 from .models import *
-from core.models import JobTask, SourceTable
+from core.models import Field, JobTask, Join, SourceTable
 from django.conf import settings
 from django.db.models import Q
 from google.cloud import bigquery
 from lib.baseclasses import ConnectionType
 from lib.helper import isnullorwhitespace
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, read_csv, isna
 from wordsegment import segment
 
 
@@ -193,7 +194,24 @@ def get_schema(
 
     client = None
     query = None
-    if connection.get("connection_type") == ConnectionType.LOCAL:
+    if connection.get("connection_type") == ConnectionType.JOB:
+        job_id = JobTask.objects.get(id=task_id).job_id
+        destination_datasets = []
+        for task in JobTask.objects.filter(job_id=job_id):
+            dataset = {
+                "name": task.destination_dataset,
+                "content": [],
+                "type": "dataset",
+                "connection_id": connection.get("id"),
+                "connection_name": connection.get("name"),
+            }
+
+            if dataset not in destination_datasets:
+                destination_datasets.append(dataset)
+
+        return {"result": destination_datasets}
+
+    elif connection.get("connection_type") == ConnectionType.LOCAL:
         # check if user has a connection with same project
         # if they do, create query and run it with source table filter
         # if they don't build the details from what has been committed
@@ -224,8 +242,23 @@ def get_schema(
             table.dataset_name
             for table in SourceTable.objects.filter(task_id=task_id)
             if table.source_project == connection.get("name")
-            or table.source_project is None
         ]
+
+        task_datasets.extend(
+            [
+                join.left_table.dataset_name
+                for join in Join.objects.filter(task_id=task_id)
+                if join.left_table.source_project == connection.get("name")
+            ]
+        )
+
+        task_datasets.extend(
+            [
+                join.right_table.dataset_name
+                for join in Join.objects.filter(task_id=task_id)
+                if join.right_table.source_project == connection.get("name")
+            ]
+        )
 
         dataset_source = (
             JobTask.objects.select_related()
@@ -300,8 +333,53 @@ def get_database_schema(
 
     client = None
     query = None
+    tables = []
 
-    if connection.get("connection_type") == ConnectionType.LOCAL:
+    if connection.get("connection_type") == ConnectionType.JOB:
+        job_id = JobTask.objects.get(id=task_id).job_id
+
+        tables = []
+        for task in JobTask.objects.filter(job_id=job_id):
+            if task.destination_dataset == database:
+
+                cols = [
+                    {
+                        "dataset": database,
+                        "table_name": task.destination_table,
+                        "alias": "",
+                        "raw_table_name": task.destination_table,
+                        "column_name": field.name,
+                        "target_name": "_".join([w for w in segment(field.name)]),
+                        "data_type": field.data_type.name,
+                        "ordinal_position": field.position,
+                        "is_nullable": field.is_nullable,
+                        "type": "column",
+                        "connection_id": connection.get("id"),
+                    }
+                    for field in Field.objects.filter(
+                        task_id=task.id,
+                        is_source_to_target=True,
+                        source_table__source_project=connection.get("name"),
+                        source_table__dataset_name=database,
+                    ).order_by("position")
+                ]
+
+                if len(cols) > 0:
+                    tables.append(
+                        {
+                            "name": task.destination_table,
+                            "dataset": database,
+                            "content": cols,
+                            "type": "table",
+                            "connection_id": connection.get("id"),
+                        }
+                    )
+
+        return {
+            "result": tables,
+        }
+
+    elif connection.get("connection_type") == ConnectionType.LOCAL:
         # check if user has a connection with same project
         # if they do, create query and run it with source table filter
         # if they don't build the details from what has been committed
@@ -315,7 +393,7 @@ def get_database_schema(
             connection_type = ConnectionType(user_connection.connectiontype.id)
 
             connection = {
-                "id": 0,
+                "id": user_connection.id,
                 "name": user_connection.name,
                 "credentials": user_connection.credentials,
                 "connection_string": user_connection.connectionstring,
@@ -328,7 +406,13 @@ def get_database_schema(
                 "connection_type": connection_type,
             }
         driving_table = JobTask.objects.select_related().get(id=task_id).driving_table
-        tables = SourceTable.objects.filter(task_id=task_id)
+        tables = list(
+            SourceTable.objects.filter(
+                task_id=task_id,
+                source_project=connection.get("name"),
+                dataset_name=database,
+            )
+        )
 
         if connection.get("connection_type") == ConnectionType.BIGQUERY:
 
@@ -336,7 +420,7 @@ def get_database_schema(
                 f"select '{table.table_name}' table_name, '{table.alias}' alias "
                 for table in tables
                 if table.source_project == connection.get("name")
-                or table.source_project is None
+                and table.dataset_name == database
             ]
 
             if driving_table not in task_tables:
@@ -346,7 +430,7 @@ def get_database_schema(
 
             client = IBQClient(connection.get("connection_string"))
             table_condition = " union all ".join(task_tables)
-            query = f"select s.table_schema, concat(s.table_name, ' ', st.alias) table_name, s.table_name raw_table_name, st.alias alias, s.column_name, s.data_type, s.ordinal_position, s.is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS s inner join ({table_condition}) st on s.table_name = st.table_name order by 2, 5"
+            query = f"select distinct s.table_schema, concat(s.table_name, ' ', st.alias) table_name, s.table_name raw_table_name, st.alias alias, s.column_name, s.data_type, s.ordinal_position, s.is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS s inner join ({table_condition}) st on s.table_name = st.table_name order by 2, 5"
 
         elif connection.get("connection_type") == ConnectionType.CSV:
 
@@ -354,7 +438,6 @@ def get_database_schema(
                 table.dataset_name
                 for table in SourceTable.objects.filter(task_id=task_id)
                 if table.source_project == connection.get("name")
-                or table.source_project is None
             ]
 
             dataset_source = (
@@ -415,13 +498,13 @@ def get_database_schema(
         client = CSVClient(connection.get("schema").name)
 
     client.get_data(query).sort_values(by=["table_name", "ordinal_position"])
-    tables = []
+    outp_tables = []
     for table in client.data["table_name"].unique():
         cols = [
             {
                 "dataset": row["table_schema"].lower(),
                 "table_name": row["table_name"].lower(),
-                "alias": None if row["alias"] is None else row["alias"].lower(),
+                "alias": None if isna(row["alias"]) else row["alias"].lower(),
                 "raw_table_name": row["table_name"].lower()
                 if row["raw_table_name"] is None
                 else row["raw_table_name"].lower(),
@@ -438,7 +521,7 @@ def get_database_schema(
             .iterrows()
         ]
 
-        tables.append(
+        outp_tables.append(
             {
                 "name": table,
                 "dataset": client.data.iloc[0]["table_schema"],
@@ -448,8 +531,58 @@ def get_database_schema(
             }
         )
 
+    # check tables, it will be populated if local data
+    # is being searched, if any table is missing add it.
+
+    job_tasks = JobTask.objects.filter(
+        ~Q(id=task_id),
+        job_id=JobTask.objects.get(id=task_id).job_id,
+    )
+    for table in tables:
+        if table.source_project == connection.get("name"):
+
+            task = None
+            table_to_check = None
+            for t in job_tasks:
+                if table.table_name == t.destination_table:
+                    task = t
+                    break
+
+            if task:
+
+                cols = [
+                    {
+                        "dataset": table.dataset_name,
+                        "table_name": f"{table.table_name} {table.alias}",
+                        "alias": table.alias,
+                        "raw_table_name": table.table_name,
+                        "column_name": field.name,
+                        "target_name": "_".join([w for w in segment(field.name)]),
+                        "data_type": field.data_type.name,
+                        "ordinal_position": field.position,
+                        "is_nullable": field.is_nullable,
+                        "type": "column",
+                        "connection_id": connection.get("id"),
+                    }
+                    for field in Field.objects.filter(
+                        task_id=t.id,
+                        is_source_to_target=True,
+                    ).order_by("position")
+                ]
+
+                table_to_check = {
+                    "name": table.table_name,
+                    "dataset": table.dataset_name,
+                    "content": cols,
+                    "type": "table",
+                    "connection_id": connection.get("id"),
+                }
+
+            if table_to_check and not table_to_check in outp_tables:
+                outp_tables.append(table_to_check)
+
     outp = {
-        "result": tables,
+        "result": outp_tables,
     }
 
     return outp
@@ -463,9 +596,12 @@ def get_table(
 
     client = None
     query = None
+
+    m = re.search(r"^\b(?P<table_name>\w+)\b", table_name, re.IGNORECASE)
+    cleansed_table_name = m.group("table_name")
     if connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
-        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{table_name}' order by 2, 5"
+        query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{cleansed_table_name}' order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
         query = {

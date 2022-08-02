@@ -145,6 +145,7 @@ class BatchJobPropertiesForm(forms.ModelForm):
             "dataset_staging",
             "dataset_publish",
             "source_project",
+            "target_project",
         ]
 
 

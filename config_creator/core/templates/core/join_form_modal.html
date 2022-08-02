@@ -57,12 +57,12 @@
     let joinModalListenerMap = new Map()
     
       joinModalListenerMap.set("id_left_dataset_tree", {
-            "function": "setReturnType('table', null, null, null, 'id_left', 'tableFull', null, null, false, {{task.id}})",
+            "function": "setReturnType('table', null, null, null, 'id_left', 'tableFull', null, null, true, {{task.id}})",
             "type": "click"
           })
 
       joinModalListenerMap.set("id_right_dataset_tree", {
-            "function": "setReturnType('table', null, null, null, 'id_right', 'tableFull', null, null, false, {{task.id}})",
+            "function": "setReturnType('table', null, null, null, 'id_right', 'tableFull', null, null, true, {{task.id}})",
             "type": "click"
           })
 
