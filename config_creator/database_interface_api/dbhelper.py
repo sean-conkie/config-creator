@@ -605,7 +605,11 @@ def get_table(
     client = None
     query = None
 
-    m = re.search(r"^\b(?P<table_name>[a-z_-]+)\b(?:\s(?P<alias>[a-z_-]+))?", table_name, re.IGNORECASE)
+    m = re.search(
+        r"^\b(?P<table_name>[a-z_-]+)\b(?:\s(?P<alias>[a-z_-]+))?",
+        table_name,
+        re.IGNORECASE,
+    )
     cleansed_table_name = m.group("table_name")
     alias = m.group("alias") if m.group("alias") else table_name
     if connection.get("connection_type") == ConnectionType.BIGQUERY:

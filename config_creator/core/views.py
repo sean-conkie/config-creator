@@ -532,7 +532,7 @@ def editjobtaskview(request, job_id, pk=None):
             m.group("table_name"),
             "src",
         )
-        
+
         get_source_table(
             task.id,
             task.destination_dataset,
