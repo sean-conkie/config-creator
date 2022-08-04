@@ -12,7 +12,11 @@ from pandas import DataFrame, read_csv, isna
 from wordsegment import segment
 
 
-__all__ = ["get_schema", "get_database_schema", "get_table"]
+__all__ = [
+    "get_schema",
+    "get_database_schema",
+    "get_table",
+]
 
 
 class IBQClient(bigquery.Client):
@@ -534,9 +538,13 @@ def get_database_schema(
     # check tables, it will be populated if local data
     # is being searched, if any table is missing add it.
 
-    job_tasks = JobTask.objects.filter(
-        ~Q(id=task_id),
-        job_id=JobTask.objects.get(id=task_id).job_id,
+    job_tasks = (
+        JobTask.objects.filter(
+            ~Q(id=task_id),
+            job_id=JobTask.objects.get(id=task_id).job_id,
+        )
+        if task_id
+        else []
     )
     for table in tables:
         if table.source_project == connection.get("name"):
@@ -597,8 +605,9 @@ def get_table(
     client = None
     query = None
 
-    m = re.search(r"^\b(?P<table_name>\w+)\b", table_name, re.IGNORECASE)
+    m = re.search(r"^\b(?P<table_name>[a-z_-]+)\b(?:\s(?P<alias>[a-z_-]+))?", table_name, re.IGNORECASE)
     cleansed_table_name = m.group("table_name")
+    alias = m.group("alias") if m.group("alias") else table_name
     if connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
         query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{cleansed_table_name}' order by 2, 5"
@@ -616,7 +625,9 @@ def get_table(
         {
             "dataset": row["table_schema"],
             "table_name": row["table_name"],
+            "alias": alias,
             "column_name": row["column_name"],
+            "target_name": "_".join([w for w in segment(row["column_name"])]),
             "data_type": row["data_type"],
             "ordinal_position": row["ordinal_position"],
             "is_nullable": True if row["is_nullable"] == "YES" else False,

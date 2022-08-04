@@ -117,19 +117,27 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       ]
 
       const sourceDiv = createElement('div')
-      const sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
-      const sourceColumn = createElement('strong', content[i].source_column)
-      sourceDiv.appendChild(sourceTableAlias)
-      sourceDiv.appendChild(sourceColumn)
+      let sourceTableAlias = null
+      let sourceColumn = null
       if (['createColumn', 'editColumn'].includes(action)) {
+        sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
+        sourceColumn = createElement('strong', content[i].source_column)
+        sourceDiv.appendChild(sourceTableAlias)
+        sourceDiv.appendChild(sourceColumn)
+
         rowContent = rowContent.concat(prefix, [
           createRowObject(null, null, null, content[i].name, null),
           createRowObject(null, null, null, content[i].data_type, null),
           createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
       } else if (['copyTable'].includes(action)) {
+        sourceTableAlias = createElement('span', content[i].alias + '.')
+        sourceColumn = createElement('strong', content[i].column_name)
+        sourceDiv.appendChild(sourceTableAlias)
+        sourceDiv.appendChild(sourceColumn)
+
         rowContent = rowContent.concat(prefix, [
-          createRowObject(null, null, null, content[i].column_name, null),
+          createRowObject(null, null, null, content[i].target_name, null),
           createRowObject(null, null, null, content[i].data_type, null),
           createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
@@ -503,7 +511,7 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
         }
       }
 
-      addFieldToTable(data, target, document.getElementById('id_field_modal_action').value, fieldId, jobId, taskId) // eslint-disable-line no-undef
+      addFieldToTable(data, target, document.getElementById('id_field_modal_action').value, jobId, taskId) // eslint-disable-line no-undef
       bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).hide() // eslint-disable-line no-undef
     } else {
       const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef

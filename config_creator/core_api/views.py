@@ -1119,7 +1119,7 @@ def fieldpositionchange(
     field.position = position
     field.save()
 
-    return response.Response(data=None, status=status.HTTP_200_OK)
+    return response.Response(data={"result": position}, status=status.HTTP_200_OK)
 
 
 @api_view(http_method_names=["POST"])

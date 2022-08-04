@@ -532,6 +532,13 @@ def editjobtaskview(request, job_id, pk=None):
             m.group("table_name"),
             "src",
         )
+        
+        get_source_table(
+            task.id,
+            task.destination_dataset,
+            task.destination_table,
+            "trg",
+        )
 
         if (
             task.table_type != TableType.objects.get(code="TYPE1")
@@ -1564,10 +1571,10 @@ def get_filecontent(pk: int) -> dict:
                         "fields": [
                             c.left.transformation
                             if c.left.transformation
-                            else f"{c.left.source_table.dataset_name}.{c.left.source_table.table_name}.{c.left.source_column}",
+                            else f"{c.left.source_table.alias}.{c.left.source_column}",
                             c.right.transformation
                             if c.right.transformation
-                            else f"{c.right.source_table.dataset_name}.{c.right.source_table.table_name}.{c.right.source_column}",
+                            else f"{c.right.source_table.alias}.{c.right.source_column}",
                         ],
                     }
                     for c in Condition.objects.select_related().filter(join_id=j.id)
@@ -1602,6 +1609,9 @@ def get_filecontent(pk: int) -> dict:
                     ).order_by("position")
                 ],
             }
+
+        if Delta.objects.filter(task_id=task.id).exists():
+            params["delta"] = Delta.objects.get(task_id=task.id).todict()
 
         params["destination_table"] = task.destination_table
         params["destination_dataset"] = task.destination_dataset
