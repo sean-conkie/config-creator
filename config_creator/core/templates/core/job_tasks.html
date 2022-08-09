@@ -37,8 +37,8 @@
   </div>
   <div class="row g-5">
     <div class="col-md-12 col-lg-12">
+      <p class="lead">Job Details</p>
       <div class="row g-3">
-        <p class="lead">Job Details</p>
         <div class="col-6">
           <div class="form-floating">
             <input class="form-control" id="id_name" name="name" type="text" value="{{job.name}}" disabled />
@@ -63,8 +63,8 @@
   
 
   <div class="row g-5 py-3">
-    <div class="lead">Properties</div>
     <div class="col-md-12 col-lg-12">
+      <p class="lead">Properties</p>
       <div class="row g-3">
         {% for property in properties %}
           {% for key, value in property.items %}
@@ -96,13 +96,16 @@
         </thead>
         <tbody>
           {% for task in tasks %}
-            <tr>
+            <tr id="id_task_{{task.id}}_row">
               <td>{{ task.name }}</td>
               <td>{{ task.type }}</td>
               <td>{{ task.description }}</td>
               <td>{{ task.lastupdate }}</td>
               <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-              <td class="btn-column"><a class="btn btn-danger" href="{% url 'job-task-delete' job_id=job.id pk=task.id %}" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-trash3"></i></a></td>
+              <td class="btn-column"><button class="btn btn-danger task-delete" id="id_task_delete_{{ task.id }}"
+                type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
+                data-delete-url="{% url 'api-task-delete' job_id=job.id pk=task.id %}"
+                data-delete-element-id="id_task_{{task.id}}_row"><i class="bi bi-trash3"></i></button></td>
             </tr>
           {% endfor %}
           {% if tasks|length == 0 %}
@@ -120,11 +123,21 @@
 </div>
 <script src="/static/js/lazy-listener.js"></script>
 <script>
-let listenerMap = new Map([
+  let listenerMap = new Map([
     ["id_download_config", {
       "function": "event.appendChild(createSpinner('id_download_config'))",
       "type": "click"
     }]
-  ]).forEach(addListener)
+  ])
+
+  let deleteButtonList = document.getElementsByClassName("task-delete");
+  for (var i = 0; i < deleteButtonList.length; i++) {
+    listenerMap.set(deleteButtonList[i].id, {
+      "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
+      "type": "click"
+    })
+  } 
+  
+  listenerMap.forEach(addListener)
 </script>
 {% endblock %}

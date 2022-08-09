@@ -14,6 +14,11 @@ urlpatterns = [
         name="api-job-delete",
     ),
     path(
+        "job/<int:job_id>/task/<int:pk>/delete/",
+        login_required(JobTaskView.as_view()),
+        name="api-task-delete",
+    ),
+    path(
         "condition/<int:pk>/delete/",
         login_required(ConditionView.as_view()),
         name="api-condition-delete",

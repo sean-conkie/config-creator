@@ -6,6 +6,16 @@
     <h2>Jobs</h2>
     <p class="lead">View or change your in progress jobs.</p>
   </div>
+  <div class="row">
+    <div class="col-md-11 col-lg-11">
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item"><a href="{% url 'home' %}" title="Home">Home</a></li>
+          <li class="breadcrumb-item active" aria-current="page">Jobs</li>
+        </ol>
+      </nav>
+    </div>
+  </div>
   <div class="row g-5">
     <table class="table table-hover align-middle">
       <thead>
@@ -27,7 +37,7 @@
             <td>{{ job.description }}</td>
             <td>{{ job.lastupdate }}</td>
             <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-tasks' job_id=job.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-            <td class="btn-column"><a class="btn btn-info" id="id_{{ job.id }}_download" href="{% url 'job-download' pk=job.id %}" title="Download" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
+            <td class="btn-column"><a class="btn btn-info job-download" id="id_{{ job.id }}_download" href="{% url 'job-download' pk=job.id %}" title="Download" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
             <td class="btn-column"><button class="btn btn-danger job-delete" id="id_job_delete_{{ job.id }}"
               type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
               data-delete-url="{% url 'api-job-delete' pk=job.id %}"
@@ -44,14 +54,14 @@
 <script src="/static/js/lazy-listener.js"></script>
 <script>
   let listenerMap = new Map()
-  
-  {% for job in jobs %}
+
+  let downloadButtonList = document.getElementsByClassName("job-download");
+  for (var i = 0; i < downloadButtonList.length; i++) {
     listenerMap.set("id_{{ job.id }}_download", {
-          "function": "event.appendChild(createSpinner('id_{{ job.id }}_download'))",
+          "function": "event.appendChild(createSpinner(this.id))",
           "type": "click"
         })
-  {% endfor %}
-
+  }
   
   let deleteButtonList = document.getElementsByClassName("job-delete");
   for (var i = 0; i < deleteButtonList.length; i++) {

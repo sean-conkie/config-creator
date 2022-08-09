@@ -34,8 +34,8 @@
   </div>
   <div class="row g-5">
     <div class="col-md-12 col-lg-12">
+      <p class="lead">Task Details</p>
       <div class="row g-3">
-        <div class="lead">Task Details</div>
         <div class="col-6">
           <div class="form-floating">
             <input class="form-control" id="id_task_name" name="name" type="text" value="{{task.name}}" maxlength="255" required="" disabled />
@@ -56,9 +56,11 @@
         </div>
       </div>
     </div>
-    <div class="col-12">
+  </div>
+  <div class="row g-5 py-3">
+    <div class="col-md-12 col-lg-12">
+      <p class="lead">Target Table</p>
       <div class="row g-3 py-1">
-        <div class="lead">Target Table</div>
         <div class="col-6">
           <div class="form-floating">
             <input class="form-control" id="id_table_type" name="table_type" type="text" value="{{task.table_type}}" maxlength="255" required="" disabled
@@ -87,7 +89,13 @@
             <label for="id_destination_dataset">Destination Dataset:</label>
           </div>
         </div>
-        <div class="lead">Source Table</div>
+      </div>
+    </div>
+  </div>
+  <div class="row g-5">
+    <div class="col-md-12 col-lg-12">
+      <p class="lead">Source Table</p>
+      <div class="row g-3 py-1">
         <div class="col-6">
           <div class="form-floating">
             <input class="form-control" id="id_driving_table" name="driving_table" type="text" value="{{task.driving_table}}" maxlength="255" required="" disabled
@@ -102,8 +110,9 @@
             <label for="id_staging_dataset">Staging Dataset:</label>
           </div>
         </div>
-      </div> 
-    </div>
+      </div>
+    </div> 
+  </div>
   <script src="/static/js/lazy-listener.js"></script>
   <script src="/static/js/field-helpers.js"></script>
   <script src="/static/js/join-helpers.js"></script>
@@ -112,20 +121,19 @@
   <script src="/static/js/predecessor-helpers.js"></script>
   <script src="/static/js/prism.js"></script>
   <script src="/static/js/code-editor.js"></script>
-  <div class="accordion accordion-flush" id="accordian">
-      {% include 'core/jobtask_source_to_target.html' %}
-      {% include 'core/jobtask_joins.html' %}
-      {% include 'core/jobtask_where.html' %}
-      {% if task.table_type.code != 'TYPE1' %} {% include 'core/jobtask_history.html' %} {% endif %}
-      {% include 'core/jobtask_delta.html' %}
-      {% include 'core/jobtask_dependency.html' %}
-      {% include 'core/jobtask_source_tables.html' %}
-      {% include 'core/field_form_modal.html' %}
-      {% include 'core/join_form_modal.html' %}
-      {% include 'core/condition_form_modal.html' %}
-      {% include 'core/delta_form_modal.html' %}
-      {% include 'core/predecessor_form_modal.html' %}
-    </div>
+  <div class="accordion accordion-flush py-3" id="accordian">
+    {% include 'core/jobtask_source_to_target.html' %}
+    {% include 'core/jobtask_joins.html' %}
+    {% include 'core/jobtask_where.html' %}
+    {% if task.table_type.code != 'TYPE1' %} {% include 'core/jobtask_history.html' %} {% endif %}
+    {% include 'core/jobtask_delta.html' %}
+    {% include 'core/jobtask_dependency.html' %}
+    {% include 'core/jobtask_source_tables.html' %}
+    {% include 'core/field_form_modal.html' %}
+    {% include 'core/join_form_modal.html' %}
+    {% include 'core/condition_form_modal.html' %}
+    {% include 'core/delta_form_modal.html' %}
+    {% include 'core/predecessor_form_modal.html' %}
   </div>  
 </div>
 <script>

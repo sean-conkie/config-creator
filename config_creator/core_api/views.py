@@ -41,6 +41,7 @@ __all__ = [
     "DeltaConditionView",
     "fieldpositionchange",
     "JobView",
+    "JobTaskView",
     "ConditionView",
     "SourceTableView",
     "DrivingColumnView",
@@ -554,8 +555,8 @@ class JobView(views.APIView):
 
     def delete(self, request: request, pk: int) -> response.Response:
 
-        job = Job.objects.get(id=pk)
-        if job:
+        if Job.objects.filter(id=pk).exists():
+            job = Job.objects.get(id=pk)
             outp = {
                 "message": f"Job '{job.name}' deleted.",
                 "type": "success",
@@ -572,6 +573,31 @@ class JobView(views.APIView):
         return response.Response(data=outp, status=return_status)
 
 
+class JobTaskView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request: request, job_id: int, pk: int) -> response.Response:
+
+        if JobTask.objects.filter(id=pk).exists():
+            task = JobTask.objects.get(id=pk)
+            outp = {
+                "message": f"Task '{task.name}' deleted.",
+                "type": "success",
+            }
+            task.delete()
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": f"Task with id '{pk}' does not exist.",
+                "type": "error",
+            }
+            return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
 class ConditionView(views.APIView):
 
     renderer_classes = [renderers.JSONRenderer]
@@ -579,8 +605,8 @@ class ConditionView(views.APIView):
 
     def delete(self, request: request, pk: int) -> response.Response:
 
-        condition = Condition.objects.get(id=pk)
-        if condition:
+        if Condition.objects.filter(id=pk).exists():
+            condition = Condition.objects.get(id=pk)
             outp = {
                 "message": f"Condition deleted.",
                 "type": "success",
