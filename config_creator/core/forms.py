@@ -75,7 +75,7 @@ class FieldForm(forms.ModelForm):
         fields = [
             "name",
             "source_column",
-            "source_name",
+            "source_table",
             "transformation",
             "is_primary_key",
             "is_nullable",
