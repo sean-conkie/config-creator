@@ -732,7 +732,6 @@ def changefieldposition(field: Field, original_position: int, position: int) -> 
         fields = Field.objects.filter(
             ~Q(id=field.id), task_id=field.task_id, is_source_to_target=True
         ).order_by("position")
-        max_field_position = len(fields) + 1
         if fields.exists():
             for i, f in enumerate(fields):
                 # identify what the current position iterator position is
