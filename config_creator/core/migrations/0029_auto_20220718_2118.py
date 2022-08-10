@@ -123,8 +123,8 @@ def createoperatordata(apps, schema_editor):
         model(
             name="Less Than",
             code="LT",
-            symbol=">",
-            description="<",
+            symbol="<",
+            description="",
         ).save()
 
     if not model.objects.filter(code="LE").exists():
@@ -163,7 +163,7 @@ def createtasktypedata(apps, schema_editor):
 
 
 def createwritedispositiondata(apps, schema_editor):
-    model = apps.get_model("core", "TaskType")
+    model = apps.get_model("core", "WriteDisposition")
 
     if not model.objects.filter(
         name="Truncate Table",
