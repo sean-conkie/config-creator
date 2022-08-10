@@ -246,6 +246,13 @@ table.draggable tbody tr:active {
   max-width: none;
 }
 
+.condition-dialog {
+  width: 90vw;
+  height: 80vh;
+  max-height: 80vh;
+  max-width: none;
+}
+
 .selector-content {
   height: 80vh;
 }
@@ -262,4 +269,88 @@ table.draggable tbody tr:active {
 #id-modal-content {
   height: inherit;
   overflow-y: scroll;
+}
+
+.spinner-large {
+  width: 10rem;
+  height: 10rem;
+}
+
+.spinner-large-container {
+  background-color: rgba(0, 0, 0, 0.6);
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  z-index: 9;
+  top: 0;
+  left: 0;
+  border-radius: 0.25rem;
+  backdrop-filter: blur(20px);
+  justify-content: center;
+  display: flex;
+  align-items: center;
+}
+
+
+.editing, .highlighting {
+  /* Both elements need the same text and space styling so they are directly on top of each other */
+  margin: 0.5rem 0;
+  border: 0;
+  width: calc(100% - 32px);
+  height: 150px;
+}
+
+.editing, .highlighting, .highlighting * {
+  font-family: Consolas,Monaco,'Andale Mono','Ubuntu Mono',monospace;
+  font-size: 1em;
+  tab-size: 2;
+}
+
+.editing, .highlighting {
+  position: absolute;
+  top: 0;
+  left: 0;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  overflow: auto;
+  white-space: nowrap;
+  border-radius: 0.25rem!important;
+}
+
+.highlighting {
+  z-index: 0;
+}    
+
+.editing {
+  color: transparent;
+  background: transparent;
+  caret-color: #212529; 
+  resize: none;
+  z-index: 1;
+  padding: 1em;
+}
+
+.editing-label {
+  position: absolute;
+  padding: 1rem 0.75rem;
+  pointer-events: none;
+  border: 1px solid transparent;
+  transform-origin: 0 0;
+  transition: opacity .1s ease-in-out,transform .1s ease-in-out;
+  z-index: 1;
+  opacity: .65;
+  transform: scale(.85) translateY(-0.5rem) translateX(0.15rem);
+}
+
+.editing-field, .highlighting-field {
+  width: calc(50% - calc(var(--bs-gutter-x) * 2.5))!important;
+  top: 150px!important;
+  height: calc(3.5rem + 2px)!important;
+  padding-top: 1.625rem!important;
+  padding-right: 0.75rem!important;
+  padding-left: 0.75rem!important;
+  padding-bottom: 0.625rem!important;
+  line-height: 1.5!important;
+  display: block!important;
+  margin-left: var(--bs-gutter-x)!important;
 }

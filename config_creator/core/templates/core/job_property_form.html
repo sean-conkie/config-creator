@@ -3,7 +3,7 @@
 {% block content %}
 {% load static %}
 <div class="container">
-  <div class="py-5 text-center">
+  <div class="py-1 text-center">
     <h2>Job Properties</h2>
     <p class="lead">View or change your job properties.</p>
   </div>
@@ -21,7 +21,7 @@
   {% endif %}
     {% csrf_token %}
     <div class="row g-5">
-      <div class="col-md-8 col-lg-9">
+      <div class="col-md-12 col-lg-12">
         <div class="row g-3">
           {% for field in form %}
             <div class="col-6">
@@ -33,19 +33,19 @@
           {% endfor %}
         </div>
       </div>
-      <div class="col-md-4 col-lg-3">
-        <div class="row g-3">
-          <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
-        </div>
-        <div class="row g-3 py-3">
-          {% if job_id != None %}
-            <a class="w-100 btn btn-secondary" href="{% url 'job-tasks' job_id=job_id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
-          {% else %}
-            <a class="w-100 btn btn-secondary" href="{% url 'jobs' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
-          {% endif %}
-        </div>
-      </div>
     </div>  
+    <div class="row g-3 py-3 justify-content-end">
+      <div class="col-md-2 col-lg-2">
+        {% if job_id != None %}
+          <a class="w-100 btn btn-secondary" href="{% url 'job-tasks' job_id=job_id %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+        {% else %}
+          <a class="w-100 btn btn-secondary" href="{% url 'jobs' %}" title=""><i class="bi bi-x-lg"></i> Cancel</a>
+        {% endif %}
+      </div>
+      <div class="col-md-2 col-lg-2">
+        <button class="w-100 btn btn-primary" type="submit"><i class="bi bi-check-lg"></i> Save</button>
+      </div>
+    </div>
     
   </form>
 </div>

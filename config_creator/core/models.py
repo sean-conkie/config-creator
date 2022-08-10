@@ -5,6 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
+from wordsegment import segment
 
 __all__ = [
     "JobType",
@@ -41,6 +42,7 @@ __all__ = [
     "DEFAULT_DATA_TYPE_ID",
     "SourceTable",
     "changeorderposition",
+    "get_source_table",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -276,15 +278,29 @@ class Job(models.Model):
         property_class = str_to_class(f"{self.type.code.title()}JobProperties")
         if property_class:
             if property_class.objects.filter(job_id=self.id).exists():
-                return property_class.objects.filter(
+                return property_class.objects.get(
                     job_id=self.id,
-                )[0]
+                )
             else:
                 return property_class(
                     job_id=self.id,
                 )
 
         return None
+
+    def todict(self):
+        return {
+            "name": self.name,
+            "type": self.type.name,
+            "description": self.description,
+            "properties": self.get_property_object().todict()
+            if self.get_property_object()
+            else None,
+            "created": self.created,
+            "createdby": self.createdby.get_full_name(),
+            "lastupdate": self.lastupdate,
+            "updatedby": self.updatedby.get_full_name(),
+        }
 
 
 class JobTask(models.Model):
@@ -368,26 +384,6 @@ class JobTask(models.Model):
     def __str__(self):
         return self.name
 
-    def save(self, *args, **kwargs):
-        super(JobTask, self).save(*args, **kwargs)
-        # add table to source table list if not exists
-        m = None
-        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
-        if self.driving_table:
-            m = re.search(pattern, self.driving_table, re.IGNORECASE)
-
-        if (
-            m
-            and not SourceTable.objects.filter(
-                dataset_name=m.group("dataset_name"), table_name=m.group("table")
-            ).exists()
-        ):
-            SourceTable(
-                dataset_name=m.group("dataset_name"),
-                table_name=m.group("table"),
-                task_id=self.id,
-            ).save()
-
     def get_property_object(self):
 
         """
@@ -401,15 +397,36 @@ class JobTask(models.Model):
         )
         if property_class:
             if property_class.objects.filter(task_id=self.id).exists():
-                return property_class.objects.filter(
+                return property_class.objects.get(
                     task_id=self.id,
-                )[0]
+                )
             else:
                 return property_class(
                     task_id=self.id,
                 )
 
         return None
+
+    def todict(self):
+        return {
+            "name": self.name,
+            "job": self.job.todict(),
+            "type": self.type.name,
+            "table_type": self.table_type.name,
+            "write_disposition": self.write_disposition.name,
+            "destination_dataset": self.destination_dataset,
+            "destination_table": self.destination_table,
+            "driving_table": self.driving_table,
+            "staging_dataset": self.staging_dataset,
+            "description": self.description,
+            "properties": self.get_property_object().todict()
+            if self.get_property_object()
+            else None,
+            "created": self.created,
+            "createdby": self.createdby.get_full_name(),
+            "lastupdate": self.lastupdate,
+            "updatedby": self.updatedby.get_full_name(),
+        }
 
 
 class History(models.Model):
@@ -438,6 +455,135 @@ class BigQueryDataType(models.Model):
         return self.name
 
 
+class SourceTable(models.Model):
+    task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
+    source_project = models.CharField(
+        verbose_name="Source Project",
+        max_length=255,
+        blank=True,
+        null=True,
+    )
+    dataset_name = models.CharField(
+        verbose_name="Dataset Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    table_name = models.CharField(
+        verbose_name="Table Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    alias = models.CharField(
+        verbose_name="Table Alias",
+        max_length=255,
+        blank=True,
+        null=False,
+        unique=False,
+    )
+    base_alias = models.CharField(
+        verbose_name="Base Table Alias",
+        max_length=255,
+        blank=True,
+        null=False,
+        unique=False,
+        help_text="Non-unique alias, used to identify number of occurences of the table.",
+    )
+
+    def save(self, *args, **kwargs):
+        if self.source_project is None:
+            job_properties = Job.objects.get(
+                id=JobTask.objects.get(id=self.task_id).job_id
+            ).get_property_object()
+            if job_properties:
+                self.source_project = job_properties.source_project
+
+        if self.id is None:
+            cleaned_table_name = re.sub(
+                r"^((?:cc|fc)_[a-z]+_)", "", self.table_name.lower()
+            )
+
+            if self.alias:
+                alias = self.alias
+            else:
+                alias = "".join([w[:1] for w in segment(cleaned_table_name)])
+                m = re.search(r"_(p\d+)$", cleaned_table_name, re.IGNORECASE)
+                if m:
+                    alias = m.group(1)
+
+            tables = SourceTable.objects.filter(
+                base_alias=alias,
+                task_id=self.task_id,
+            )
+
+            if tables.exists():
+                counter = len(tables) + 1
+                self.alias = f"{alias}_{counter}"
+            else:
+                self.alias = alias
+
+            self.base_alias = alias
+
+        super(SourceTable, self).save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.dataset_name}.{self.table_name} {self.alias}"
+
+    def todict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task_id,
+            "source_project": self.source_project,
+            "dataset_name": self.dataset_name,
+            "table_name": self.table_name,
+            "alias": self.alias,
+        }
+
+
+def get_source_table(
+    task_id: int, dataset_name: str, table_name: str, alias: str = None
+) -> SourceTable:
+    """
+    > If a SourceTable object exists with the given task_id, dataset_name, table_name, and alias, return
+    it. Otherwise, create a new SourceTable object with the given task_id, dataset_name, and table_name,
+    and return it
+
+    Args:
+      task_id (int): The id of the task that the source table is associated with.
+      dataset_name (str): The name of the dataset that the table is in.
+      table_name (str): The name of the table in the dataset.
+      alias (str): The alias of the table.
+
+    Returns:
+      A SourceTable object
+    """
+    if dataset_name is None or table_name is None:
+        return None
+
+    if SourceTable.objects.filter(
+        task_id=task_id,
+        dataset_name=dataset_name,
+        table_name=table_name,
+        alias=alias,
+    ).exists():
+        return SourceTable.objects.get(
+            task_id=task_id,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            alias=alias,
+        )
+    else:
+        saved = SourceTable(
+            task_id=task_id,
+            dataset_name=dataset_name,
+            table_name=table_name,
+            alias=alias,
+        )
+        saved.save()
+        return saved
+
+
 class Field(models.Model):
     name = models.CharField(
         verbose_name="Name", max_length=255, blank=True, null=True, help_text=""
@@ -464,19 +610,20 @@ class Field(models.Model):
         null=True,
         help_text="",
     )
+    source_table = models.ForeignKey(
+        SourceTable,
+        verbose_name="Source Table",
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
+    )
     source_data_type = models.CharField(
         verbose_name="Source Data Type",
         max_length=255,
         blank=True,
         null=True,
         help_text="Data type for the column at source",
-    )
-    source_name = models.CharField(
-        verbose_name="Source Table",
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Source for the column, include dataset and table names: <dataset name>.<table name>",
     )
     transformation = models.TextField(
         verbose_name="Column Transformation",
@@ -497,7 +644,15 @@ class Field(models.Model):
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        outp = []
+        """
+        If the column has a transformation, return the transformation and the name. If the column has a
+        source table and column, return the source table and column and the name. If the column has a
+        source table and no column, return the source table and the name. If the column has no source
+        table, return the name
+
+        Returns:
+          The name of the column, the table it is in, and the dataset it is in.
+        """
         name = ""
         table = ""
         column = ""
@@ -508,8 +663,8 @@ class Field(models.Model):
 
             return f"{self.transformation}{name}"
 
-        if self.source_name:
-            table = f"{self.source_name}."
+        if self.source_table:
+            table = f"{self.source_table.dataset_name}.{self.source_table.table_name}."
 
         if self.source_column:
             column = f"{self.source_column}"
@@ -519,29 +674,6 @@ class Field(models.Model):
             name = f"{self.name}"
 
         return f"{table}{column}{name}"
-
-    def save(self, *args, **kwargs):
-        super(Field, self).save(*args, **kwargs)
-        # add table to source table list if not exists
-        m = None
-        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
-        if self.source_name:
-            m = re.search(pattern, self.source_name, re.IGNORECASE)
-
-        if self.transformation and not m:
-            m = re.search(pattern, self.transformation, re.IGNORECASE)
-
-        if (
-            m
-            and not SourceTable.objects.filter(
-                dataset_name=m.group("dataset_name"), table_name=m.group("table")
-            ).exists()
-        ):
-            SourceTable(
-                dataset_name=m.group("dataset_name"),
-                table_name=m.group("table"),
-                task_id=self.task_id,
-            ).save()
 
     def todict(self) -> dict:
         """
@@ -553,19 +685,35 @@ class Field(models.Model):
           A dictionary with the column name, data type, source name, source column, source data type,
         transformation, position, is primary key, is nullable, and id.
         """
-        return {
+        outp = {
             "name": self.name,
-            "data_type": self.data_type.name,
+            "data_type": self.data_type.name if self.data_type else None,
             "data_type_id": self.data_type_id,
-            "source_name": self.source_name,
+            "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}"
+            if self.source_table
+            else None,
+            "source_table_alias": self.source_table.alias
+            if self.source_table
+            else None,
+            "source_table": self.source_table.todict() if self.source_table else None,
             "source_column": self.source_column,
             "source_data_type": self.source_data_type,
             "transformation": self.transformation,
             "position": self.position,
             "is_primary_key": self.is_primary_key,
             "is_nullable": self.is_nullable,
+            "is_history_key": self.is_history_key,
             "id": self.id,
         }
+
+        if self.source_table:
+            outp["source_name"] = (
+                f"{self.source_table.dataset_name}.{self.source_table.table_name}"
+                if self.source_table.dataset_name and self.source_table.table_name
+                else None
+            )
+
+        return outp
 
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
@@ -581,38 +729,18 @@ def changefieldposition(field: Field, original_position: int, position: int) -> 
       0
     """
     if original_position != position:
-        fields = Field.objects.filter(~Q(id=field.id), task_id=field.task_id).order_by(
-            "position"
-        )
-        max_field_position = len(fields) + 1
-        if original_position > max_field_position:
-            original_position = max_field_position
+        fields = Field.objects.filter(
+            ~Q(id=field.id), task_id=field.task_id, is_source_to_target=True
+        ).order_by("position")
         if fields.exists():
             for i, f in enumerate(fields):
-                # if field has default position (-1), or 0 position then set it to
-                # the field's index in returned queryset
-                if f.position < 1:
-                    f.position = i + 1
+                # identify what the current position iterator position is
+                if i + 1 >= position:
+                    current_position = i + 2
+                else:
+                    current_position = i + 1
 
-                # if field's position is greater than total number of fields, this can stop
-                # re-order.  so set it to total number of fields
-                if f.position > max_field_position:
-                    f.position = max_field_position
-
-                if (
-                    f.position <= position
-                    and f.position > 0
-                    and f.position > original_position
-                    and original_position > 0
-                ):
-                    f.position = f.position - 1
-                elif (
-                    f.position > position
-                    and f.position > 0
-                    and f.position < original_position
-                    and original_position > 0
-                ):
-                    f.position = f.position + 1
+                f.position = current_position
 
                 f.save()
     return 0
@@ -628,6 +756,12 @@ class Dependency(models.Model):
     dependant = models.ForeignKey(
         JobTask, on_delete=models.CASCADE, null=False, related_name="dependant"
     )
+
+    def todict(self):
+        return {
+            "predecessor": self.predecessor.todict(),
+            "dependant": self.dependant.todict(),
+        }
 
 
 class DrivingColumn(models.Model):
@@ -752,24 +886,37 @@ $THISMONTH = date of first day of current month
 """,
     )
     upper_bound = models.IntegerField(
+        blank=True,
         null=True,
         help_text="Input seconds to add to lower_bound, 86400 represents one day",
     )
 
+    def todict(self):
+        return {
+            "id": self.id,
+            "task_id": self.task.id,
+            "lower_bound": self.lower_bound,
+            "upper_bound": self.upper_bound,
+            "field": self.field.todict(),
+        }
+
 
 class Join(models.Model):
-    left = models.CharField(
+    left_table = models.ForeignKey(
+        SourceTable,
         verbose_name="Left Table",
-        max_length=255,
-        blank=True,
-        null=True,
-        help_text="Leave blank to default to driving table.",
-    )
-    right = models.CharField(
-        verbose_name="Right Table",
-        max_length=255,
-        blank=False,
+        on_delete=models.CASCADE,
         null=False,
+        blank=True,
+        related_name="left_table",
+    )
+    right_table = models.ForeignKey(
+        SourceTable,
+        verbose_name="Right Table",
+        on_delete=models.CASCADE,
+        null=False,
+        blank=True,
+        related_name="right_table",
     )
     type = models.ForeignKey(
         JoinType, on_delete=models.SET_DEFAULT, null=False, default=DEFAULT_JOIN_ID
@@ -777,42 +924,32 @@ class Join(models.Model):
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
 
     def __str__(self):
-        return f"{self.task.name} join to {self.right}"
+        """
+        The function returns a string that contains the name of the task and the name of the right table
 
-    def save(self, *args, **kwargs):
-        super(Join, self).save(*args, **kwargs)
-        # add table to source table list if not exists
-        m = None
-        pattern = r"(?P<dataset_name>\b\w+\b)\.(?P<table>\b\w+\b)"
-        if self.left:
-            m = re.search(pattern, self.left, re.IGNORECASE)
+        Returns:
+          The name of the task and the right table it is joining to.
+        """
+        return f"{self.task.name}: join to {self.right_table}"
 
-        if (
-            m
-            and not SourceTable.objects.filter(
-                dataset_name=m.group("dataset_name"), table_name=m.group("table")
-            ).exists()
-        ):
-            SourceTable(
-                dataset_name=m.group("dataset_name"),
-                table_name=m.group("table"),
-                task_id=self.task_id,
-            ).save()
+    def todict(self):
+        """
+        It returns a dictionary of the object's attributes
 
-        if self.right:
-            m = re.search(pattern, self.right, re.IGNORECASE)
-
-        if (
-            m
-            and not SourceTable.objects.filter(
-                dataset_name=m.group("dataset_name"), table_name=m.group("table")
-            ).exists()
-        ):
-            SourceTable(
-                dataset_name=m.group("dataset_name"),
-                table_name=m.group("table"),
-                task_id=self.task_id,
-            ).save()
+        Returns:
+          A dictionary of the join object.
+        """
+        return {
+            "id": self.id,
+            "type": self.type.name,
+            "left_table": self.left_table.__str__(),
+            "right_table": self.right_table.__str__(),
+            "conditions": [
+                condition.todict()
+                for condition in Condition.objects.filter(join_id=self.id)
+            ],
+            "task_id": self.task_id,
+        }
 
 
 class Condition(models.Model):
@@ -864,6 +1001,15 @@ class Condition(models.Model):
     def __str__(self):
         return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
 
+    def todict(self):
+        return {
+            "id": self.id,
+            "operator": self.operator.name,
+            "logic_operator": self.logic_operator.name,
+            "left": self.left.todict(),
+            "right": self.right.todict(),
+        }
+
 
 class BaseJobProperties(models.Model):
     job = models.OneToOneField(
@@ -902,9 +1048,25 @@ class BaseJobProperties(models.Model):
         null=True,
         help_text="Default source project",
     )
+    target_project = models.CharField(
+        verbose_name="Target Project",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Target project",
+    )
 
     class Meta:
         abstract = True
+
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+        }
 
 
 class BatchJobProperties(BaseJobProperties):
@@ -916,6 +1078,16 @@ class BatchJobProperties(BaseJobProperties):
         null=False,
         help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
     )
+
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+            "prefix": self.prefix,
+        }
 
 
 class DagJobProperties(BaseJobProperties):
@@ -951,6 +1123,19 @@ class DagJobProperties(BaseJobProperties):
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
 
+    def todict(self):
+        return {
+            "dataset_source": self.dataset_source,
+            "dataset_publish": self.dataset_publish,
+            "dataset_staging": self.dataset_staging,
+            "target_project": self.target_project,
+            "source_project": self.source_project,
+            "tags": self.tags,
+            "owner": self.owner,
+            "email": self.email,
+            "imports": self.imports,
+        }
+
 
 class BaseJobTaskProperties(models.Model):
     task = models.OneToOneField(
@@ -961,6 +1146,9 @@ class BaseJobTaskProperties(models.Model):
 
     class Meta:
         abstract = True
+
+    def todict(self):
+        return {}
 
 
 class BatchCustomJobTaskProperties(BaseJobTaskProperties):
@@ -973,30 +1161,8 @@ class BatchCustomJobTaskProperties(BaseJobTaskProperties):
         help_text="Enter the name of the sql fiel to be used by this task",
     )
 
-
-class SourceTable(models.Model):
-    task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
-    source_project = models.CharField(
-        verbose_name="Source Project",
-        max_length=255,
-        blank=True,
-        null=True,
-    )
-    dataset_name = models.CharField(
-        verbose_name="Dataset Name",
-        max_length=255,
-        blank=False,
-        null=False,
-    )
-    table_name = models.CharField(
-        verbose_name="Table Name",
-        max_length=255,
-        blank=False,
-        null=False,
-    )
-
-    def __str__(self):
-        return f"{self.dataset_name}.{self.table_name}"
+    def todict(self):
+        return {"sql": self.sql}
 
 
 def str_to_class(classname):

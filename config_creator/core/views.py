@@ -471,6 +471,10 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
                 }
             ),
             "joins": joins,
+            "join_form": JoinForm(),
+            "condition_form": ConditionForm(),
+            "delta_form": DeltaForm(),
+            "dependency_form": DependencyForm(),
             "where": where,
             "delta": delta,
             "dependencies": dependencies,
@@ -503,10 +507,29 @@ def editjobtaskview(request, job_id, pk=None):
         )
         task.staging_dataset = request.POST["staging_dataset"]
         task.type = TaskType.objects.get(id=request.POST["type"])
-        task.createdby = request.user
+        if not task.id:
+            task.createdby = request.user
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
+        m = re.search(
+            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            request.POST.get("driving_table", ""),
+            re.IGNORECASE,
+        )
+        get_source_table(
+            task.id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            "src",
+        )
+
+        get_source_table(
+            task.id,
+            task.destination_dataset,
+            task.destination_table,
+            "trg",
+        )
 
         if (
             task.table_type != TableType.objects.get(code="TYPE1")
@@ -1226,7 +1249,6 @@ def get_joins(task_id: str) -> list[dict]:
             "conditions": [
                 {
                     "condition": condition,
-                    # "fields": ConditionField.objects.filter(condition_id=condition.id),
                 }
                 for condition in Condition.objects.filter(join_id=j.id)
             ],
@@ -1557,8 +1579,8 @@ def get_filecontent(pk: int) -> dict:
                 if k not in ["_state", "id", "task_id"]
             },
             "dependencies": [
-                dependant.name
-                for dependant in Dependency.objects.select_related().filter(
+                dependency.predecessor.name
+                for dependency in Dependency.objects.select_related().filter(
                     dependant_id=task.id
                 )
             ],
@@ -1567,60 +1589,62 @@ def get_filecontent(pk: int) -> dict:
 
         params = t["parameters"]
 
-        params["source_project_override"] = {
-            f"{st.dataset_name}.{st.table_name}": st.source_project
-            for st in SourceTable.objects.filter(task_id=task.id)
-            if st.source_project
+        params["source_tables"] = {
+            st.alias: st.todict() for st in SourceTable.objects.filter(task_id=task.id)
         }
 
         params["source_to_target"] = [
-            {
-                "name": f.name,
-                "data_type": f.data_type.name,
-                "source_column": f.source_column,
-                "source_name": f.source_name,
-                "transformation": f.transformation,
-                "nullable": f.is_nullable,
-                "pk": f.is_primary_key,
-                "hk": f.is_history_key,
-            }
+            f.todict()
             for f in Field.objects.select_related()
-            .filter(task_id=task.id, is_source_to_target=True)
+            .filter(
+                task_id=task.id,
+                is_source_to_target=True,
+            )
             .order_by("position")
         ]
 
-        params["where"] = [
-            {
+        params["where"] = []
+        for c in Condition.objects.select_related().filter(where_id=task.id):
+            where = {
                 "logic_operator": c.logic_operator.code,
                 "operator": c.operator.symbol,
-                "fields": [
-                    c.left.transformation
-                    if c.left.transformation
-                    else f"{c.left.source_name}.{c.left.source_column}",
-                    c.right.transformation
-                    if c.right.transformation
-                    else f"{c.right.source_name}.{c.right.source_column}",
-                ],
+                "fields": [],
             }
-            for c in Condition.objects.select_related().filter(where_id=task.id)
-        ]
+
+            left = None
+            if c.left.transformation:
+                left = c.left.transformation
+            elif c.left.source_table:
+                left = f"{c.left.source_table.alias}.{c.left.source_column}"
+
+            right = None
+            if c.right.transformation:
+                right = c.right.transformation
+            elif c.right.source_table:
+                right = f"{c.right.source_table.alias}.{c.left.source_column}"
+
+            where["fields"] = [
+                left,
+                right,
+            ]
+            params["where"].append(where)
 
         params["joins"] = [
             {
-                "left": j.left,
-                "right": j.right,
+                "left": j.left_table.todict(),
+                "right": j.right_table.todict(),
                 "type": j.type.code,
                 "on": [
                     {
                         "logic_operator": c.logic_operator.code,
                         "operator": c.operator.symbol,
                         "fields": [
-                            f"{c.left.source_name}.{c.left.source_column}"
-                            if c.left.source_name
-                            else c.left.transformation,
-                            f"{c.right.source_name}.{c.right.source_column}"
-                            if c.right.source_name
-                            else c.right.transformation,
+                            c.left.transformation
+                            if c.left.transformation
+                            else f"{c.left.source_table.alias}.{c.left.source_column}",
+                            c.right.transformation
+                            if c.right.transformation
+                            else f"{c.right.source_table.alias}.{c.right.source_column}",
                         ],
                     }
                     for c in Condition.objects.select_related().filter(join_id=j.id)
@@ -1636,35 +1660,28 @@ def get_filecontent(pk: int) -> dict:
         if history:
             params["history"] = {
                 "partition": [
-                    {
-                        "source_name": f.field.source_name,
-                        "source_column": f.field.source_column,
-                    }
+                    f.field.todict()
                     for f in Partition.objects.select_related().filter(
                         history_id=history.id
                     )
                 ],
                 "driving_column": [
-                    {
-                        "name": f.field.name,
-                        "source_name": f.field.source_name,
-                        "source_column": f.field.source_column,
-                        "transformation": f.field.transformation,
-                    }
+                    f.field.todict()
                     for f in DrivingColumn.objects.filter(history_id=history.id)
                 ],
                 "order": [
                     {
-                        "source_name": f.field.source_name,
-                        "source_column": f.field.source_column,
-                        "transformation": f.field.transformation,
-                        "id_desc": f.is_desc,
+                        "field": f.field.todict(),
+                        "is_desc": f.is_desc,
                     }
                     for f in HistoryOrder.objects.filter(
                         history_id=history.id
                     ).order_by("position")
                 ],
             }
+
+        if Delta.objects.filter(task_id=task.id).exists():
+            params["delta"] = Delta.objects.get(task_id=task.id).todict()
 
         params["destination_table"] = task.destination_table
         params["destination_dataset"] = task.destination_dataset

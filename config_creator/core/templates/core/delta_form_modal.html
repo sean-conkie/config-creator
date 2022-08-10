@@ -1,0 +1,109 @@
+
+  
+  <div class="modal" id="id_delta_modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered selector-dialog">
+      <div class="modal-content">
+        <div class="modal-header selector-header">
+          <h5 class="modal-title" id="id_delta_modal_title">Add Delta Condition</h5>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="container row g-3 py-3" id="id_delta_modal_content">
+          <form id="id_delta_form">
+            <div class="row g-5">
+              <div class="col-md-12 col-lg-12">
+                <div class="row g-3">
+                  <div class="lead">Condition Details</div>
+                  <div class="col-6">
+                    <textarea class="editing editing-field" id="id_delta_lower_bound" name="lower_bound" spellcheck="false" oninput="update(this.value, this.dataset['targetId']); syncScroll(this, this.dataset['targetId']);" onscroll="syncScroll(this, this.dataset['targetId']);" onkeydown="checkTab(this, event, this.dataset['targetId']);" data-target-id="id_delta_lower_bound_highlighting"></textarea>
+                    <pre class="highlighting highlighting-field" id="id_delta_lower_bound_highlighting" aria-hidden="true">
+                      <code class="language-sql" id="id_delta_lower_bound_highlighting-content"></code>
+                    </pre>
+                    <label class="editing-label" for="id_delta_lower_bound">Lower Bound:</label>
+                  </div>
+                  <div class="col-6">
+                      <div class="form-floating">
+                        <input class="form-control" id="{{ delta_form.upper_bound.id_for_label }}" name="upper_bound" type="number" step="86400" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="{{ delta_form.upper_bound.help_text }}" />
+                        {{ delta_form.upper_bound.label_tag }}
+                      </div>
+                  </div>
+                </div>
+                <div class="row g-3 py-3">
+                  <div class="lead">Select field to apply condition</div>
+                  <div class="row g-3">
+                    <div class="col-6">
+                      <div class="input-group mb-3">
+                        <button class="input-group-text" id="id_delta_source_column_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
+                        <div class="form-floating flex-grow-1">
+                          <input class="form-control" id="id_delta_source_column" name="source_column" type="text" maxlength="255" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" />
+                          <label for="id_delta_source_column">Source Column:</label>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-6">
+                      <div class="input-group mb-3">
+                        <button class="input-group-text" id="id_delta_source_name_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                        <div class="form-floating flex-grow-1">
+                          <input class="form-control" id="id_delta_source_name" name="source_name" type="text"  maxlength="255" data-bs-container="body" data-bs-toggle="popover" data-bs-placement="right" data-bs-trigger="hover focus" data-bs-animation="true" data-bs-content="" />
+                          <label for="id_delta_source_name">Source Table:</label>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="row g-3">
+                    <div class="lead">Field Transformation</div>
+                    <div class="col-sm-12">
+                      <div class="form-floating" style="height: 20vh">
+                        <textarea class="editing" id="id_delta_transformation" name="transformation" spellcheck="false" oninput="update(this.value, this.dataset['targetId']); syncScroll(this, this.dataset['targetId']);" onscroll="syncScroll(this, this.dataset['targetId']);" onkeydown="checkTab(this, event, this.dataset['targetId']);" data-target-id="id_delta_transformation_highlighting"></textarea>
+                        <pre class="highlighting" id="id_delta_transformation_highlighting" aria-hidden="true">
+                          <code class="language-sql" id="id_delta_transformation_highlighting-content"></code>
+                        </pre>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>  
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Close</button>
+          <button class="btn btn-primary" id="id_delta_submit_button" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-target-id="id_delta_tbody"><i class="bi bi-check-lg"></i> Submit</button>
+        </div>
+      </div>
+    </div>  
+  </div>
+
+  <script>
+    
+    const deltaListenerMap = new Map([
+      ["id_delta_source_name_tree", {
+          "function": "setReturnType('column', 'id_delta_source_column', 'columnName', null, 'id_delta_source_name', 'tableFull', null, null, false, {{task.id}})",
+          "type": "click"
+      }],
+      ["id_delta_source_column_tree", {
+          "function": "setReturnType('column', 'id_delta_source_column', 'columnName', null, 'id_delta_source_name', 'tableFull', null, null, false, {{task.id}})",
+          "type": "click"
+      }]
+    ])
+
+
+    {% if delta|length == 0 %}
+      deltaListenerMap.set('id_add_delta_button', {
+        'function': 'prepareDeltaModal()',
+        'type': 'click'
+      })
+    {% else %}
+      deltaListenerMap.set('id_delta_delete', {
+        'function': 'deleteDelta(this.dataset["jobId"], this.dataset["taskId"], this.dataset["deltaId"])',
+        'type': 'click'
+      })
+      document.getElementById('id_add_delta_button').classList.add('visually-hidden')
+    {% endif %}
+    
+    deltaListenerMap.set('id_delta_submit_button', {
+      'function': 'sendDeltaCondition(this.dataset["jobId"], this.dataset["taskId"], this.dataset["targetId"])',
+      'type': 'click'
+    })
+    
+    deltaListenerMap.forEach(addListener); 
+  </script>

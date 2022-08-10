@@ -4,22 +4,19 @@ from django.urls import path
 
 from .views import PartitionView
 from .views import orderpositionchange
+from .views import JoinView
+from .views import newfieldposition
 
 urlpatterns = [
-    path(
-        "field/<int:pk>/delete/",
-        login_required(FieldView.as_view()),
-        name="api-field-delete",
-    ),
-    path(
-        "field/<int:pk>/",
-        login_required(FieldView.as_view()),
-        name="api-field",
-    ),
     path(
         "job/<int:pk>/delete/",
         login_required(JobView.as_view()),
         name="api-job-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:pk>/delete/",
+        login_required(JobTaskView.as_view()),
+        name="api-task-delete",
     ),
     path(
         "condition/<int:pk>/delete/",
@@ -67,6 +64,16 @@ urlpatterns = [
         name="api-task-history-order-position-update",
     ),
     path(
+        "field/<int:pk>/",
+        login_required(FieldView.as_view()),
+        name="api-field",
+    ),
+    path(
+        "field/<int:pk>/delete/",
+        login_required(FieldView.as_view()),
+        name="api-field-delete",
+    ),
+    path(
         "task/<int:task_id>/field/add/",
         login_required(FieldView.as_view()),
         name="api-field-add",
@@ -90,5 +97,95 @@ urlpatterns = [
         "history-order/<int:pk>/delete/",
         login_required(HistoryOrderView.as_view()),
         name="api-history-order-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/",
+        login_required(JoinView.as_view()),
+        name="api-join",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/add/",
+        login_required(JoinView.as_view()),
+        name="api-join-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/update/",
+        login_required(JoinView.as_view()),
+        name="api-join-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:pk>/delete/",
+        login_required(JoinView.as_view()),
+        name="api-join-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/<int:pk>/",
+        login_required(ConditionView.as_view()),
+        name="api-condition",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/add/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/join/<int:join_id>/condition/add/",
+        login_required(ConditionView.as_view()),
+        name="api-join-condition-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/<int:pk>/update/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/condition/<int:pk>/delete/",
+        login_required(ConditionView.as_view()),
+        name="api-condition-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/add/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/update/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/delta/<int:pk>/delete/",
+        login_required(DeltaConditionView.as_view()),
+        name="api-delta-delete",
+    ),
+    path(
+        "task/<int:task_id>/position/",
+        login_required(newfieldposition),
+        name="api-position",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/add/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor-add",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/<int:pk>/update/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor-update",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/<int:pk>/delete/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor-delete",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/<int:pk>/",
+        login_required(PredecessorView.as_view()),
+        name="api-predecessor",
+    ),
+    path(
+        "job/<int:job_id>/task/<int:task_id>/predecessor/tasks/",
+        login_required(possibletasks),
+        name="api-predecessor-tasks",
     ),
 ]

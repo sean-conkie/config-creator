@@ -51,12 +51,21 @@ function createColumnElement (object, layer) {
   const columnName = createElement('td', object.column_name, ['tree-table-select'], null, null)
   columnName.setAttribute('onclick', 'selectElement(this)')
   columnName.setAttribute('data-column-name', object.column_name)
-  columnName.setAttribute('data-column-full', object.dataset + '.' + object.table_name + '.' + object.column_name)
-  columnName.setAttribute('data-table-name', object.table_name)
-  columnName.setAttribute('data-table-full', object.dataset + '.' + object.table_name)
+  if (object.alias) {
+    columnName.setAttribute('data-column-full', object.alias + '.' + object.column_name)
+  } else {
+    columnName.setAttribute('data-column-full', object.dataset + '.' + object.raw_table_name + '.' + object.column_name)
+  }
+  columnName.setAttribute('data-table-name', object.raw_table_name)
+  if (object.alias) {
+    columnName.setAttribute('data-table-full', object.dataset + '.' + object.raw_table_name + ' ' + object.alias)
+  } else {
+    columnName.setAttribute('data-table-full', object.dataset + '.' + object.raw_table_name)
+  }
   columnName.setAttribute('data-dataset-name', object.dataset)
   columnName.setAttribute('data-data-type', object.data_type)
-  const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.table_name + '_' + object.column_name
+  columnName.setAttribute('data-target-name', object.target_name)
+  const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.raw_table_name + '_' + object.column_name
   columnName.setAttribute('id', id)
   const dataType = createElement('td', object.data_type, null, null, null)
   let mode
@@ -84,17 +93,17 @@ function createColumnElement (object, layer) {
  */
 function createTableElement (object, layer) {
   let element
-  if (returnType.selector === 'table') {
+  if (returnType.selector === 'table') { // eslint-disable-line no-undef
     element = createElement('div', null, ['tree-table-select'], layer * 10, null)
   } else {
     element = createElement('details', null, ['tree-table'], layer * 10, null)
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
-    const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.name
+    const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.name.replace(/\s/g, '_')
     element.setAttribute('id', id)
 
-    if (returnType.selector === 'table') {
+    if (returnType.selector === 'table') { // eslint-disable-line no-undef
       element.setAttribute('onclick', 'selectElement(this)')
       element.insertAdjacentText('beforeend', ' ' + object.name)
       element.setAttribute('data-table-name', object.name)
@@ -135,7 +144,7 @@ function createTableElement (object, layer) {
  */
 function createDatasetElement (object, layer) {
   let element
-  if (returnType.selector === 'dataset') {
+  if (returnType.selector === 'dataset') { // eslint-disable-line no-undef
     element = createElement('div', null, ['tree-dataset-select'], layer * 10, null)
   } else {
     element = createElement('details', null, ['tree-dataset'], layer * 10, null)
@@ -145,7 +154,7 @@ function createDatasetElement (object, layer) {
     const id = 'id_connection_' + object.connection_id + '_dataset_' + object.name
     element.setAttribute('id', id)
 
-    if (returnType.selector === 'dataset') {
+    if (returnType.selector === 'dataset') { // eslint-disable-line no-undef
       element.setAttribute('onclick', 'selectElement(this)')
       element.insertAdjacentText('beforeend', ' ' + object.name)
       element.setAttribute('data-dataset-name', object.name)
@@ -155,7 +164,11 @@ function createDatasetElement (object, layer) {
       summary.appendChild(createElement('i', null, ['fa-solid', 'fa-database'], null, null))
       summary.insertAdjacentText('beforeend', ' ' + object.name)
       element.appendChild(summary)
-      element.setAttribute('onclick', 'getData(' + object.connection_id + ", '" + object.name + "', '" + id + "')")
+      if (object.connection_id < 1) {
+        element.setAttribute('onclick', `getData(${object.connection_id}, '${object.connection_name}', '${object.name}', '${id}', ${returnType.task})`) // eslint-disable-line no-undef
+      } else {
+        element.setAttribute('onclick', `getData(${object.connection_id}, null, '${object.name}', '${id}', ${returnType.task})`) // eslint-disable-line no-undef
+      }
 
       if ({}.propertyIsEnumerable.call(object, 'content')) {
         const child = parseObject(object.content, layer + 1)
@@ -182,8 +195,13 @@ function createDatasetElement (object, layer) {
  */
 function createConnectionElement (object, layer) {
   const detail = createElement('details', null, ['tree-connection'], layer, null)
-  detail.setAttribute('id', 'id_connection_' + object.id)
-  detail.setAttribute('onclick', 'getData(' + object.id + ", null, 'id_connection_" + object.id + "')")
+  if (object.id < 1) {
+    detail.setAttribute('id', `id_connection_${object.name}`)
+    detail.setAttribute('onclick', `getData(${object.id}, '${object.name}', null, 'id_connection_${object.name}', ${returnType.task})`) // eslint-disable-line no-undef
+  } else {
+    detail.setAttribute('id', `id_connection_${object.id}`)
+    detail.setAttribute('onclick', `getData(${object.id}, null, null, 'id_connection_${object.id}', ${returnType.task})`) // eslint-disable-line no-undef
+  }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
     const summary = createElement('summary', null, ['tree-connection-summary'], null, null)
@@ -216,7 +234,10 @@ function createConnectionElement (object, layer) {
 function createConnectionTypeElement (object, layer) {
   const detail = createElement('details', null, null, layer, null)
   if ({}.propertyIsEnumerable.call(object, 'name')) {
-    detail.appendChild(createElement('summary', object.name, ['tree-connection-type'], null, null))
+    const summary = createElement('summary', null, ['tree-connection-type'], null, null)
+    summary.appendChild(createElement('i', null, ['fa-solid', 'fa-circle-nodes'], null, null))
+    summary.appendChild(createElement('span', ` ${object.name}`))
+    detail.appendChild(summary)
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
@@ -263,9 +284,9 @@ function parseObject (arr, layer) {
         html = createConnectionElement(arr[i], layer)
       } else if (arr[i].type === 'dataset') {
         html = createDatasetElement(arr[i], layer)
-      } else if (arr[i].type === 'table' && ['column', 'table'].includes(returnType.selector)) {
+      } else if (arr[i].type === 'table' && ['column', 'table'].includes(returnType.selector)) { // eslint-disable-line no-undef
         html = createTableElement(arr[i], layer)
-      } else if (arr[i].type === 'column' && returnType.selector === 'column') {
+      } else if (arr[i].type === 'column' && returnType.selector === 'column') { // eslint-disable-line no-undef
         html = createColumnElement(arr[i], layer)
       }
 
@@ -305,7 +326,7 @@ function callConnectionApi (url, modalId) {
 
         const data = JSON.parse(this.responseText)
         if ({}.propertyIsEnumerable.call(data, 'result')) {
-          const html = parseObject(data.result, 1, null)
+          const html = parseObject(data.result, 1)
           if (html && html.nodeType) {
             parent.appendChild(html)
           }
@@ -326,20 +347,33 @@ function callConnectionApi (url, modalId) {
 }
 
 /**
- * It takes three parameters, and then calls the `callConnectionApi` function with the first two
- * parameters, and the third parameter as the element ID
+ * It takes in a bunch of parameters, and then calls the `callConnectionApi` function with a URL and an
+ * element ID
  *
  * Args:
- *   id: The id of the schema
- *   name: The name of the schema.
- *   elementId: The id of the element that will be replaced with the data.
+ *   id: The id of the schema.
+ *   connectionName: The name of the connection.
+ *   datasetName: The name of the dataset to get the schema for.
+ *   elementId: The id of the element that will be used to display the data.
+ *   taskId: The id of the task.
  */
-function getData (id, name, elementId) { // eslint-disable-line no-unused-vars
-  let url = '/api/schema/'
-  if (name) {
-    url = url + id + '/' + name + '/'
+function getData (id, connectionName, datasetName, elementId, taskId) { // eslint-disable-line no-unused-vars
+  let url = null
+
+  if (id < 1) {
+    url = `/api/task/${taskId}/schema/`
   } else {
-    url = url + id + '/'
+    url = '/api/schema/'
+  }
+
+  if (datasetName && connectionName) {
+    url = `${url}${id}/${connectionName}/${datasetName}/`
+  } else if (connectionName) {
+    url = `${url}${id}/${connectionName}/`
+  } else if (datasetName) {
+    url = `${url}${id}/${datasetName}/`
+  } else {
+    url = `${url}${id}/`
   }
 
   callConnectionApi(url, elementId)
@@ -355,7 +389,7 @@ function getData (id, name, elementId) { // eslint-disable-line no-unused-vars
  *   element: The element that was clicked on.
  */
 function selectElement (element) { // eslint-disable-line no-unused-vars
-  const selector = returnType.selector
+  const selector = returnType.selector // eslint-disable-line no-undef
   let message
   if (selector === 'column') {
     message = "Would you like to select column '" + element.dataset.columnFull + "'?"
@@ -380,6 +414,7 @@ function selectElement (element) { // eslint-disable-line no-unused-vars
  *   id: The id of the element that was clicked.
  */
 function submitSelection (id) { // eslint-disable-line no-unused-vars
+  /* eslint-disable no-undef */
   const selector = returnType.selector
   const element = document.getElementById(id)
   if (selector === 'column' && returnType.column.target) {
@@ -393,6 +428,10 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
   if ((selector === 'column' || selector === 'table') && returnType.table.target) {
     document.getElementById(returnType.table.target).value = element.dataset[returnType.table.type]
     document.getElementById(returnType.table.target).dispatchEvent(new Event('input'))
+    const targetName = document.getElementById('id_name')
+    if (targetName !== null) {
+      targetName.value = (targetName.value === '') ? element.dataset.targetName : targetName.value
+    }
   }
   if (returnType.dataset.target) {
     document.getElementById(returnType.dataset.target).value = element.dataset[returnType.dataset.type]
@@ -402,13 +441,38 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
     document.getElementById(returnType.connection.target).value = element.dataset[returnType.connection.type]
     document.getElementById(returnType.connection.target).dispatchEvent(new Event('input'))
   }
-  bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide() // eslint-disable-line no-undef
+  if (returnType.modal) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById(returnType.modal)).show()
+  }
+  bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide()
+  /* eslint-enable no-undef */
 }
 
-function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal) { // eslint-disable-line no-unused-vars
+/**
+ * `setReturnType` is a function that takes in a bunch of parameters and sets the `returnType` variable
+ * to an object that contains all of the parameters
+ *
+ * Args:
+ *   selector: The id of the element that will be populated with the selected value.
+ *   columnTarget: The id of the input field where the column name will be returned.
+ *   columnType: The type of the column. This is used to determine the type of the column in the
+ * database.
+ *   dataTypeTarget: The id of the element that will be populated with the data type.
+ *   tableTarget: The id of the table input field
+ *   tableType: The type of table you want to return. For example, if you want to return a table from a
+ * database, you would pass in 'database'.
+ *   datasetTarget: The id of the dataset input field
+ *   connectionTarget: The id of the input field where the connection id will be stored.
+ *   reLoadModal: If true, the modal will be reloaded with the new schema.
+ *   taskId: The task id of the task you want to get the schema from.
+ *   hideModalId: The id of the modal to hide after the connection modal is shown.
+ */
+function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId) { // eslint-disable-line no-unused-vars
   let datasetType = null
   let connectionType = null
   let dataType = null
+  let modalId = null
+  let url = '/api/schema/'
   if (datasetTarget) {
     datasetType = 'datasetName'
   }
@@ -418,8 +482,14 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
   if (dataTypeTarget) {
     dataType = 'dataType'
   }
+  if (taskId) {
+    url = `/api/task/${taskId}/schema/`
+  }
+  if (hideModalId) {
+    modalId = hideModalId
+  }
 
-  returnType = {
+  returnType = { // eslint-disable-line no-undef
     selector,
     column: {
       target: columnTarget,
@@ -440,50 +510,18 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
     connection: {
       target: connectionTarget,
       type: connectionType
-    }
+    },
+    task: taskId,
+    modal: modalId
   }
 
   if (reLoadModal) {
     const modalId = 'id-modal-content'
     document.getElementById(modalId).textContent = ''
-    callConnectionApi('/api/schema/', modalId)
+    callConnectionApi(url, modalId)
+  }
+  if (hideModalId) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById(hideModalId)).hide() // eslint-disable-line no-undef
   }
   bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show() // eslint-disable-line no-undef
 }
-
-let returnType = {
-  selector: 'column',
-  column: {
-    target: 'id_source_column',
-    type: 'columnName'
-  },
-  datatype: {
-    target: 'id_source_data_type',
-    type: 'dataType'
-  },
-  table: {
-    target: 'id_source_name',
-    type: 'tableFull'
-  },
-  dataset: {
-    target: null,
-    type: null
-  },
-  connection: {
-    target: null,
-    type: null
-  }
-}
-
-callConnectionApi('/api/schema/', 'id-modal-content')
-
-const myModalEl = document.getElementById('connection-modal')
-myModalEl.addEventListener('hidden.bs.modal', function (event) {
-  document.getElementById('id_selection').textContent = ''
-  document.getElementById('id_submit_button').removeAttribute('onclick')
-  document.getElementById('id_submit_button').classList.add('visually-hidden')
-  const details = document.getElementsByTagName('details')
-  for (let i = 0; i < details.length; i++) {
-    details[i].removeAttribute('open')
-  }
-})

@@ -11,22 +11,19 @@
       <table class="table table-hover align-middle">
         <thead>
           <tr>
-            <th scope="col">Project Name</th>
             <th scope="col">Table Name</th>
-            <th></th>
+            <th scope="col">Alias</th>
+            <th scope="col">Project Name</th>
             <th></th>
           </tr>
         </thead>
         <tbody>
           {% for table in source_tables %}
             <tr id="id_source_table_{{ table.id }}_row">
-              <td id="id_source_table_project_{{ table.id }}">{{ table.source_project }}</td>
               <td id="id_source_table_table_{{ table.id }}">{{ table.dataset_name }}.{{ table.table_name }}</td>
-              <td><button class="btn btn-secondary" id="id_source_table_change_{{ table.id }}_button" type="button" data-bs-toggle="modal" data-bs-target="#changeForm" data-source-table-id="{{ table.id }}"><i class="bi bi-pencil"></i></button></td>
-              <td class="btn-column"><button class="btn btn-danger source-delete" id="id_source_delete_{{ table.id }}"
-                  type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
-                  data-delete-url="{% url 'api-source-table-delete' pk=table.id %}"
-                  data-delete-element-id="id_source_table_{{ table.id }}_row"><i class="bi bi-trash3"></i></button></td>
+              <td>{{ table.alias }}</td>
+              <td id="id_source_table_project_{{ table.id }}">{{ table.source_project }}</td>
+              <td><button class="btn btn-secondary" id="id_source_table_change_{{ table.id }}_button" type="button" data-bs-toggle="modal" data-bs-target="#changeForm" data-source-table-id="{{ table.id }}" data-target-id="id_source_table_project_{{ table.id }}" data-task-id="{{ task.id }}"><i class="bi bi-pencil"></i></button></td>
             </tr>
           {% endfor %}
         </tbody>
@@ -45,24 +42,26 @@
       </div>
       <div class="container">
         <p class="lead">Enter source project to use instead of default</p>
-        <div class="modal-body modal-dialog-centered">
-          <div class="row g-3">
-            <div class="col-12">
-              <div class="form-floating">
-                <input class="form-control" id="id_source_table_name" name="name" type="text" maxlength="250" disabled/>
-                <label for="id_name">Table Name</label>
+        <form id="id_source_table_form">
+          <div class="modal-body modal-dialog-centered">
+            <div class="row g-3">
+              <div class="col-12">
+                <div class="form-floating">
+                  <input class="form-control" id="id_source_table_name" name="name" type="text" maxlength="250" disabled/>
+                  <label for="id_name">Table Name</label>
+                </div>
               </div>
-            </div>
-    
-            <div class="col-12">
-              <div class="form-floating">
-                <input class="form-control" id="id_source_table_project" name="source_project" type="text" maxlength="250" />
-                <label for="id_source_table_project">Project Name</label>
+      
+              <div class="col-12">
+                <div class="form-floating">
+                  <input class="form-control" id="id_source_table_project" name="source_project" type="text" maxlength="250" />
+                  <label for="id_source_table_project">Project Name</label>
+                </div>
               </div>
+      
             </div>
-    
-          </div>
-        </div> 
+          </div> 
+        </form>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Cancel</button>
@@ -85,26 +84,51 @@
   
   {% for table in source_tables %}
     sourceListenerMap.set("id_source_table_change_{{ table.id }}_button", {
-        "function": "loadSourceTableModal(this.dataset['sourceTableId']);",
+        "function": "loadSourceTableModal(this.dataset['sourceTableId'], this.dataset['targetId'], this.dataset['taskId']);",
         "type": "click"
       })
   {% endfor %}
 
   sourceListenerMap.set("id_source_table_change_save", {
-        "function": "saveSourceTableModal();",
+        "function": "saveSourceTableModal(this.dataset['sourceTableId'], this.dataset['targetId'], this.dataset['taskId']);",
         "type": "click"
       })
   sourceListenerMap.forEach(addListener);
 
-  function loadSourceTableModal(sourceTableId) {
+  function loadSourceTableModal(sourceTableId, targetId, taskId) {
     document.getElementById("id_source_table_name").value = document.getElementById(`id_source_table_table_${sourceTableId}`).textContent
     document.getElementById("id_source_table_change_save").setAttribute("data-source-table-id", sourceTableId)
+    document.getElementById("id_source_table_change_save").setAttribute("data-target-id", targetId)
+    document.getElementById("id_source_table_change_save").setAttribute("data-task-id", taskId)
+    document.getElementById('id_source_table_project').value = document.getElementById(targetId).textContent
   }
 
-  function saveSourceTableModal() {
-    const sourceTableId = document.getElementById("id_source_table_change_save").dataset["sourceTableId"]
-    document.getElementById(`id_source_table_project_${sourceTableId}`).textContent = document.getElementById("id_source_table_project").value
-    callModelApi(`/api/source_table/${sourceTableId}/update/`, 'POST', `id_source_table_project_${sourceTableId}`)
+  function saveSourceTableModal (sourceTableId, targetId, taskId) { // eslint-disable-line no-undef
+    const url = `/api/source_table/${sourceTableId}/update/`
+    
     bootstrap.Modal.getInstance(document.getElementById('changeForm')).hide() 
+
+    const form = document.getElementById('id_source_table_form')
+    const formData = new FormData(form) // eslint-disable-line no-undef
+    const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
+    const localTaskId = taskId
+
+    xhttp.responseType = 'json'
+    xhttp.onload = function () {
+      const data = xhttp.response
+      if ((xhttp.status === 200 || xhttp.status === 404) && 'message' in data) {
+        createToast(data.message, data.type, true) // eslint-disable-line no-undef
+        callConnectionApi(`/api/task/${localTaskId }/schema/`, 'id-modal-content')
+      } else {
+        const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
+        createToast(message.desc, message.name, true) // eslint-disable-line no-undef
+      }
+    }
+
+    xhttp.open('POST', url, true)
+    xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
+    xhttp.send(formData)
+    document.getElementById(targetId).textContent = document.getElementById('id_source_table_project').value
+
   }
 </script>

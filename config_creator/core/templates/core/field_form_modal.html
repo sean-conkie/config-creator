@@ -48,7 +48,7 @@
                   <div class="lead">Source Column</div>
                   <div class="col-6">
                     <div class="input-group mb-3">
-                      <button class="input-group-text" id="id_source_column_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                      <button class="input-group-text" id="id_source_column_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
                       <div class="form-floating flex-grow-1">
                         {{ field_form.source_column }}
                         {{ field_form.source_column.label_tag }}
@@ -57,10 +57,10 @@
                   </div>
                   <div class="col-6">
                     <div class="input-group mb-3">
-                      <button class="input-group-text" id="id_source_name_tree" type="button" data-bs-toggle="modal" data-bs-target="#connection-modal"><i class="fa-solid fa-folder-tree"></i></button>
+                      <button class="input-group-text" id="id_source_name_tree" type="button"><i class="fa-solid fa-folder-tree"></i></button>
                       <div class="form-floating flex-grow-1">
-                        {{ field_form.source_name }}
-                        {{ field_form.source_name.label_tag }}
+                        <input id="id_source_name" name="source_name" type="text" maxlength="255" />
+                        <label for="id_source_name" >Source Table:</label>
                       </div>
                     </div>
                   </div>
@@ -75,8 +75,12 @@
                   <div class="lead">Transformation</div>
                   <div class="col-sm-12">
                     <div class="form-floating">
-                      {{ field_form.transformation }}
-                      {{ field_form.transformation.label_tag }}
+                      <div class="form-floating" style="height: 20vh">
+                        <textarea class="editing" id="id_field_transformation" name="transformation" spellcheck="false" oninput="update(this.value, this.dataset['targetId']); syncScroll(this, this.dataset['targetId']);" onscroll="syncScroll(this, this.dataset['targetId']);" onkeydown="checkTab(this, event, this.dataset['targetId']);" data-target-id="id_field_transformation_highlighting"></textarea>
+                        <pre class="highlighting" id="id_field_transformation_highlighting" aria-hidden="true">
+                          <code class="language-sql" id="id_field_transformation_highlighting-content"></code>
+                        </pre>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -132,6 +136,14 @@
           "function": "dataTypeMap(this.value)",
           "type": "input"
         }],
+        ["id_source_name_tree", {
+            "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, true, {{task.id}}, 'id_field_modal')",
+            "type": "click"
+        }],
+        ["id_source_column_tree", {
+            "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, true, {{task.id}}, 'id_field_modal')",
+            "type": "click"
+        }]
       ]);
       
       fieldModalListenerMap.forEach(addListener);

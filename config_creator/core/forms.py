@@ -1,7 +1,6 @@
 import sys
 
 from .models import (
-    DEFAULT_DATA_TYPE_ID,
     BigQueryDataType,
     Job,
     JobTask,
@@ -76,7 +75,7 @@ class FieldForm(forms.ModelForm):
         fields = [
             "name",
             "source_column",
-            "source_name",
+            "source_table",
             "transformation",
             "is_primary_key",
             "is_nullable",
@@ -91,8 +90,8 @@ class JoinForm(forms.ModelForm):
         model = Join
         fields = [
             "type",
-            "left",
-            "right",
+            "left_table",
+            "right_table",
         ]
 
 
@@ -146,6 +145,7 @@ class BatchJobPropertiesForm(forms.ModelForm):
             "dataset_staging",
             "dataset_publish",
             "source_project",
+            "target_project",
         ]
 
 

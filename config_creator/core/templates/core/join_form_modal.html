@@ -1,0 +1,75 @@
+
+  
+  <div class="modal" id="id_join_modal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered selector-dialog">
+      <div class="modal-content">
+        <div class="modal-header selector-header">
+          <h5 class="modal-title" id="id_join_modal_title">Add Join</h5>
+          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="container row g-3 py-3" id="id_join_modal_content">
+          <form id="id_join_form">
+            <input id="id_join_id" name="id" hidden />
+            <div class="row g-5">
+              <div class="col-12">
+                <div class="row g-3">
+                  <div class="lead">Join Details</div>
+                  <div class="col-sm-6">
+                    <div class="form-floating">
+                      {{ join_form.type}}
+                      {{ join_form.type.label_tag}}
+                    </div>
+                  </div>
+                </div>
+                <div class="row g-3 py-3">
+                  <div class="col-6">
+                    <div class="input-group mb-3">
+                      <button class="input-group-text" id="id_left_dataset_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
+                      <div class="form-floating flex-grow-1">
+                        <input id="id_left" name="left" type="text" maxlength="255" />
+                        <label for="id_left">Left Table</label>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-6">
+                    <div class="input-group mb-3">
+                      <button class="input-group-text" id="id_right_dataset_tree" type="button" ><i class="fa-solid fa-folder-tree"></i></button>
+                      <div class="form-floating flex-grow-1">
+                        <input id="id_right" name="right" type="text" maxlength="255" />
+                        <label for="id_right">Right Table</label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>  
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Close</button>
+          <button class="btn btn-primary" id="id_join_modal_submit_button" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}"><i class="bi bi-check-lg"></i> Submit</button>
+        </div>
+      </div>
+    </div>  
+  </div>
+  <script>
+    
+    let joinModalListenerMap = new Map()
+    
+      joinModalListenerMap.set("id_left_dataset_tree", {
+            "function": "setReturnType('table', null, null, null, 'id_left', 'tableFull', null, null, true, {{task.id}})",
+            "type": "click"
+          })
+
+      joinModalListenerMap.set("id_right_dataset_tree", {
+            "function": "setReturnType('table', null, null, null, 'id_right', 'tableFull', null, null, true, {{task.id}})",
+            "type": "click"
+          })
+
+      joinModalListenerMap.set("id_join_modal_submit_button", {
+            "function": "sendJoin(this.dataset['jobId'], this.dataset['taskId'], this.dataset['joinId'])",
+            "type": "click"
+          })
+      
+      joinModalListenerMap.forEach(addListener)
+  </script>

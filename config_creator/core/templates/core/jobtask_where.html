@@ -18,14 +18,25 @@
               <th scope="col"></th>
               <th scope="col"></th>
             </thead>
-            <tbody class="text-center align-middle">
+            <tbody class="text-center align-middle" id="id_where_condition_tbody">
               {% for condition in where %}
                 <tr id="id_condition_{{ condition.condition.id }}_row">
                   <td>{{ condition.condition.logic_operator }}</td>
-                  <td>{{ condition.condition.left }}</td>
+                  <td>
+                    {% if condition.condition.left.source_column != None%}
+                      <span title="{{ condition.condition.left.source_table.dataset_name }}.{{ condition.condition.left.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ condition.condition.left.source_table.alias }}</span>.{{ condition.condition.left.source_column }}
+                    {% else %}
+                      {{ condition.condition.left.transformation }}
+                    {% endif %}
+                  </td>
                   <td>{{ condition.condition.operator }}</td>
-                  <td>{{ condition.condition.right }}</td>
-                  <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task-where-condition-update' job_id=job.id task_id=task.id pk=condition.condition.id %}" title="Edit" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-pencil"></i></a></td>
+                  <td>
+                    {% if condition.condition.right.source_column != None%}
+                    <span title="{{ condition.condition.right.source_table.dataset_name }}.{{ condition.condition.right.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ condition.condition.right.source_table.alias }}</span>.{{ condition.condition.right.source_column }}
+                    {% else %}
+                      {{ condition.condition.right.transformation }}
+                    {% endif %}
+                  </td>
                   <td class="btn-column"><button class="btn btn-danger where-delete" id="id_condition_delete_{{ condition.condition.id }}"
                       type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                       data-delete-url="{% url 'api-condition-delete' pk=condition.condition.id %}"
@@ -33,13 +44,13 @@
                 </tr>
               {% endfor %}
               {% if where|length == 0 %}
-                <tr><td class="text-center" colspan="6">No conditions linked to task!</td></tr>
+                <tr class="placeholder-row"><td class="text-center" colspan="6">No conditions linked to task!</td></tr>
               {% endif %}
             </tbody>
           </table>
         </div>
-        <div class="col-md-4 col-lg-3">
-          <a class="btn btn-primary" type="button" href="{% url 'job-task-where-condition-add' job_id=job.id task_id=task.id %}" title=""><i class="bi bi-plus"></i> Add Condition</a> 
+        <div class="col-md-2 col-lg-2">
+          <button class="w-100 btn btn-primary" id="id_add_where_condition" type="button" data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-target-id="id_where_condition_tbody"><i class="bi bi-plus"></i> Add Condition</button>
         </div>
       </div>
     </div>
@@ -54,6 +65,11 @@
       "type": "click"
     })
   }
+
+  whereListenerMap.set('id_add_where_condition', {
+    'function': 'prepareConditionModal(this.dataset["jobId"], this.dataset["taskId"], null, this.dataset["targetId"])',
+    'type': 'click'
+  })
 
   whereListenerMap.forEach(addListener);
   </script>

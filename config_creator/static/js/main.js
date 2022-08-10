@@ -212,21 +212,29 @@ const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { // esli
 })
 
 /**
- * It creates a div element with the id of the parameter passed in, adds the classes "spinner-border",
- * "text-success", and "spinner-border-sm" to the div, and then adds a span element with the text
- * "Loading..." and the class "visually-hidden" to the div
+ * It creates a spinner element
  *
  * Args:
- *   id: The id of the element
+ *   id: the id of the element
+ *   type: 'large' or 'small'
  *
  * Returns:
- *   A div element with a spinner-border class, text-success class, spinner-border-sm class, and a role
- * attribute of status.
+ *   A div element with a spinner inside of it.
  */
-function createSpinner (id) {
-  const div = createElement('div', null, ['spinner-border', 'text-success', 'spinner-border-sm'], null, id)
-  div.setAttribute('role', 'status')
-  div.appendChild(createElement('span', 'Loading...', ['visually-hidden'], null))
+function createSpinner (id, type) {
+  let div = null
+  if (type === 'large') {
+    div = createElement('div', null, ['spinner-large-container'], null, id)
+    const spinner = createElement('div', null, ['spinner-border', 'text-light', 'spinner-large'], null, null)
+    spinner.setAttribute('role', 'status')
+    spinner.appendChild(createElement('span', 'Loading...', ['visually-hidden'], null))
+    div.appendChild(spinner)
+  } else {
+    div = createElement('div', null, ['spinner-border', 'text-success', 'spinner-border-sm'], null, id)
+    div.setAttribute('role', 'status')
+    div.appendChild(createElement('span', 'Loading...', ['visually-hidden'], null))
+  }
+
   return div
 }
 
@@ -328,24 +336,24 @@ function createToast (message, type, show) {
 }
 
 /**
- * It makes an AJAX request to the server, and if the request is successful, it calls the callback
- * function
+ * It makes an AJAX call to the server, and if the server returns a message, it displays it to the user
  *
  * Args:
  *   url: The url to call
  *   method: The HTTP method to use.
  *   spinnerElementId: The id of the element that will contain the spinner.
+ *   spinnerType: The type of spinner to show. This is a string that can be one of the following:
  */
-function callModelApi (url, method, spinnerElementId) {
+function callModelApi (url, method, spinnerElementId, spinnerType) {
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
   let spinnerId
   if (spinnerElementId) {
     const parent = document.getElementById(spinnerElementId)
     spinnerId = spinnerElementId + '_spinner'
     if (parent.children.length > 0) {
-      parent.children[0].appendChild(createSpinner(spinnerId))
+      parent.children[0].appendChild(createSpinner(spinnerId, spinnerType))
     } else {
-      parent.appendChild(createSpinner(spinnerId))
+      parent.appendChild(createSpinner(spinnerId, spinnerType))
     }
   }
   xhttp.responseType = 'json'
@@ -378,16 +386,17 @@ function callModelApi (url, method, spinnerElementId) {
 
 /**
  * It deletes a model object, and if the element to remove is a table row, it adds a class to it to
- * make it fade out
+ * make it fade out, otherwise it removes the element
  *
  * Args:
- *   url: The url to call.
+ *   url: The url to call
  *   elementToRemoveId: The id of the element to remove from the DOM.
- *   spinnerTargetId: The id of the element that will be the target of the spinner.
+ *   spinnerTargetId: The id of the element that the spinner should be displayed on.
+ *   spinnerType: The type of spinner to show. This can be either 'small' or 'large'.
  */
-function deleteModelObject (url, elementToRemoveId, spinnerTargetId) { // eslint-disable-line no-unused-vars
+function deleteModelObject (url, elementToRemoveId, spinnerTargetId, spinnerType) { // eslint-disable-line no-unused-vars
   if (confirm('Are you sure you want to delete this?')) { // eslint-disable-line no-undef
-    callModelApi(url, 'DELETE', spinnerTargetId)
+    callModelApi(url, 'DELETE', spinnerTargetId, spinnerType)
     const element = document.getElementById(elementToRemoveId)
     if (element.tagName === 'TR') {
       element.classList.add('delete-row')
