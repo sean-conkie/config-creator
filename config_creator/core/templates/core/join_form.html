@@ -76,24 +76,24 @@
     
     {% if form.left.value != None %}
       joinListenerMap.set("id_left_dataset_tree", {
-            "function": "setReturnType('table', null, null, null, '{{ form.left.id_for_label }}', 'tableFull', null, null, false, {{task.id}})",
+            "function": "setReturnType('table', null, null, null, '{{ form.left.id_for_label }}', 'tableFull', null, null, false)",
             "type": "click"
           })
     {% else %}
       joinListenerMap.set("id_left_dataset_tree", {
-            "function": "setReturnType('table', null, null, null, '{{ form.left.id_for_label }}_empty', 'tableFull', null, null, false, {{task.id}})",
+            "function": "setReturnType('table', null, null, null, '{{ form.left.id_for_label }}_empty', 'tableFull', null, null, false)",
             "type": "click"
           })
     {% endif %}
 
     {% if form.right.value != None %}
       joinListenerMap.set("id_right_dataset_tree", {
-            "function": "setReturnType('table', null, null, null, '{{ form.right.id_for_label }}', 'tableFull', null, null, false, {{task.id}})",
+            "function": "setReturnType('table', null, null, null, '{{ form.right.id_for_label }}', 'tableFull', null, null, false)",
             "type": "clikc"
           })
     {% else %}
       joinListenerMap.set("id_right_dataset_tree", {
-            "function": "setReturnType('table', null, null, null, '{{ form.right.id_for_label }}_empty', 'tableFull', null, null, false, {{task.id}})",
+            "function": "setReturnType('table', null, null, null, '{{ form.right.id_for_label }}_empty', 'tableFull', null, null, false)",
             "type": "click"
           })
     {% endif %}
