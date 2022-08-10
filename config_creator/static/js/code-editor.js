@@ -12,7 +12,7 @@ function update (text, targetId) { // eslint-disable-line no-unused-vars
   if (text[text.length - 1] === '\n') {
     text += ' '
   }
-  resultElement.innerHTML = text.replace(/&/g, '&').replace(/</g, '<')
+  resultElement.innerHTML = text.replace(/&/g, '&amp').replace(/</g, '&lt')
   Prism.highlightElement(resultElement) // eslint-disable-line no-undef
 }
 

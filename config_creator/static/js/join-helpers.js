@@ -190,7 +190,7 @@ function addJoinObject (data, jobId, taskId) {
       /* eslint-disable no-undef */
       const tableBody = createElement('tbody', null, ['text-center', 'align-middle'], 0, null)
       const conditions = rowData.conditions
-      for (c = 0; c < conditions.length; c++) {
+      for (let c = 0; c < conditions.length; c++) {
         const tr = createElement('tr', null, null, 0, null)
         const conditionId = conditions[c].id
         const rowId = `id_join_condition_${conditionId}_row`
