@@ -1,15 +1,4 @@
 
-/**
- * It takes the data returned from the server, the id of the element to add the new row to, the action
- * that was performed, the job id, and the task id. It then creates a new row and adds it to the table
- *
- * Args:
- *   data: The data returned from the API call.
- *   elementToAddId: The id of the table to add the row to
- *   action: The action that was performed.
- *   jobId: The id of the job that the task belongs to.
- *   taskId: The id of the task that the field belongs to.
- */
 function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
   if ('result' in data) {
     const parent = document.getElementById(elementToAddId)
@@ -538,13 +527,6 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   submitButton.dataset.taskId = undefined
 }
 
-/**
- * It takes a data type as a parameter, makes an AJAX request to the server, and then sets the selected
- * option in the data type dropdown to the data type returned by the server
- *
- * Args:
- *   dataType: The data type to map to a data type option.
- */
 function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
   if (dataType && dataType !== '' && dataType !== 'undefined' && dataType !== 'null' && dataType !== undefined && dataType !== null) {
     const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
