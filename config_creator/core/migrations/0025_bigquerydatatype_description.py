@@ -9,11 +9,11 @@ def create_data_type(apps, schema_editor):
     indb.description = "Variable-length character (Unicode) data."
     indb.save()
     if not bq_data_type.objects.filter(
-        name="BOOL",
+        name="BOOLEAN",
         description="Boolean values are represented by the keywords TRUE and FALSE (case insensitive).",
     ).exists():
         bq_data_type(
-            name="BOOL",
+            name="BOOLEAN",
             description="Boolean values are represented by the keywords TRUE and FALSE (case insensitive).",
         ).save()
     if not bq_data_type.objects.filter(
