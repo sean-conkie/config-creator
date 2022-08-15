@@ -150,7 +150,7 @@ const HttpStatusEnum = new Map()
   })
   .set(500, {
     name: 'Internal Server Error',
-    desc: 'A generic error message'
+    desc: 'An error occured processing your request.'
   })
   .set(501, {
     name: 'Not Implemented',

@@ -1,7 +1,14 @@
 import re
 
 from copy import deepcopy
-from core.forms import ConditionForm, DeltaForm, DependencyForm, FieldForm, JoinForm
+from core.forms import (
+    ConditionForm,
+    DeltaForm,
+    DependencyForm,
+    FieldForm,
+    JoinForm,
+    UploadFileForm,
+)
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -23,11 +30,13 @@ from core.models import (
     str_to_class,
     get_source_table,
 )
+from core.views import handle_uploaded_file
 from database_interface_api.dbhelper import get_table
 from database_interface_api.views import get_connection
 from django import views
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.urls import reverse
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -50,6 +59,10 @@ __all__ = [
     "newfieldposition",
     "PredecessorView",
     "possibletasks",
+    "PartitionView",
+    "orderpositionchange",
+    "JoinView",
+    "UploadFileView",
 ]
 
 
@@ -1007,6 +1020,36 @@ class PredecessorView(views.APIView):
                 "type": "error",
             }
             return_status = status.HTTP_404_NOT_FOUND
+
+        return response.Response(data=outp, status=return_status)
+
+
+class UploadFileView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def post(
+        self,
+        request: request,
+    ) -> response.Response:
+
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            id = handle_uploaded_file(request)
+            outp = {
+                "result": reverse(
+                    "job-tasks",
+                    kwargs={"job_id": id},
+                )
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": form.errors,
+                "type": "Errors",
+            }
+            return_status = status.HTTP_400_BAD_REQUEST
 
         return response.Response(data=outp, status=return_status)
 

@@ -56,15 +56,15 @@
   let listenerMap = new Map()
 
   let downloadButtonList = document.getElementsByClassName("job-download");
-  for (var i = 0; i < downloadButtonList.length; i++) {
-    listenerMap.set("id_{{ job.id }}_download", {
+  for (let i = 0; i < downloadButtonList.length; i++) {
+    listenerMap.set(downloadButtonList[i].id, {
           "function": "event.appendChild(createSpinner(this.id))",
           "type": "click"
         })
   }
   
   let deleteButtonList = document.getElementsByClassName("job-delete");
-  for (var i = 0; i < deleteButtonList.length; i++) {
+  for (let i = 0; i < deleteButtonList.length; i++) {
     listenerMap.set(deleteButtonList[i].id, {
       "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
       "type": "click"

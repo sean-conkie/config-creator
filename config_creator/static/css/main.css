@@ -60,13 +60,16 @@
   margin-left: 5px;
 }
 
+body {
+  overflow: hidden;
+}
+
 main {
   display: flex;
   flex-wrap: nowrap;
   height: 100vh;
   max-height: 100vh;
-  overflow-x: auto;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 summary {
@@ -146,7 +149,7 @@ summary {
 }
 
 .btn-column {
-  max-width: 60px;
+  width: 60px;
 }
 
 .tree-file {
@@ -220,7 +223,9 @@ summary {
 }
 
 .vertical-grip-col {
-  max-width: max-content;
+  width: 0px;
+  max-width: fit-content;
+  padding: 0px!important;
 }
 
 table {
@@ -277,7 +282,7 @@ table.draggable tbody tr:active {
 }
 
 .spinner-large-container {
-  background-color: rgba(0, 0, 0, 0.6);
+  background-color: rgba(0, 0, 0, 0.1);
   position: absolute;
   height: 100%;
   width: 100%;
@@ -285,7 +290,7 @@ table.draggable tbody tr:active {
   top: 0;
   left: 0;
   border-radius: 0.25rem;
-  backdrop-filter: blur(20px);
+  backdrop-filter: blur(5px);
   justify-content: center;
   display: flex;
   align-items: center;

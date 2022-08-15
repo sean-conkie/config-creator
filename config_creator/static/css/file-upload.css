@@ -56,10 +56,16 @@
 
 .box {
   font-size: 1.25rem;
-  /* 20 */
   background-color: #f8f9fa;
   position: relative;
-  padding: 100px 20px;
+  height: 80vh;
+}
+
+.drop-zone {
+  display: flex;
+  height: 100%;
+  justify-content: center;
+  align-items: center;
 }
 
 .box.has-advanced-upload {
@@ -92,6 +98,11 @@
   fill: #6c757d;
   display: block;
   margin-bottom: 40px;
+}
+
+.box-hover {
+  outline: 5px dashed #0a51bc!important;
+  background: rgba(0, 0, 0, 0.1);
 }
 
 .box.is-uploading .box__input,
@@ -193,11 +204,6 @@
 .js .box__file.has-focus+label {
   outline: 1px dotted #000;
   outline: -webkit-focus-ring-color auto 5px;
-}
-
-.js .box__file+label * {
-  /* pointer-events: none; */
-  /* in case of FastClick lib use */
 }
 
 .no-js .box__file+label {

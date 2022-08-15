@@ -2,10 +2,6 @@ from .views import *
 from django.contrib.auth.decorators import login_required
 from django.urls import path
 
-from .views import PartitionView
-from .views import orderpositionchange
-from .views import JoinView
-from .views import newfieldposition
 
 urlpatterns = [
     path(
@@ -187,5 +183,10 @@ urlpatterns = [
         "job/<int:job_id>/task/<int:task_id>/predecessor/tasks/",
         login_required(possibletasks),
         name="api-predecessor-tasks",
+    ),
+    path(
+        "file/upload/",
+        login_required(UploadFileView.as_view()),
+        name="api-file-upload",
     ),
 ]
