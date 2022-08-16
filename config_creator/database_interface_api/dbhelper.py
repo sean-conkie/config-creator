@@ -363,8 +363,6 @@ def get_database_schema(
                     for field in Field.objects.filter(
                         task_id=task.id,
                         is_source_to_target=True,
-                        source_table__source_project=connection.get("name"),
-                        source_table__dataset_name=database,
                     ).order_by("position")
                 ]
 

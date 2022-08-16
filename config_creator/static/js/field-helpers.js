@@ -93,10 +93,10 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
 
       const prefix = [
         createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null)),
-        createRowObject(null, null, null, null, primary),
-        createRowObject(null, null, null, null, null),
-        createRowObject(null, null, null, null, nullable),
-        createRowObject(null, null, null, null, transformation)
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, primary),
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, null),
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, nullable),
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, transformation)
       ]
 
       const suffix = [
@@ -362,6 +362,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
 
   if (usage === 'createColumn') {
     resetFieldInput(modalElements, 'reset')
+    submitButton.dataset.deleteElementId = undefined
+    submitButton.dataset.fieldId = undefined
     title.textContent = 'Create New Column'
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')

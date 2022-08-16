@@ -24,7 +24,7 @@
                     <td>
                       <span title="{{ col.field.source_table.dataset_name }}.{{ col.field.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ col.field.source_table.alias }}.</span><strong>{{ col.field.source_column }}</strong>
                     </td>
-                    <td class="btn-column"><button class="btn btn-danger driving-column-delete" id="id_driving_column_delete_{{col.id}}"
+                    <td class="btn-column"><button class="btn row-btn-danger driving-column-delete" id="id_driving_column_delete_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                         data-delete-url="{% url 'api-diving-column-delete' pk=col.id %}"
                         data-delete-element-id="id_driving_column_{{col.id}}_row"><i class="bi bi-trash3"></i></button></td>
@@ -58,7 +58,7 @@
                     <td>
                       <span title="{{ col.field.source_table.dataset_name }}.{{ col.field.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ col.field.source_table.alias }}.</span><strong>{{ col.field.source_column }}</strong>
                     </td>
-                    <td class="btn-column"><button class="btn btn-danger partition-delete" id="id_partition_{{col.id}}"
+                    <td class="btn-column"><button class="btn row-btn-danger partition-delete" id="id_partition_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                         data-delete-url="{% url 'api-partition-delete' pk=col.id %}"
                         data-delete-element-id="id_partition_{{col.id}}_row"><i class="bi bi-trash3"></i></button></td>
@@ -95,7 +95,7 @@
                     <td>
                       <span title="{{ col.field.source_table.dataset_name }}.{{ col.field.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ col.field.source_table.alias }}.</span><strong>{{ col.field.source_column }}</strong>
                     </td>
-                    <td class="btn-column"><button class="btn btn-danger order-delete" id="id_order_{{col.id}}"
+                    <td class="btn-column"><button class="btn row-btn-danger order-delete" id="id_order_{{col.id}}"
                         type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                         data-delete-url="{% url 'api-history-order-delete' pk=col.id %}"
                         data-delete-element-id="id_order_{{col.id}}_row"><i class="bi bi-trash3"></i></button></td>

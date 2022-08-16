@@ -150,6 +150,7 @@ function addJoinObject (data, jobId, taskId) {
 
     for (let i = 0; i < content.length; i++) {
       const rowData = content[i]
+      const joinId = rowData.id
       /* eslint-disable no-undef */
       const joinContainer = createElement('div', null, ['container', 'py-3', 'px-3', 'bg-light', 'rounded'], 0, `id_join_container_${rowData.id}`)
       const header = createElement('div', null, ['row', 'g-3', 'py-1'], 0, null)
@@ -243,8 +244,12 @@ function addJoinObject (data, jobId, taskId) {
       const buttonRow = createElement('div', null, ['row', 'g-3', 'py-1'], 0, null)
       const addCol = createElement('div', null, ['col-md-2', 'col-lg-2'], 0, null)
       const deleteCol = createElement('div', null, ['col-md-2', 'col-lg-2'], 0, null)
-      const addConditionButton = createElement('button', null, ['w-100', 'btn', 'btn-info'], 0, null)
+      const addConditionButton = createElement('button', null, ['w-100', 'btn', 'btn-info'], 0, `id_add_condition_${rowData.id}`)
       addConditionButton.setAttribute('type', 'button')
+      addConditionButton.dataset['jobId'] = jobId
+      addConditionButton.dataset['taskId'] = taskId
+      addConditionButton.dataset['joinId'] = joinId
+      addConditionButton.dataset['targetId'] = `id_join_table_body_${joinId}`
       addConditionButton.appendChild(createElement('i', null, ['bi', 'bi-plus'], 0, null))
       addConditionButton.appendChild(createElement('span', ' Add Condition'))
       addConditionButton.addEventListener('click', function () {
@@ -253,10 +258,10 @@ function addJoinObject (data, jobId, taskId) {
 
       const deleteJoinButton = createElement('button', null, ['w-100', 'btn', 'btn-danger', 'join-delete'], 0, null)
       deleteJoinButton.setAttribute('type', 'button')
-      deleteJoinButton.setAttribute('id', `id_delete_join_${rowData.id}`)
+      deleteJoinButton.setAttribute('id', `id_delete_join_${joinId}`)
       deleteJoinButton.setAttribute('data-job-id', jobId)
       deleteJoinButton.setAttribute('data-task-id', taskId)
-      deleteJoinButton.setAttribute('data-join-id', rowData.id)
+      deleteJoinButton.setAttribute('data-join-id', joinId)
       deleteJoinButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null))
       deleteJoinButton.appendChild(createElement('span', ' Delete Join'))
       /* eslint-enable no-undef */

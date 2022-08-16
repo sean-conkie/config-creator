@@ -28,16 +28,16 @@
           {% for field in fields %}
           <tr class="align-middle" id="id_field_{{field.id}}_row" draggable="true" ondragstart="start()" ondragover="dragover()" ondragend="positionChange(this, 'field')" data-field-id="{{ field.id }}" data-position="{{ field.position }}" data-task-id="{{ task.id }}">
             <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
-            <td class="vertical-grip-col">
+            <td class="vertical-grip-col text-center">
               {% if field.is_primary_key == True %}<i class="bi bi-key" title="Key field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
             </td>
-            <td class="vertical-grip-col">
+            <td class="vertical-grip-col text-center">
               {% if field.is_history_key %}<i class="bi bi-clock-history" title="History partition" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
             </td>
-            <td class="vertical-grip-col">
+            <td class="vertical-grip-col text-center">
               {% if field.is_nullable == False %}<i class="bi bi-asterisk" title="Required field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
             </td>
-            <td class="vertical-grip-col">
+            <td class="vertical-grip-col text-center">
               {% if field.transformation != None and field.transformation != '' %}<i class="fa-solid fa-shuffle" title="Contains transformation" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
             </td>
             <td>
@@ -45,14 +45,16 @@
             </td>
             <td>{{ field.data_type }}</td>
             <td>
+              {% if field.source_table.table_name != None %}
               <span title="{{ field.source_table.dataset_name }}.{{ field.source_table.table_name }}" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top">{{ field.source_table.alias }}.</span><strong>{{ field.source_column }}</strong>
+              {% endif %}
             </td>
-            <td class="btn-column"><button class="btn btn-secondary field-view" id="id_field_{{ field.id }}_view" 
+            <td class="btn-column"><button class="btn row-btn-secondary field-view" id="id_field_{{ field.id }}_view" 
               type="button" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
               data-action="viewColumn" data-field-id="{{ field.id }}" data-target="id_source_to_target"
               data-job-id="{{ job.id }}" data-task-id="{{ task.id }}" data-delete-element-id="id_field_{{field.id}}_row">
               <i class="bi bi-search"></i></button></td>
-            <td class="btn-column"><button class="btn btn-danger field-delete" id="id_field_delete_{{field.id}}"
+            <td class="btn-column"><button class="btn row-btn-danger field-delete" id="id_field_delete_{{field.id}}"
                 type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                 data-delete-url="{% url 'api-field-delete' pk=field.id %}"
                 data-delete-element-id="id_field_{{field.id}}_row"><i class="bi bi-trash3"></i></button></td>
@@ -68,11 +70,18 @@
       </table>
       <div class="row">
         <div class="col-md-2 col-lg-2">
-          <button class="w-100 btn btn-primary" id="id_add_column_button" type="button"><i class="bi bi-plus"></i> Add Column</button>
-        </div>
-        <div class="col-md-2 col-lg-2">
-          <button class="w-100 btn btn-info" id="id_copy_table" type="button" data-task-id="{{ task.id }}"><i class="fa-solid fa-copy"></i> Copy
-            Table</button>
+          <div class="w-100 btn-group" role="group" aria-label="Button group with nested dropdown">
+            <button class="btn btn-group-left btn-primary" id="id_add_column_button" type="button"><i class="bi bi-plus"></i> Add Column</button>
+          
+            <div class="btn-group" role="group">
+              <button class="btn btn-group-dropdown btn-group-right btn-primary dropdown-toggle" id="id_source_to_target_button_group" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
+              <ul class="dropdown-menu text-small shadow" aria-labelledby="id_source_to_target_button_group">
+                    <li>
+                      <button class="dropdown-item" id="id_copy_table" type="button" data-task-id="{{ task.id }}">Copy Table</button>
+                    </li>
+                  </ul>
+            </div>
+          </div>
           <input id="id_field_source_table_name" hidden />
           <input id="id_field_source_dataset" hidden />
           <input id="id_field_source_connection" hidden />

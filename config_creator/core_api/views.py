@@ -32,6 +32,7 @@ from core.models import (
 )
 from core.views import handle_uploaded_file
 from database_interface_api.dbhelper import get_table
+from database_interface_api.models import Connection
 from database_interface_api.views import get_connection
 from django import views
 from django.core.exceptions import ObjectDoesNotExist
@@ -362,6 +363,15 @@ class JoinView(views.APIView):
             m.group("table_name"),
             m.group("alias"),
         )
+
+        # if request.POST.get("right_connection_id"):
+        #     if request.POST.get("right_connection_id") == '-1':
+
+        #     connection = Connection.objects.get(
+        #         id=request.POST.get("right_connection_id")
+        #     )
+        #     right_table.source_project = connection.name
+        #     right_table.save()
 
         request_post = deepcopy(request.POST)
         request_post["left_table"] = left_table.id
@@ -1233,7 +1243,10 @@ def newfieldposition(request: request, task_id: int) -> response.Response:
     """
     if Field.objects.filter(task_id=task_id).exists():
         outp = {
-            "result": len(Field.objects.filter(task_id=task_id)) + 1,
+            "result": len(
+                Field.objects.filter(task_id=task_id, is_source_to_target=True)
+            )
+            + 1,
         }
     elif JobTask.objects.filter(id=task_id).exists():
         outp = {

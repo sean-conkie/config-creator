@@ -518,6 +518,7 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
   if (reLoadModal) {
     const modalId = 'id-modal-content'
     document.getElementById(modalId).textContent = ''
+    document.getElementById('id_selection').textContent = ''
     callConnectionApi(url, modalId)
   }
   if (hideModalId) {
