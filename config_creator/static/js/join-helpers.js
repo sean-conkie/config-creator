@@ -189,8 +189,16 @@ function addJoinObject (data, jobId, taskId) {
       table.append(tableHeader)
 
       /* eslint-disable no-undef */
-      const tableBody = createElement('tbody', null, ['text-center', 'align-middle'], 0, null)
+      const tableBody = createElement('tbody', null, ['text-center', 'align-middle'], 0, `id_join_table_body_${joinId}`)
       const conditions = rowData.conditions
+      if (conditions.length === 0) {
+        const placeholderRow = createElement('tr', null, ['placeholder-row'])
+        const placeholderColumn = createElement('td', 'No conditions linked to join!', ['text-center'])
+        placeholderColumn.setAttribute('colspan', '6')
+        placeholderRow.append(placeholderColumn)
+        tableBody.append(placeholderRow)
+      }
+
       for (let c = 0; c < conditions.length; c++) {
         const tr = createElement('tr', null, null, 0, null)
         const conditionId = conditions[c].id
@@ -206,7 +214,7 @@ function addJoinObject (data, jobId, taskId) {
         const col4 = createElement('td', null, null, 0, null)
         col4.textContent = conditions[c].right
         const col5 = createElement('td', null, ['btn-column'], 0, null)
-        const viewButton = createElement('button', null, ['btn', 'btn-secondary'], 0, null)
+        const viewButton = createElement('button', null, ['btn', 'row-btn-secondary'], 0, null)
         viewButton.setAttribute('title', 'View')
         viewButton.setAttribute('type', 'button')
         viewButton.setAttribute('id', `id_join_condition_${conditionId}_view`)
@@ -217,7 +225,7 @@ function addJoinObject (data, jobId, taskId) {
         viewButton.appendChild(createElement('i', null, ['bi', 'bi-search'], 0, null))
         col5.append(viewButton)
         const col6 = createElement('td', null, ['btn-column'], 0, null)
-        const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'condition-delete'], 0, null)
+        const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'condition-delete'], 0, null)
         deleteButton.setAttribute('title', 'Delete')
         deleteButton.setAttribute('type', 'button')
         deleteButton.setAttribute('id', `id_join_condition_${conditionId}_delete`)
@@ -243,8 +251,19 @@ function addJoinObject (data, jobId, taskId) {
 
       const buttonRow = createElement('div', null, ['row', 'g-3', 'py-1'], 0, null)
       const addCol = createElement('div', null, ['col-md-2', 'col-lg-2'], 0, null)
-      const deleteCol = createElement('div', null, ['col-md-2', 'col-lg-2'], 0, null)
-      const addConditionButton = createElement('button', null, ['w-100', 'btn', 'btn-info'], 0, `id_add_condition_${rowData.id}`)
+
+      const buttonGroup = createElement('div', null, ['btn-group'])
+      buttonGroup.setAttribute('role', 'group')
+
+      const dropdownButton = createElement('button', null, ['btn', 'btn-group-dropdown', 'btn-group-right', 'btn-primary', 'dropdown-toggle'], 0, `id_join_button_group_${joinId}`)
+      dropdownButton.setAttribute('type', 'button')
+      dropdownButton.setAttribute('aria-expanded', 'false')
+      dropdownButton.dataset['bsToggle'] = 'dropdown'
+
+      const parentButtonGroup = createElement('div', null, ['w-100', 'btn-group'])
+      parentButtonGroup.setAttribute('role', 'group')
+      
+      const addConditionButton = createElement('button', null, ['btn-group-left', 'btn', 'btn-primary'], 0, `id_add_condition_${rowData.id}`)
       addConditionButton.setAttribute('type', 'button')
       addConditionButton.dataset['jobId'] = jobId
       addConditionButton.dataset['taskId'] = taskId
@@ -256,9 +275,8 @@ function addJoinObject (data, jobId, taskId) {
         prepareConditionModal(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId, this.dataset.targetId)
       })
 
-      const deleteJoinButton = createElement('button', null, ['w-100', 'btn', 'btn-danger', 'join-delete'], 0, null)
+      const deleteJoinButton = createElement('button', null, ['dropdown-item', 'join-delete'], 0, `id_delete_join_${joinId}`)
       deleteJoinButton.setAttribute('type', 'button')
-      deleteJoinButton.setAttribute('id', `id_delete_join_${joinId}`)
       deleteJoinButton.setAttribute('data-job-id', jobId)
       deleteJoinButton.setAttribute('data-task-id', taskId)
       deleteJoinButton.setAttribute('data-join-id', joinId)
@@ -269,10 +287,18 @@ function addJoinObject (data, jobId, taskId) {
         deleteJoin(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId)
       })
 
-      addCol.append(addConditionButton)
-      deleteCol.append(deleteJoinButton)
+      buttonGroup.append(dropdownButton)
+      const li = createElement('li').append(deleteJoinButton)
+      const ul = createElement('ul', null, ['dropdown-menu', 'text-small', 'shadow'])
+      ul.setAttribute('aria-labelledby', `id_join_button_group_${joinId}`)
+      ul.append(li)
+      buttonGroup.append(ul)
+
+      parentButtonGroup.append(addConditionButton)
+      parentButtonGroup.append(buttonGroup)
+
+      addCol.append(parentButtonGroup)
       buttonRow.append(addCol)
-      buttonRow.append(deleteCol)
       body.append(buttonRow)
       joinContainer.append(body)
       parent.append(joinContainer)

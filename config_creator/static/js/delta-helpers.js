@@ -28,7 +28,7 @@ function addDeltaObject (data, jobId, taskId, targetId) {
         createRowObject(null, null, null, deltaDescription, null, null) // eslint-disable-line no-undef
       ]
 
-      const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
+      const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')

@@ -1,5 +1,7 @@
+import os
 import re
 
+from accounts.models import GitRepository
 from copy import deepcopy
 from core.forms import (
     ConditionForm,
@@ -30,7 +32,7 @@ from core.models import (
     str_to_class,
     get_source_table,
 )
-from core.views import handle_uploaded_file
+from core.views import crawler, handle_uploaded_file
 from database_interface_api.dbhelper import get_table
 from database_interface_api.models import Connection
 from database_interface_api.views import get_connection
@@ -38,6 +40,7 @@ from django import views
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.urls import reverse
+from git import Repo
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -64,6 +67,7 @@ __all__ = [
     "orderpositionchange",
     "JoinView",
     "UploadFileView",
+    "pullrepository",
 ]
 
 
@@ -1091,8 +1095,16 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    connection_name = None
+    if connection_id == "-1":
+        job_properties = Job.objects.get(id=task.job_id).get_property_object()
+        connection_name = job_properties.target_project
+
     table = get_table(
-        get_connection(request.user.id, connection_id), dataset, table_name
+        get_connection(request.user.id, connection_id, connection_name),
+        dataset,
+        table_name,
+        task_id,
     )
     m = re.search(
         r"(?P<table_name>\w+)(?:\s(?P<alias>\w+))?", table_name, re.IGNORECASE
@@ -1291,3 +1303,77 @@ def possibletasks(request: request, job_id: int, task_id: int) -> response.Respo
         return response.Response(data=data, status=status.HTTP_200_OK)
     else:
         return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def pullrepository(request: request, pk: int, branch: str = None) -> response.Response:
+    """
+    > This function pulls the latest changes from the remote repository and returns the files and
+    branches of the repository
+
+    Args:
+      request (request): request - This is the request object that is passed to the view.
+      pk (int): The primary key of the repository you want to pull.
+      branch (str): The branch to checkout. If not specified, the current branch will be used.
+
+    Returns:
+      A response object with the data and status code.
+    """
+
+    if not GitRepository.objects.filter(id=pk).exists():
+        return response.Response(
+            data={"message": f"Repository for id {pk} not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    repo = GitRepository.objects.get(id=pk)
+    target_path = os.path.join(os.getcwd(), f"repos/{request.user.id}/{repo.name}/")
+
+    if not os.path.exists(target_path):
+        Repo.clone_from(repo.url, target_path)
+
+    repo_obj = Repo(target_path)
+    git = repo_obj.git
+
+    if branch:
+        git.checkout(branch)
+
+    git.fetch()
+    git.pull()
+
+    branches = git.branch("-va").split("\n")
+
+    branch_dict = {}
+
+    for branch in branches:
+        if not re.search(r"origin\/HEAD", branch, re.IGNORECASE):
+            current_branch = False
+            m = re.search(r"^\*", branch, re.IGNORECASE)
+            if m:
+                current_branch = True
+
+            cleansed_branch = re.sub(
+                r"^remotes\/",
+                "",
+                re.sub(r"(\s\[[\w\s]+\]\s)", " ", re.sub(r"\s+", " ", branch[2:])),
+            )
+            m = re.search(
+                r"^(?P<branch>[\w\-\.\/]+)\s(?P<hash>[\w]+)\s(?P<commit>.+)",
+                cleansed_branch,
+                re.IGNORECASE,
+            )
+            branch_dict[m.group("branch")] = {
+                "hash": m.group("hash"),
+                "commit": m.group("commit"),
+            }
+
+            if current_branch:
+                branch_dict["current"] = m.group("branch")
+
+    context = {
+        "repo": repo.todict(),
+        "files": crawler(target_path),
+        "branches": branch_dict,
+    }
+    return response.Response(data={"result": context}, status=status.HTTP_200_OK)

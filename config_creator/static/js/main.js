@@ -211,6 +211,44 @@ const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { // esli
   return new bootstrap.Tooltip(tooltipTriggerEl) // eslint-disable-line no-undef
 })
 
+
+/**
+ * It creates an element of the type you specify, and adds the content, classes, layer, and id you
+ * specify
+ *
+ * Args:
+ *   type: the type of element to create, e.g. 'div'
+ *   content: The text content of the element.
+ *   classList: an array of class names to add to the element
+ *   layer: the layer of the element, which is used to calculate the margin-left of the element.
+ *   id: The id of the element.
+ *
+ * Returns:
+ *   A function that creates an element.
+ */
+ function createElement (type, content, classList, layer, id) {
+  const outer = document.createElement(type)
+  if (content) {
+    outer.textContent = content
+  }
+
+  if (classList) {
+    for (let i = 0; i < classList.length; i++) {
+      outer.classList.add(classList[i])
+    }
+  }
+
+  if (layer) {
+    outer.style.marginLeft = (layer * 20) + 'px'
+  }
+
+  if (id) {
+    outer.setAttribute('id', id)
+  }
+
+  return outer
+}
+
 /**
  * It creates a spinner element
  *

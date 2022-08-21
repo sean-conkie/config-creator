@@ -192,6 +192,7 @@ class CSVClient:
 
 def get_schema(
     connection: dict,
+    job_id: int = None,
     task_id: int = None,
     user_id: int = None,
 ) -> dict:
@@ -199,7 +200,8 @@ def get_schema(
     client = None
     query = None
     if connection.get("connection_type") == ConnectionType.JOB:
-        job_id = JobTask.objects.get(id=task_id).job_id
+        if task_id:
+            job_id = JobTask.objects.get(id=task_id).job_id
         destination_datasets = []
         for task in JobTask.objects.filter(job_id=job_id):
             dataset = {
@@ -331,6 +333,7 @@ def get_schema(
 def get_database_schema(
     connection: dict,
     database: str,
+    job_id: int = None,
     task_id: int = None,
     user_id: int = None,
 ) -> dict:
@@ -340,7 +343,8 @@ def get_database_schema(
     tables = []
 
     if connection.get("connection_type") == ConnectionType.JOB:
-        job_id = JobTask.objects.get(id=task_id).job_id
+        if task_id:
+            job_id = JobTask.objects.get(id=task_id).job_id
 
         tables = []
         for task in JobTask.objects.filter(job_id=job_id):
@@ -577,7 +581,9 @@ def get_database_schema(
                 ]
 
                 table_to_check = {
-                    "name": table.table_name,
+                    "name": f"{table.table_name} {table.alias}"
+                    if table.alias
+                    else table.table_name,
                     "dataset": table.dataset_name,
                     "content": cols,
                     "type": "table",
@@ -598,6 +604,7 @@ def get_table(
     connection: dict,
     database: str,
     table_name: str,
+    task_id: int = None,
 ) -> dict:
 
     client = None
@@ -610,7 +617,48 @@ def get_table(
     )
     cleansed_table_name = m.group("table_name")
     alias = m.group("alias") if m.group("alias") else table_name
-    if connection.get("connection_type") == ConnectionType.BIGQUERY:
+
+    if connection.get("connection_type") == ConnectionType.JOB:
+        job_id = JobTask.objects.get(id=task_id).job_id
+
+        for task in JobTask.objects.filter(job_id=job_id):
+            if (
+                task.destination_table == cleansed_table_name
+                and task.write_disposition != 4
+            ):
+
+                cols = [
+                    {
+                        "dataset": database,
+                        "table_name": task.destination_table,
+                        "alias": "",
+                        "raw_table_name": task.destination_table,
+                        "column_name": field.name,
+                        "target_name": "_".join([w for w in segment(field.name)]),
+                        "data_type": field.data_type.name,
+                        "ordinal_position": field.position,
+                        "is_nullable": field.is_nullable,
+                        "type": "column",
+                        "connection_id": connection.get("id"),
+                    }
+                    for field in Field.objects.filter(
+                        task_id=task.id,
+                        is_source_to_target=True,
+                    ).order_by("position")
+                ]
+
+                if len(cols) > 0:
+                    table = {
+                        "name": task.destination_table,
+                        "dataset": database,
+                        "content": cols,
+                        "type": "table",
+                        "connection_id": connection.get("id"),
+                    }
+
+                    return table
+
+    elif connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
         query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{cleansed_table_name}' order by 2, 5"
 

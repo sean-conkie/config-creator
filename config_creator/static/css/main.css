@@ -365,6 +365,11 @@ table.draggable tbody tr:active {
   min-width: 100px;
 }
 
+.modal-content-spinner-container{
+  position: relative;
+  height: 100%;
+}
+
 #id-modal-content {
   height: inherit;
   overflow-y: scroll;

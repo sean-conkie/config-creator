@@ -111,7 +111,7 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
         addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), document.getElementById('id_condition_modal_tbody').children.lenth) // eslint-disable-line no-undef
       }
 
-      const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
+      const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')

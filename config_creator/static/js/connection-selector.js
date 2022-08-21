@@ -361,7 +361,11 @@ function getData (id, connectionName, datasetName, elementId, taskId) { // eslin
   let url = null
 
   if (id < 1) {
-    url = `/api/task/${taskId}/schema/`
+    if (returnType.job) {
+      url = `/api/job/${returnType.job}/schema/`
+    } else if (taskId) {
+      url = `/api/task/${taskId}/schema/`
+    }
   } else {
     url = '/api/schema/'
   }
@@ -449,25 +453,23 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
 }
 
 /**
- * `setReturnType` is a function that takes in a bunch of parameters and sets the `returnType` variable
- * to an object that contains all of the parameters
- *
+ * It sets the return type for the connection modal
+ * 
  * Args:
- *   selector: The id of the element that will be populated with the selected value.
- *   columnTarget: The id of the input field where the column name will be returned.
- *   columnType: The type of the column. This is used to determine the type of the column in the
- * database.
+ *   selector: The id of the element that will be used to display the selected value.
+ *   columnTarget: The id of the input field where the column name will be placed.
+ *   columnType: The type of the column that will be returned.
  *   dataTypeTarget: The id of the element that will be populated with the data type.
  *   tableTarget: The id of the table input field
- *   tableType: The type of table you want to return. For example, if you want to return a table from a
- * database, you would pass in 'database'.
- *   datasetTarget: The id of the dataset input field
+ *   tableType: The type of table you want to return.
+ *   datasetTarget: The id of the input field where the dataset name will be placed.
  *   connectionTarget: The id of the input field where the connection id will be stored.
- *   reLoadModal: If true, the modal will be reloaded with the new schema.
- *   taskId: The task id of the task you want to get the schema from.
+ *   reLoadModal: If true, the modal will be reloaded with the new data.
+ *   taskId: The id of the task that you want to get the schema for.
  *   hideModalId: The id of the modal to hide after the connection modal is shown.
+ *   jobId: The job id of the job that is being edited.
  */
-function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId) { // eslint-disable-line no-unused-vars
+function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId, jobId) { // eslint-disable-line no-unused-vars
   let datasetType = null
   let connectionType = null
   let dataType = null
@@ -484,6 +486,9 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
   }
   if (taskId) {
     url = `/api/task/${taskId}/schema/`
+  }
+  if (jobId) {
+    url = `/api/job/${jobId}/schema/`
   }
   if (hideModalId) {
     modalId = hideModalId
@@ -511,6 +516,7 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
       target: connectionTarget,
       type: connectionType
     },
+    job: jobId,
     task: taskId,
     modal: modalId
   }
@@ -526,3 +532,12 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
   }
   bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show() // eslint-disable-line no-undef
 }
+
+
+document.getElementById('id_connection_modal_close_button').addEventListener('click', function() {
+  
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).hide()
+  if (returnType.modal) {
+    bootstrap.Modal.getOrCreateInstance(document.getElementById(returnType.modal)).show() // eslint-disable-line no-undef
+  }
+})

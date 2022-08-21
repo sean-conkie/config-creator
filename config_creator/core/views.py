@@ -1,4 +1,3 @@
-import git
 import json
 import mimetypes
 import os
@@ -54,6 +53,7 @@ __all__ = [
     "deltadeleteview",
     "adddependencyview",
     "dependencydeleteview",
+    "crawler",
 ]
 
 # region core views
@@ -127,7 +127,11 @@ def pullrepository(request, pk):
     target_path = os.path.join(os.getcwd(), f"repos/{request.user.id}/{repo.name}/")
 
     if not os.path.exists(target_path):
-        git.Repo.clone_from(repo.url, target_path)
+        Repo.clone_from(repo.url, target_path)
+    else:
+        repo = Repo(target_path)
+        git = repo.git
+        git.pull()
 
     context = {
         "repo": repo,

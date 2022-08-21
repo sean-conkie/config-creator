@@ -1,6 +1,6 @@
 from .views import *
 from django.contrib.auth.decorators import login_required
-from django.urls import path
+from django.urls import path, re_path
 
 
 urlpatterns = [
@@ -34,8 +34,8 @@ urlpatterns = [
         login_required(SourceTableView.as_view()),
         name="api-source-table",
     ),
-    path(
-        "task/<int:task_id>/connection/<int:connection_id>/dataset/<str:dataset>/table/<str:table_name>/copy/",
+    re_path(
+        r"task\/(?P<task_id>\d+)\/connection\/(?P<connection_id>-?\d+)\/dataset\/(?P<dataset>[\w\-\d]+)\/table\/(?P<table_name>[\w\-\d]+(?: [\w\-\d]+))\/copy\/",
         login_required(copytable),
         name="api-table-copy",
     ),
@@ -188,5 +188,15 @@ urlpatterns = [
         "file/upload/",
         login_required(UploadFileView.as_view()),
         name="api-file-upload",
+    ),
+    path(
+        "repositories/<int:pk>/pull/",
+        login_required(pullrepository),
+        name="api-repo-pull",
+    ),
+    path(
+        "repositories/<int:pk>/pull/<str:branch>/",
+        login_required(pullrepository),
+        name="api-repo-pull-branch",
     ),
 ]

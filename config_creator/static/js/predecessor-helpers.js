@@ -14,7 +14,7 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
 
       const targetRowId = `id_predecessor_${rowData.id}_row`
 
-      const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
+      const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')

@@ -30,7 +30,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         positionType = 'order'
       }
 
-      const viewButton = createElement('button', null, ['btn', 'btn-secondary'], 0, null) // eslint-disable-line no-undef
+      const viewButton = createElement('button', null, ['btn', 'row-btn-secondary'], 0, null) // eslint-disable-line no-undef
       viewButton.setAttribute('title', 'View')
       viewButton.setAttribute('type', 'button')
       viewButton.setAttribute('aria-current', 'page')
@@ -49,7 +49,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         prepareFieldModal(this.dataset.action, this.dataset.fieldId, this.dataset.target, this.dataset.deleteElementId, this.dataset.jobId, this.dataset.taskId)
       })
 
-      const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
+      const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')

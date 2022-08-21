@@ -14,6 +14,11 @@ urlpatterns = [
         name="api-connections-task",
     ),
     path(
+        "job/<int:job_id>/schema/",
+        login_required(SchemaView.as_view()),
+        name="api-connections-job",
+    ),
+    path(
         "schema/<int:connection_id>/",
         login_required(SchemaView.as_view()),
         name="api-schema",
@@ -22,6 +27,11 @@ urlpatterns = [
         r"task\/(?P<task_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/$",
         login_required(SchemaView.as_view()),
         name="api-task-schema",
+    ),
+    re_path(
+        r"job\/(?P<job_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/$",
+        login_required(SchemaView.as_view()),
+        name="api-job-schema",
     ),
     path(
         "schema/<int:connection_id>/<str:database>/",
@@ -32,5 +42,10 @@ urlpatterns = [
         r"task\/(?P<task_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/(?P<database>[\w\-\d]+)\/$",
         login_required(SchemaView.as_view()),
         name="api-task-database",
+    ),
+    re_path(
+        r"job\/(?P<job_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/(?P<database>[\w\-\d]+)\/$",
+        login_required(SchemaView.as_view()),
+        name="api-job-database",
     ),
 ]
