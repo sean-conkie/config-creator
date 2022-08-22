@@ -638,6 +638,7 @@ def get_table(
                         "data_type": field.data_type.name,
                         "ordinal_position": field.position,
                         "is_nullable": field.is_nullable,
+                        "is_primary_key": field.is_primary_key,
                         "type": "column",
                         "connection_id": connection.get("id"),
                     }
@@ -649,11 +650,13 @@ def get_table(
 
                 if len(cols) > 0:
                     table = {
-                        "name": task.destination_table,
-                        "dataset": database,
-                        "content": cols,
-                        "type": "table",
-                        "connection_id": connection.get("id"),
+                        "result": {
+                            "name": task.destination_table,
+                            "dataset": database,
+                            "content": cols,
+                            "type": "table",
+                            "connection_id": connection.get("id"),
+                        }
                     }
 
                     return table

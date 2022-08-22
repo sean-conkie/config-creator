@@ -516,17 +516,18 @@ def editjobtaskview(request, job_id, pk=None):
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
-        m = re.search(
-            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
-            request.POST.get("driving_table", ""),
-            re.IGNORECASE,
-        )
-        get_source_table(
-            task.id,
-            m.group("dataset_name"),
-            m.group("table_name"),
-            "src",
-        )
+        if request.POST.get("driving_table", ""):
+            m = re.search(
+                r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+                request.POST.get("driving_table"),
+                re.IGNORECASE,
+            )
+            get_source_table(
+                task.id,
+                m.group("dataset_name"),
+                m.group("table_name"),
+                "src",
+            )
 
         get_source_table(
             task.id,

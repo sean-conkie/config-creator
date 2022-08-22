@@ -1106,9 +1106,22 @@ def copytable(request, task_id, connection_id, dataset, table_name):
         table_name,
         task_id,
     )
+
     m = re.search(
         r"(?P<table_name>\w+)(?:\s(?P<alias>\w+))?", table_name, re.IGNORECASE
     )
+
+    # if the table returned is empty, check the job
+    # for a task creating it and pull columns.
+    if len(table.get("result", {}).get("content", [])) == 0:
+
+        table = get_table(
+            get_connection(request.user.id, -1, connection_name),
+            dataset,
+            table_name,
+            task_id,
+        )
+
     source_table = get_source_table(
         task_id, dataset, m.group("table_name"), m.group("alias")
     )
@@ -1119,8 +1132,10 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             source_column=column.get("column_name"),
             source_table=source_table,
             source_data_type=column.get("data_type"),
+            is_nullable=column.get("data_type", True),
+            is_primary_key=column.get("is_primary_key", False),
             task=task,
-            position=i,
+            position=i + 1,
         )
 
         if BigQueryDataType.objects.filter(
