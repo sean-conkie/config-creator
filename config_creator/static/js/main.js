@@ -211,7 +211,6 @@ const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { // esli
   return new bootstrap.Tooltip(tooltipTriggerEl) // eslint-disable-line no-undef
 })
 
-
 /**
  * It creates an element of the type you specify, and adds the content, classes, layer, and id you
  * specify
@@ -226,7 +225,7 @@ const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { // esli
  * Returns:
  *   A function that creates an element.
  */
- function createElement (type, content, classList, layer, id) {
+function createElement (type, content, classList, layer, id) {
   const outer = document.createElement(type)
   if (content) {
     outer.textContent = content
@@ -289,43 +288,6 @@ function getCookie (name) {
   const value = `; ${document.cookie}`
   const parts = value.split(`; ${name}=`)
   if (parts.length === 2) return parts.pop().split(';').shift()
-}
-
-/**
- * It creates an element of the type specified, with the content specified, with the classes specified,
- * with the layer specified, and with the id specified
- *
- * Args:
- *   type: the type of element to create (e.g. "div", "p", "span", etc.)
- *   content: The text content of the element.
- *   classList: an array of class names to add to the element
- *   layer: the layer of the element. This is used to indent the element.
- *   id: The id of the element.
- *
- * Returns:
- *   A DOM element.
- */
-function createElement (type, content, classList, layer, id) {
-  const outer = document.createElement(type)
-  if (content) {
-    outer.textContent = content
-  }
-
-  if (classList) {
-    for (let i = 0; i < classList.length; i++) {
-      outer.classList.add(classList[i])
-    }
-  }
-
-  if (layer) {
-    outer.style.marginLeft = (layer * 20) + 'px'
-  }
-
-  if (id) {
-    outer.setAttribute('id', id)
-  }
-
-  return outer
 }
 
 /**

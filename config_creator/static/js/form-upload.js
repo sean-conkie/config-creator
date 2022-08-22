@@ -1,5 +1,4 @@
-function dropHandler(ev) {
-
+function dropHandler (ev) {
   // Prevent default behavior (Prevent file from being opened)
   ev.preventDefault()
 
@@ -12,14 +11,14 @@ function dropHandler(ev) {
         document.getElementById('id_title').value = file.name
         document.getElementById('id_file-label').textContent = file.name
         const formData = new FormData() // eslint-disable-line no-undef
-        formData.append("file", file)
-        formData.append("title", file.name)
+        formData.append('file', file)
+        formData.append('title', file.name)
 
         const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
-        let spinnerId = 'id_drop_zone_spinner'
+        const spinnerId = 'id_drop_zone_spinner'
         const parent = document.getElementById('id_drop_zone_form')
-        parent.appendChild(createSpinner(spinnerId, 'large'))
- 
+        parent.appendChild(createSpinner(spinnerId, 'large')) // eslint-disable-line no-undef
+
         xhttp.responseType = 'json'
         xhttp.onload = function () {
           if (spinnerId) {
@@ -33,33 +32,30 @@ function dropHandler(ev) {
 
           const data = xhttp.response
           if (xhttp.status === 200) {
-            location.href = data.result;
+            location.href = data.result // eslint-disable-line no-undef
           } else {
-            const message = HttpStatusEnum.get(xhttp.status)
-            createToast(message.desc, message.name, true)
+            const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
+            createToast(message.desc, message.name, true) // eslint-disable-line no-undef
           }
         }
 
         xhttp.open('POST', '/api/file/upload/', true)
-        xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+        xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
         xhttp.send(formData)
-
       }
     }
   } else {
-    alert('Oops! You\'re still using Internet Explorer?')
+    alert('Oops! You\'re still using Internet Explorer?') // eslint-disable-line no-undef
   }
 }
 
-
-function dragStart() {
-  document.getElementById('id_drop_zone_form').classList.add('box-hover');
+function dragStart () {
+  document.getElementById('id_drop_zone_form').classList.add('box-hover')
 }
 
-function dragEnd(e) {
-  document.getElementById('id_drop_zone_form').classList.remove('box-hover');
+function dragEnd (e) {
+  document.getElementById('id_drop_zone_form').classList.remove('box-hover')
 }
-
 
 document.getElementById('id_drop_zone_form').addEventListener('dragover', (event) => {
   event.preventDefault()

@@ -1,23 +1,22 @@
 
-
 /**
  * It creates a `<details>` element with a `<summary>` element inside it, and then it appends the
  * result of calling `parseObject()` on the `content` property of the object passed to it as the second
  * argument
- * 
+ *
  * Args:
  *   object: The object to be parsed.
  *   layer: The current layer of the tree.
- * 
+ *
  * Returns:
  *   A <details> element with a <summary> element as a child.
  */
 function createGitDirectory (object, layer) {
-  const detail = createElement('details', null, ['tree-dir'], layer, null)
+  const detail = createElement('details', null, ['tree-dir'], layer, null) // eslint-disable-line no-undef
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
-    const summary = createElement('summary', null, ['tree-dir-summary'], null, null)
-    summary.appendChild(createElement('i', null, ['fa-solid', 'fa-folder-open'], null, null))
+    const summary = createElement('summary', null, ['tree-dir-summary'], null, null) // eslint-disable-line no-undef
+    summary.appendChild(createElement('i', null, ['fa-solid', 'fa-folder-open'], null, null)) // eslint-disable-line no-undef
     summary.insertAdjacentText('beforeend', ' ' + object.name)
     detail.appendChild(summary)
   }
@@ -32,23 +31,22 @@ function createGitDirectory (object, layer) {
   return detail
 }
 
-
 function parseGitObject (arr, layer) {
   if (arr.length === 0) {
-    return createElement('div', null, ['modal-container'], null, null)
+    return createElement('div', null, ['modal-container'], null, null) // eslint-disable-line no-undef
   }
-  let element = createElement('div', null, ['modal-container'], null, null)
+  const element = createElement('div', null, ['modal-container'], null, null) // eslint-disable-line no-undef
   for (let i = 0; i < arr.length; i++) {
     if ({}.propertyIsEnumerable.call(arr[i], 'type')) {
       let html
       if (arr[i].type === 'dir') {
         html = createGitDirectory(arr[i], layer)
-      } else if (arr[i].type === 'file' && /(?:\.([^.]+))?$/.exec(arr[i].name)[1] == 'json') {
-        html = createElement('div', null, ['tree-file-json'])
-        html.appendChild(createElement('i', null, ['fa-solid', 'fa-file-code'], null, null).insertAdjacentText('beforeend', ' ' + arr[i].name))
+      } else if (arr[i].type === 'file' && /(?:\.([^.]+))?$/.exec(arr[i].name)[1] === 'json') {
+        html = createElement('div', null, ['tree-file-json']) // eslint-disable-line no-undef
+        html.appendChild(createElement('i', null, ['fa-solid', 'fa-file-code'], null, null).insertAdjacentText('beforeend', ' ' + arr[i].name)) // eslint-disable-line no-undef
       } else if (arr[i].type === 'file') {
-        html = createElement('div', null, ['tree-file'])
-        html.appendChild(createElement('i', null, ['fa-solid', 'fa-file-cirlce-xmark'], null, null).insertAdjacentText('beforeend', ' ' + arr[i].name))
+        html = createElement('div', null, ['tree-file']) // eslint-disable-line no-undef
+        html.appendChild(createElement('i', null, ['fa-solid', 'fa-file-cirlce-xmark'], null, null).insertAdjacentText('beforeend', ' ' + arr[i].name)) // eslint-disable-line no-undef
       }
 
       if (typeof html !== 'undefined') {
@@ -61,7 +59,7 @@ function parseGitObject (arr, layer) {
 
 /**
  * It gets the data from the API and displays it in the modal
- * 
+ *
  * Args:
  *   id: The id of the repository.
  *   branch: The branch to get the data from.
@@ -111,15 +109,14 @@ function getGitData (id, branch) { // eslint-disable-line no-unused-vars
 
 /**
  * It opens a modal and then calls a function to get data from the server
- * 
+ *
  * Args:
  *   id: The id of the element that will be used to open the modal.
  */
-function openGitModal(id) {
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_git_file_select_modal')).show()
+function openGitModal (id) { // eslint-disable-line no-unused-vars
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('id_git_file_select_modal')).show() // eslint-disable-line no-undef
   getGitData(id)
 }
-
 
 /**
  * It displays a message to the user asking if they want to select the element they clicked on, and

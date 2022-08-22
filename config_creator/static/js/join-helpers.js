@@ -258,17 +258,17 @@ function addJoinObject (data, jobId, taskId) {
       const dropdownButton = createElement('button', null, ['btn', 'btn-group-dropdown', 'btn-group-right', 'btn-primary', 'dropdown-toggle'], 0, `id_join_button_group_${joinId}`)
       dropdownButton.setAttribute('type', 'button')
       dropdownButton.setAttribute('aria-expanded', 'false')
-      dropdownButton.dataset['bsToggle'] = 'dropdown'
+      dropdownButton.dataset.bsToggle = 'dropdown'
 
       const parentButtonGroup = createElement('div', null, ['w-100', 'btn-group'])
       parentButtonGroup.setAttribute('role', 'group')
-      
+
       const addConditionButton = createElement('button', null, ['btn-group-left', 'btn', 'btn-primary'], 0, `id_add_condition_${rowData.id}`)
       addConditionButton.setAttribute('type', 'button')
-      addConditionButton.dataset['jobId'] = jobId
-      addConditionButton.dataset['taskId'] = taskId
-      addConditionButton.dataset['joinId'] = joinId
-      addConditionButton.dataset['targetId'] = `id_join_table_body_${joinId}`
+      addConditionButton.dataset.jobId = jobId
+      addConditionButton.dataset.taskId = taskId
+      addConditionButton.dataset.joinId = joinId
+      addConditionButton.dataset.targetId = `id_join_table_body_${joinId}`
       addConditionButton.appendChild(createElement('i', null, ['bi', 'bi-plus'], 0, null))
       addConditionButton.appendChild(createElement('span', ' Add Condition'))
       addConditionButton.addEventListener('click', function () {
@@ -288,8 +288,8 @@ function addJoinObject (data, jobId, taskId) {
       })
 
       buttonGroup.append(dropdownButton)
-      const li = createElement('li').append(deleteJoinButton)
-      const ul = createElement('ul', null, ['dropdown-menu', 'text-small', 'shadow'])
+      const li = createElement('li').append(deleteJoinButton) // eslint-disable-line no-undef
+      const ul = createElement('ul', null, ['dropdown-menu', 'text-small', 'shadow']) // eslint-disable-line no-undef
       ul.setAttribute('aria-labelledby', `id_join_button_group_${joinId}`)
       ul.append(li)
       buttonGroup.append(ul)

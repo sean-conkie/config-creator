@@ -361,8 +361,8 @@ function getData (id, connectionName, datasetName, elementId, taskId) { // eslin
   let url = null
 
   if (id < 1) {
-    if (returnType.job) {
-      url = `/api/job/${returnType.job}/schema/`
+    if (returnType.job) { // eslint-disable-line no-undef
+      url = `/api/job/${returnType.job}/schema/` // eslint-disable-line no-undef
     } else if (taskId) {
       url = `/api/task/${taskId}/schema/`
     }
@@ -454,7 +454,7 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
 
 /**
  * It sets the return type for the connection modal
- * 
+ *
  * Args:
  *   selector: The id of the element that will be used to display the selected value.
  *   columnTarget: The id of the input field where the column name will be placed.
@@ -533,11 +533,9 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
   bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).show() // eslint-disable-line no-undef
 }
 
-
-document.getElementById('id_connection_modal_close_button').addEventListener('click', function() {
-  
-  bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).hide()
-  if (returnType.modal) {
+document.getElementById('id_connection_modal_close_button').addEventListener('click', function () {
+  bootstrap.Modal.getOrCreateInstance(document.getElementById('connection-modal')).hide() // eslint-disable-line no-undef
+  if (returnType.modal) { // eslint-disable-line no-undef
     bootstrap.Modal.getOrCreateInstance(document.getElementById(returnType.modal)).show() // eslint-disable-line no-undef
   }
 })
