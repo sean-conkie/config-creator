@@ -16,7 +16,6 @@
               <th scope="col"></th>
               <th scope="col"></th>
               <th scope="col"></th>
-              <th scope="col"></th>
             </thead>
             <tbody class="text-center align-middle" id="id_where_condition_tbody">
               {% for condition in where %}
@@ -37,14 +36,14 @@
                       {{ condition.condition.right.transformation }}
                     {% endif %}
                   </td>
-                  <td class="btn-column"><button class="btn btn-danger where-delete" id="id_condition_delete_{{ condition.condition.id }}"
+                  <td class="btn-column"><button class="btn row-btn-danger where-delete" id="id_condition_delete_{{ condition.condition.id }}"
                       type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                       data-delete-url="{% url 'api-condition-delete' pk=condition.condition.id %}"
                       data-delete-element-id="id_condition_{{ condition.condition.id }}_row"><i class="bi bi-trash3"></i></button></td>
                 </tr>
               {% endfor %}
               {% if where|length == 0 %}
-                <tr class="placeholder-row"><td class="text-center" colspan="6">No conditions linked to task!</td></tr>
+                <tr class="placeholder-row"><td class="text-center" colspan="5">No conditions linked to task!</td></tr>
               {% endif %}
             </tbody>
           </table>

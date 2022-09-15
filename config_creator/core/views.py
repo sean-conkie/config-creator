@@ -1,4 +1,3 @@
-import git
 import json
 import mimetypes
 import os
@@ -54,6 +53,8 @@ __all__ = [
     "deltadeleteview",
     "adddependencyview",
     "dependencydeleteview",
+    "crawler",
+    "gitfileselect",
 ]
 
 # region core views
@@ -127,7 +128,11 @@ def pullrepository(request, pk):
     target_path = os.path.join(os.getcwd(), f"repos/{request.user.id}/{repo.name}/")
 
     if not os.path.exists(target_path):
-        git.Repo.clone_from(repo.url, target_path)
+        Repo.clone_from(repo.url, target_path)
+    else:
+        repo = Repo(target_path)
+        git = repo.git
+        git.pull()
 
     context = {
         "repo": repo,
@@ -164,6 +169,16 @@ def pullnewrepository(request):
         return redirect(redirect_url)
 
 
+def gitfileselect(request, path):
+    id = handle_uploaded_file(request, path)
+    return redirect(
+        reverse(
+            "job-tasks",
+            kwargs={"job_id": id},
+        )
+    )
+
+
 # endregion
 
 # region local file views
@@ -187,7 +202,7 @@ def fileselect(request):
             return redirect(
                 reverse(
                     "job-tasks",
-                    kwargs={"job_id", id},
+                    kwargs={"job_id": id},
                 )
             )
     else:
@@ -512,17 +527,18 @@ def editjobtaskview(request, job_id, pk=None):
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
-        m = re.search(
-            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
-            request.POST.get("driving_table", ""),
-            re.IGNORECASE,
-        )
-        get_source_table(
-            task.id,
-            m.group("dataset_name"),
-            m.group("table_name"),
-            "src",
-        )
+        if request.POST.get("driving_table", ""):
+            m = re.search(
+                r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+                request.POST.get("driving_table"),
+                re.IGNORECASE,
+            )
+            get_source_table(
+                task.id,
+                m.group("dataset_name"),
+                m.group("table_name"),
+                "src",
+            )
 
         get_source_table(
             task.id,
@@ -1276,10 +1292,24 @@ def get_where(task_id: str) -> list[dict]:
     ]
 
 
-def handle_uploaded_file(request):
+def handle_uploaded_file(request, path: str = None):
+    """
+    It takes a JSON file, parses it, and saves the data to the database
 
-    file = file_upload(request).file
+    Args:
+      request: The request object
+      path (str): str=None
+
+    Returns:
+      The job id is being returned.
+    """
+
+    if path:
+        file = open(path, "r")
+    else:
+        file = file_upload(request).file
     filecontent = file.read()
+
     jscontent = json.loads(filecontent)
 
     job = Job(
@@ -1295,7 +1325,10 @@ def handle_uploaded_file(request):
     for key in jscontent.get("properties", {}).keys():
         setattr(job_properties, key, jscontent.get("properties", {})[key])
 
+    job_properties.save()
+
     tasks = jscontent.get("tasks")
+    dependencies = []
     for task in tasks:
         params = task.get("parameters", {})
         t = JobTask(
@@ -1312,12 +1345,23 @@ def handle_uploaded_file(request):
             destination_dataset=params.get("destination_dataset"),
             driving_table=params.get("driving_table"),
             staging_dataset=params.get("staging_dataset"),
-            description=params.get("description"),
+            description=task.get("description"),
             createdby=request.user,
             updatedby=request.user,
         )
 
         t.save()
+
+        # add dependencies to a list to add later, once
+        # all tasks have been created
+        for dependency in task.get("dependencies"):
+            dependencies.append(
+                {
+                    "dependant": t.id,
+                    "predecessor": dependency,
+                }
+            )
+
         properties = {
             k: params[k]
             for k in params.keys()
@@ -1344,6 +1388,18 @@ def handle_uploaded_file(request):
             for key in properties.keys():
                 setattr(task_properties, key, properties[key])
 
+            task_properties.save()
+
+        for key in params.get("source_tables"):
+            st = SourceTable(
+                source_project=params.get("source_tables")[key].get("source_project"),
+                dataset_name=params.get("source_tables")[key].get("dataset_name"),
+                table_name=params.get("source_tables")[key].get("table_name"),
+                alias=params.get("source_tables")[key].get("alias"),
+                task=t,
+            )
+            st.save()
+
         for i, field in enumerate(params.get("source_to_target", [])):
             f = Field(
                 name=field.get("name", field.get("source_column")),
@@ -1351,7 +1407,14 @@ def handle_uploaded_file(request):
                 if field.get("data_type")
                 else BigQueryDataType.objects.get(id=DEFAULT_DATA_TYPE_ID),
                 source_column=field.get("source_column"),
-                source_name=field.get("source_name"),
+                source_table=get_source_table(
+                    dataset_name=field.get("source_table").get("dataset_name"),
+                    table_name=field.get("source_table").get("table_name"),
+                    alias=field.get("source_table").get("alias"),
+                    task_id=t.id,
+                )
+                if field.get("source_table")
+                else None,
                 transformation=field.get("transformation"),
                 is_source_to_target=True,
                 is_primary_key=field.get("is_primary_key", False),
@@ -1370,24 +1433,37 @@ def handle_uploaded_file(request):
                 ),
                 where=t,
             )
-            w.save()
 
             fields = where.get("fields")
-            # field = ConditionField(
-            #     left=fields[0],
-            #     right=fields[1],
-            #     condition=w,
-            # )
-            # field.save()
+
+            condition_fields = save_condition_fields(fields, t.id)
+
+            w.left = condition_fields[0]
+            w.right = condition_fields[1]
+
+            w.save()
 
         for join in params.get("joins", []):
+            right = get_source_table(
+                dataset_name=join.get("right", {}).get("dataset_name"),
+                table_name=join.get("right", {}).get("table_name"),
+                alias=join.get("right", {}).get("alias"),
+                task_id=t.id,
+            )
+
+            left = get_source_table(
+                dataset_name=join.get("left", {}).get("dataset_name"),
+                table_name=join.get("left", {}).get("table_name"),
+                alias=join.get("left", {}).get("alias"),
+                task_id=t.id,
+            )
+
             j = Join(
-                right=join.get("right"),
+                left_table=left,
+                right_table=right,
                 type=JoinType.objects.get(code=join.get("type", "left").upper()),
                 task=t,
             )
-            if join.get("left"):
-                j.left = join.get("left")
 
             j.save()
 
@@ -1401,15 +1477,15 @@ def handle_uploaded_file(request):
                     ),
                     join=j,
                 )
-                c.save()
 
                 fields = condition.get("fields")
-                # field = ConditionField(
-                #     left=fields[0],
-                #     right=fields[1],
-                #     condition=c,
-                # )
-                # field.save()
+
+                condition_fields = save_condition_fields(fields, t.id)
+
+                c.left = condition_fields[0]
+                c.right = condition_fields[1]
+
+                c.save()
 
         history = params.get("history")
 
@@ -1420,13 +1496,8 @@ def handle_uploaded_file(request):
             history_obj.save()
 
             for i, partition in enumerate(history.get("partition", [])):
-                partition_field = Field.objects.get(
-                    name=partition.get("name"),
-                    source_column=partition.get("source_column"),
-                    source_name=partition.get("source_name"),
-                    transformation=partition.get("transformation"),
-                )
-                partition_field.is_history_key = True
+                partition_field = get_field_from_dict(partition, t.id)
+                partition_field.partition = i
                 partition_field.save()
 
                 partition_obj = Partition(
@@ -1437,12 +1508,9 @@ def handle_uploaded_file(request):
                 partition_obj.save()
 
             for i, driving_column in enumerate(history.get("driving_column", [])):
-                driving_column_field = Field.objects.get(
-                    name=driving_column.get("name"),
-                    source_column=driving_column.get("source_column"),
-                    source_name=driving_column.get("source_name"),
-                    transformation=driving_column.get("transformation"),
-                )
+                driving_column_field = get_field_from_dict(driving_column, t.id)
+                driving_column_field.partition = i
+                driving_column_field.save()
 
                 driving_column_obj = DrivingColumn(
                     history=history_obj,
@@ -1452,12 +1520,9 @@ def handle_uploaded_file(request):
                 driving_column_obj.save()
 
             for i, order in enumerate(history.get("order", [])):
-                order_field = Field.objects.get(
-                    name=order.get("name"),
-                    source_column=order.get("source_column"),
-                    source_name=order.get("source_name"),
-                    transformation=order.get("transformation"),
-                )
+                order_field = get_field_from_dict(order.get("field"), t.id)
+                order_field.partition = i
+                order_field.save()
 
                 order_obj = HistoryOrder(
                     history=history_obj,
@@ -1470,18 +1535,165 @@ def handle_uploaded_file(request):
         if delta:
             delta_obj = Delta(
                 task=t,
-                field=Field.objects.get(
-                    name=delta.get("name"),
-                    source_column=delta.get("source_column"),
-                    source_name=delta.get("source_name"),
-                    transformation=delta.get("transformation"),
-                ),
+                field=get_field_from_dict(delta.get("field", {}), t.id),
                 lower_bound=delta.get("lower_bound"),
                 upper_bound=delta.get("upper_bound"),
             )
             delta_obj.save()
 
+    for dependency in dependencies:
+        predecessor = JobTask.objects.get(
+            job_id=job.id,
+            name=dependency.get("predecessor"),
+        )
+        dep = Dependency(
+            predecessor_id=predecessor.id,
+            dependant_id=dependency.get("dependant"),
+        )
+        dep.save()
+
     return job.id
+
+
+def get_field_from_dict(field_structure: dict, task_id: int) -> Field:
+    """
+    > This function takes a dictionary of field attributes and returns a Field object
+
+    Args:
+      field_structure (dict): a dictionary containing the field's information
+      task_id (int): The id of the task that the field belongs to.
+
+    Returns:
+      A field object
+    """
+
+    if Field.objects.filter(
+        name=field_structure.get("name", field_structure.get("source_column")),
+        data_type=BigQueryDataType.objects.get(name=field_structure.get("data_type"))
+        if field_structure.get("data_type")
+        else BigQueryDataType.objects.get(id=DEFAULT_DATA_TYPE_ID),
+        source_column=field_structure.get("source_column"),
+        source_table=get_source_table(
+            dataset_name=field_structure.get("source_table").get("dataset_name"),
+            table_name=field_structure.get("source_table").get("table_name"),
+            alias=field_structure.get("source_table").get("alias"),
+            task_id=task_id,
+        )
+        if field_structure.get("source_table")
+        else None,
+        transformation=field_structure.get("transformation"),
+        is_source_to_target=field_structure.get("is_source_to_target", True),
+        is_primary_key=field_structure.get("is_primary_key", False),
+        is_history_key=field_structure.get("is_history_key", False),
+        is_nullable=field_structure.get("is_nullable", True),
+        task_id=task_id,
+    ).exists():
+        f = Field.objects.get(
+            name=field_structure.get("name", field_structure.get("source_column")),
+            data_type=BigQueryDataType.objects.get(
+                name=field_structure.get("data_type")
+            )
+            if field_structure.get("data_type")
+            else BigQueryDataType.objects.get(id=DEFAULT_DATA_TYPE_ID),
+            source_column=field_structure.get("source_column"),
+            source_table=get_source_table(
+                dataset_name=field_structure.get("source_table").get("dataset_name"),
+                table_name=field_structure.get("source_table").get("table_name"),
+                alias=field_structure.get("source_table").get("alias"),
+                task_id=task_id,
+            )
+            if field_structure.get("source_table")
+            else None,
+            transformation=field_structure.get("transformation"),
+            is_source_to_target=field_structure.get("is_source_to_target", True),
+            is_primary_key=field_structure.get("is_primary_key", False),
+            is_history_key=field_structure.get("is_history_key", False),
+            is_nullable=field_structure.get("is_nullable", True),
+            task_id=task_id,
+        )
+    else:
+
+        f = Field(
+            name=field_structure.get("name", field_structure.get("source_column")),
+            data_type=BigQueryDataType.objects.get(
+                name=field_structure.get("data_type")
+            )
+            if field_structure.get("data_type")
+            else BigQueryDataType.objects.get(id=DEFAULT_DATA_TYPE_ID),
+            source_column=field_structure.get("source_column"),
+            source_table=get_source_table(
+                dataset_name=field_structure.get("source_table").get("dataset_name"),
+                table_name=field_structure.get("source_table").get("table_name"),
+                alias=field_structure.get("source_table").get("alias"),
+                task_id=task_id,
+            )
+            if field_structure.get("source_table")
+            else None,
+            transformation=field_structure.get("transformation"),
+            is_source_to_target=field_structure.get("is_source_to_target", True),
+            is_primary_key=field_structure.get("is_primary_key", False),
+            is_history_key=field_structure.get("is_history_key", False),
+            is_nullable=field_structure.get("is_nullable", True),
+            task_id=task_id,
+        )
+        f.save()
+
+    return f
+
+
+def save_condition_fields(fields: list[str], task_id: int) -> list[Field]:
+    """
+    It takes a list of strings, and returns a list of Field objects
+
+    Args:
+      fields (list[str]): list[str]
+      task_id (int): The id of the task that the join belongs to.
+      join_id (int): The id of the join that this condition is for.
+
+    Returns:
+      A list of fields
+    """
+    outp = []
+    for field in fields:
+        if field:
+            m = re.search(
+                r"^(?P<alias>\b\w+\b)\.(?P<field>\b\w+\b)$",
+                field,
+                re.IGNORECASE,
+            )
+            if m:
+                f = get_field_from_dict(
+                    {
+                        "name": m.group("field"),
+                        "data_type": BigQueryDataType.objects.get(
+                            id=DEFAULT_DATA_TYPE_ID
+                        ),
+                        "source_column": m.group("field"),
+                        "source_table": SourceTable.objects.get(
+                            alias=m.group("alias"),
+                            task_id=task_id,
+                        ).todict(),
+                        "is_source_to_target": False,
+                        "task_id": task_id,
+                    },
+                    task_id,
+                )
+            else:
+                f = Field(
+                    transformation=field,
+                    is_source_to_target=False,
+                    task_id=task_id,
+                )
+
+                f.save()
+
+            outp.append(f)
+
+        else:
+
+            outp.append(field)
+
+    return outp
 
 
 def createtree(treesource: list[dict], layers: int = 1) -> list[str]:

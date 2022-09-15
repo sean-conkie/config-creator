@@ -150,7 +150,7 @@ const HttpStatusEnum = new Map()
   })
   .set(500, {
     name: 'Internal Server Error',
-    desc: 'A generic error message'
+    desc: 'An error occured processing your request.'
   })
   .set(501, {
     name: 'Not Implemented',
@@ -212,6 +212,43 @@ const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) { // esli
 })
 
 /**
+ * It creates an element of the type you specify, and adds the content, classes, layer, and id you
+ * specify
+ *
+ * Args:
+ *   type: the type of element to create, e.g. 'div'
+ *   content: The text content of the element.
+ *   classList: an array of class names to add to the element
+ *   layer: the layer of the element, which is used to calculate the margin-left of the element.
+ *   id: The id of the element.
+ *
+ * Returns:
+ *   A function that creates an element.
+ */
+function createElement (type, content, classList, layer, id) {
+  const outer = document.createElement(type)
+  if (content) {
+    outer.textContent = content
+  }
+
+  if (classList) {
+    for (let i = 0; i < classList.length; i++) {
+      outer.classList.add(classList[i])
+    }
+  }
+
+  if (layer) {
+    outer.style.marginLeft = (layer * 20) + 'px'
+  }
+
+  if (id) {
+    outer.setAttribute('id', id)
+  }
+
+  return outer
+}
+
+/**
  * It creates a spinner element
  *
  * Args:
@@ -251,43 +288,6 @@ function getCookie (name) {
   const value = `; ${document.cookie}`
   const parts = value.split(`; ${name}=`)
   if (parts.length === 2) return parts.pop().split(';').shift()
-}
-
-/**
- * It creates an element of the type specified, with the content specified, with the classes specified,
- * with the layer specified, and with the id specified
- *
- * Args:
- *   type: the type of element to create (e.g. "div", "p", "span", etc.)
- *   content: The text content of the element.
- *   classList: an array of class names to add to the element
- *   layer: the layer of the element. This is used to indent the element.
- *   id: The id of the element.
- *
- * Returns:
- *   A DOM element.
- */
-function createElement (type, content, classList, layer, id) {
-  const outer = document.createElement(type)
-  if (content) {
-    outer.textContent = content
-  }
-
-  if (classList) {
-    for (let i = 0; i < classList.length; i++) {
-      outer.classList.add(classList[i])
-    }
-  }
-
-  if (layer) {
-    outer.style.marginLeft = (layer * 20) + 'px'
-  }
-
-  if (id) {
-    outer.setAttribute('id', id)
-  }
-
-  return outer
 }
 
 /**
@@ -468,6 +468,17 @@ function createRowObject (classList, id, content, value, object, attributes) { /
   return obj
 }
 
+/**
+ * It takes an array of objects, each object containing an array of objects, and creates a table row
+ * for each object in the first array, and a table cell for each object in the second array
+ *
+ * Args:
+ *   data: an array of objects that contain the data for each row.
+ *   parent: The parent element to append the row to.
+ *   position: The position of the row in the table. If you want to add a row to the top of the table,
+ * you would use 1. If you want to add a row to the bottom of the table, you would use the number of
+ * rows in the table + 1.
+ */
 function addRow (data, parent, position) { // eslint-disable-line no-unused-vars
   for (let i = 0; i < data.length; i++) {
     const row = createElement('tr', null, data[i].classList, null, data[i].id)
@@ -489,6 +500,12 @@ function addRow (data, parent, position) { // eslint-disable-line no-unused-vars
         td.appendChild(content[j].object)
       }
 
+      if (content[j].attributes) {
+        for (let a = 0; a < content[j].attributes.length; a++) {
+          td.setAttribute(content[j].attributes[a][0], content[j].attributes[a][1])
+        }
+      }
+
       row.appendChild(td)
     }
     if (position && position !== '' && position !== undefined && position !== 'null' && position !== null && position !== 'undefined') {
@@ -497,4 +514,43 @@ function addRow (data, parent, position) { // eslint-disable-line no-unused-vars
       parent.appendChild(row)
     }
   }
+}
+
+/**
+ * It creates a Bootstrap toast element, appends it to the DOM, and then shows it
+ *
+ * Args:
+ *   message: The message to display in the toast
+ *   parentId: The id of the parent element to append the toast to. If not provided, the toast will be
+ * appended to the body.
+ */
+function alertMessage (message, parentId) {
+  const wrapper = createElement('div', null, ['toast-container', 'position-absolute', 'p-3', 'top-0', 'start-50', 'translate-middle-x'])
+  const toastInner = createElement('div', null, ['toast', 'text-white', 'bg-secondary', 'border-0'])
+  const toastBody = createElement('div', message, ['toast-body', 'text-center'])
+
+  toastInner.appendChild(toastBody)
+  wrapper.appendChild(toastInner)
+
+  if (parentId) {
+    document.getElementById(parentId).appendChild(wrapper)
+  } else {
+    document.body.appendChild(wrapper)
+  }
+
+  const toastObj = new bootstrap.Toast(toastInner) // eslint-disable-line no-undef
+  toastObj.show()
+}
+
+/**
+ * It takes a string and a parent element id, and then copies the string to the clipboard and displays
+ * a message to the user
+ *
+ * Args:
+ *   text: The text to copy to the clipboard
+ *   parentId: The id of the parent element that the alert message will be appended to.
+ */
+async function textToClipboard (text, parentId) { // eslint-disable-line no-unused-vars
+  await navigator.clipboard.writeText(text)
+  alertMessage('Copied to clipboard!', parentId)
 }

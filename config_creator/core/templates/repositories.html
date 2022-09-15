@@ -5,7 +5,7 @@
         <div class="container">
           <div class="py-1 text-center">
             <h2>Git Repositories</h2>
-            <p class="lead">View your saved repositories.</p>
+            <p class="lead">Load config file from git.</p>
           </div>
           <div class="container">
             <table class="table table-hover align-middle">
@@ -19,7 +19,7 @@
                 {% for repo in repositories %}
                   <tr>
                     <td>{{ repo.name }}</td>
-                    <td><a class="btn btn-secondary" href="{% url 'repository-pull' pk=repo.id %}" title="Pull from repository" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="fa-solid fa-code-pull-request"></i></a></td>
+                    <td class="btn-column"><button class="btn row-btn-secondary repo-button" id="id_repo_button_{{repo.id}}" title="Pull from repository" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right" data-repo-id="{{repo.id}}"><i class="fa-solid fa-code-pull-request"></i></button></td>
                   </tr>
                 {% endfor %}
               </tbody>
@@ -63,4 +63,25 @@
             </div>
           </div>
         </div>
+
+        <script src="/static/js/lazy-listener.js"></script>
+        <script src="/static/js/git-file-selector.js"></script>
+        {% include 'git_file_selector.html' %}
+
+        <script>
+
+          let listenerMap = new Map()
+
+          let repoButtonList = document.getElementsByClassName('repo-button')
+          for (let i = 0; i < repoButtonList.length; i++) {
+            listenerMap.set(repoButtonList[i].id, {
+                  'function': 'openGitModal(this.dataset["repoId"])',
+                  'type': 'click'
+                })
+          }       
+          
+          listenerMap.forEach(addListener)
+          
+        </script>
+
         {% endblock %}

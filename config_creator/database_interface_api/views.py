@@ -22,6 +22,7 @@ class SchemaView(views.APIView):
         connection_id: int = None,
         connection_name: int = None,
         database: str = None,
+        job_id: int = None,
         task_id: int = None,
     ) -> response.Response:
 
@@ -33,6 +34,7 @@ class SchemaView(views.APIView):
                     connection_name,
                 ),
                 database,
+                job_id,
                 task_id,
                 request.user.id,
             )
@@ -44,6 +46,7 @@ class SchemaView(views.APIView):
                     connection_id,
                     connection_name,
                 ),
+                job_id,
                 task_id,
                 request.user.id,
             )
@@ -54,16 +57,18 @@ class SchemaView(views.APIView):
                     connection_id,
                 ),
                 database,
+                job_id,
                 task_id,
                 request.user.id,
             )
         elif connection_id:
             outp = get_schema(
                 get_connection(request.user.id, connection_id),
+                job_id,
                 task_id,
             )
         else:
-            outp = get_connections(request, task_id)
+            outp = get_connections(request, job_id, task_id)
 
         return response.Response(data=outp, status=status.HTTP_200_OK)
 
@@ -106,7 +111,7 @@ def get_connection(user_id: int, connection_id: int, name: str = None) -> dict:
         }
 
 
-def get_connections(request: request, task_id: int = None) -> dict:
+def get_connections(request: request, job_id: int = None, task_id: int = None) -> dict:
     connections = (
         Connection.objects.select_related().filter(user=request.user).order_by("name")
     )
@@ -174,9 +179,10 @@ def get_connections(request: request, task_id: int = None) -> dict:
             }
         )
 
-        job_properties = Job.objects.get(
-            id=JobTask.objects.get(id=task_id).job_id
-        ).get_property_object()
+        job_id = JobTask.objects.get(id=task_id).job_id
+
+    if job_id:
+        job_properties = Job.objects.get(id=job_id).get_property_object()
         if job_properties:
             tree_source.append(
                 {

@@ -23,7 +23,7 @@
               <td id="id_source_table_table_{{ table.id }}">{{ table.dataset_name }}.{{ table.table_name }}</td>
               <td>{{ table.alias }}</td>
               <td id="id_source_table_project_{{ table.id }}">{{ table.source_project }}</td>
-              <td><button class="btn btn-secondary" id="id_source_table_change_{{ table.id }}_button" type="button" data-bs-toggle="modal" data-bs-target="#changeForm" data-source-table-id="{{ table.id }}" data-target-id="id_source_table_project_{{ table.id }}" data-task-id="{{ task.id }}"><i class="bi bi-pencil"></i></button></td>
+              <td><button class="btn row-btn-secondary" id="id_source_table_change_{{ table.id }}_button" type="button" data-bs-toggle="modal" data-bs-target="#changeForm" data-source-table-id="{{ table.id }}" data-target-id="id_source_table_project_{{ table.id }}" data-task-id="{{ task.id }}"><i class="bi bi-pencil"></i></button></td>
             </tr>
           {% endfor %}
         </tbody>

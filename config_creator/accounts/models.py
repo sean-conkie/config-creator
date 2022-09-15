@@ -108,3 +108,11 @@ class GitRepository(models.Model):
     )
     name = models.CharField(blank=False, unique=False, max_length=250)
     secret_key = models.CharField(blank=True, unique=True, null=True, max_length=250)
+
+    def todict(self):
+
+        return {
+            "id": self.id,
+            "url": self.url,
+            "name": self.name,
+        }

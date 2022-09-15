@@ -35,10 +35,10 @@
             <td>{{ job.name }}</td>
             <td>{{ job.type }}</td>
             <td>{{ job.description }}</td>
-            <td>{{ job.lastupdate }}</td>
-            <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-tasks' job_id=job.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-            <td class="btn-column"><a class="btn btn-info job-download" id="id_{{ job.id }}_download" href="{% url 'job-download' pk=job.id %}" title="Download" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
-            <td class="btn-column"><button class="btn btn-danger job-delete" id="id_job_delete_{{ job.id }}"
+            <td class="date-column">{{ job.lastupdate }}</td>
+            <td class="btn-column"><a class="btn row-btn-secondary" href="{% url 'job-tasks' job_id=job.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+            <td class="btn-column"><a class="btn row-btn-info job-download" id="id_{{ job.id }}_download" href="{% url 'job-download' pk=job.id %}" title="Download" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
+            <td class="btn-column"><button class="btn row-btn-danger job-delete" id="id_job_delete_{{ job.id }}"
               type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
               data-delete-url="{% url 'api-job-delete' pk=job.id %}"
               data-delete-element-id="id_job_{{job.id}}_row"><i class="bi bi-trash3"></i></button></td>
@@ -56,15 +56,15 @@
   let listenerMap = new Map()
 
   let downloadButtonList = document.getElementsByClassName("job-download");
-  for (var i = 0; i < downloadButtonList.length; i++) {
-    listenerMap.set("id_{{ job.id }}_download", {
+  for (let i = 0; i < downloadButtonList.length; i++) {
+    listenerMap.set(downloadButtonList[i].id, {
           "function": "event.appendChild(createSpinner(this.id))",
           "type": "click"
         })
   }
   
   let deleteButtonList = document.getElementsByClassName("job-delete");
-  for (var i = 0; i < deleteButtonList.length; i++) {
+  for (let i = 0; i < deleteButtonList.length; i++) {
     listenerMap.set(deleteButtonList[i].id, {
       "function": "deleteModelObject(this.dataset['deleteUrl'], this.dataset['deleteElementId']);",
       "type": "click"

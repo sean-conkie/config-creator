@@ -1,7 +1,16 @@
+import os
 import re
 
+from accounts.models import GitRepository
 from copy import deepcopy
-from core.forms import ConditionForm, DeltaForm, DependencyForm, FieldForm, JoinForm
+from core.forms import (
+    ConditionForm,
+    DeltaForm,
+    DependencyForm,
+    FieldForm,
+    JoinForm,
+    UploadFileForm,
+)
 from core.models import (
     BigQueryDataType,
     changefieldposition,
@@ -23,11 +32,16 @@ from core.models import (
     str_to_class,
     get_source_table,
 )
+from core.views import crawler, handle_uploaded_file
 from database_interface_api.dbhelper import get_table
+from database_interface_api.models import Connection
 from database_interface_api.views import get_connection
 from django import views
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
+from django.urls import reverse
+from git import Repo
+from lib.helper import ifnull
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -50,6 +64,12 @@ __all__ = [
     "newfieldposition",
     "PredecessorView",
     "possibletasks",
+    "PartitionView",
+    "orderpositionchange",
+    "JoinView",
+    "UploadFileView",
+    "pullrepository",
+    "tasksummary",
 ]
 
 
@@ -349,6 +369,15 @@ class JoinView(views.APIView):
             m.group("table_name"),
             m.group("alias"),
         )
+
+        # if request.POST.get("right_connection_id"):
+        #     if request.POST.get("right_connection_id") == '-1':
+
+        #     connection = Connection.objects.get(
+        #         id=request.POST.get("right_connection_id")
+        #     )
+        #     right_table.source_project = connection.name
+        #     right_table.save()
 
         request_post = deepcopy(request.POST)
         request_post["left_table"] = left_table.id
@@ -1011,6 +1040,36 @@ class PredecessorView(views.APIView):
         return response.Response(data=outp, status=return_status)
 
 
+class UploadFileView(views.APIView):
+
+    renderer_classes = [renderers.JSONRenderer]
+    permission_classes = [IsAuthenticated]
+
+    def post(
+        self,
+        request: request,
+    ) -> response.Response:
+
+        form = UploadFileForm(request.POST, request.FILES)
+        if form.is_valid():
+            id = handle_uploaded_file(request)
+            outp = {
+                "result": reverse(
+                    "job-tasks",
+                    kwargs={"job_id": id},
+                )
+            }
+            return_status = status.HTTP_200_OK
+        else:
+            outp = {
+                "message": form.errors,
+                "type": "Errors",
+            }
+            return_status = status.HTTP_400_BAD_REQUEST
+
+        return response.Response(data=outp, status=return_status)
+
+
 @api_view(http_method_names=["POST"])
 @permission_classes([IsAuthenticated])
 def copytable(request, task_id, connection_id, dataset, table_name):
@@ -1038,12 +1097,33 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             status=status.HTTP_404_NOT_FOUND,
         )
 
+    connection_name = None
+    if connection_id == "-1":
+        job_properties = Job.objects.get(id=task.job_id).get_property_object()
+        connection_name = job_properties.target_project
+
     table = get_table(
-        get_connection(request.user.id, connection_id), dataset, table_name
+        get_connection(request.user.id, connection_id, connection_name),
+        dataset,
+        table_name,
+        task_id,
     )
+
     m = re.search(
         r"(?P<table_name>\w+)(?:\s(?P<alias>\w+))?", table_name, re.IGNORECASE
     )
+
+    # if the table returned is empty, check the job
+    # for a task creating it and pull columns.
+    if len(table.get("result", {}).get("content", [])) == 0:
+
+        table = get_table(
+            get_connection(request.user.id, -1, connection_name),
+            dataset,
+            table_name,
+            task_id,
+        )
+
     source_table = get_source_table(
         task_id, dataset, m.group("table_name"), m.group("alias")
     )
@@ -1054,8 +1134,10 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             source_column=column.get("column_name"),
             source_table=source_table,
             source_data_type=column.get("data_type"),
+            is_nullable=column.get("data_type", True),
+            is_primary_key=column.get("is_primary_key", False),
             task=task,
-            position=i,
+            position=i + 1,
         )
 
         if BigQueryDataType.objects.filter(
@@ -1190,7 +1272,10 @@ def newfieldposition(request: request, task_id: int) -> response.Response:
     """
     if Field.objects.filter(task_id=task_id).exists():
         outp = {
-            "result": len(Field.objects.filter(task_id=task_id)) + 1,
+            "result": len(
+                Field.objects.filter(task_id=task_id, is_source_to_target=True)
+            )
+            + 1,
         }
     elif JobTask.objects.filter(id=task_id).exists():
         outp = {
@@ -1235,3 +1320,280 @@ def possibletasks(request: request, job_id: int, task_id: int) -> response.Respo
         return response.Response(data=data, status=status.HTTP_200_OK)
     else:
         return response.Response(data=None, status=status.HTTP_404_NOT_FOUND)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def pullrepository(request: request, pk: int, branch: str = None) -> response.Response:
+    """
+    > This function pulls the latest changes from the remote repository and returns the files and
+    branches of the repository
+
+    Args:
+      request (request): request - This is the request object that is passed to the view.
+      pk (int): The primary key of the repository you want to pull.
+      branch (str): The branch to checkout. If not specified, the current branch will be used.
+
+    Returns:
+      A response object with the data and status code.
+    """
+
+    if not GitRepository.objects.filter(id=pk).exists():
+        return response.Response(
+            data={"message": f"Repository for id {pk} not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    repo = GitRepository.objects.get(id=pk)
+    target_path = os.path.join(os.getcwd(), f"repos/{request.user.id}/{repo.name}/")
+
+    if not os.path.exists(target_path):
+        Repo.clone_from(repo.url, target_path)
+
+    repo_obj = Repo(target_path)
+    git = repo_obj.git
+
+    if branch:
+        m = re.search(
+            r"(?:(?P<remote>origin)\/)?(?P<branch>[\w\/\-\d]+)", branch, re.IGNORECASE
+        )
+        if m.group("remote"):
+            git.checkout(m.group("branch"))
+            git.pull(m.group("remote"), m.group("branch"))
+        else:
+            git.checkout(m.group("branch"))
+            git.pull()
+    else:
+        git.fetch()
+        git.pull()
+
+    branches = git.branch("-va").split("\n")
+
+    branch_dict = {}
+
+    for branch in branches:
+        if not re.search(r"origin\/HEAD", branch, re.IGNORECASE):
+            current_branch = False
+            m = re.search(r"^\*", branch, re.IGNORECASE)
+            if m:
+                current_branch = True
+
+            cleansed_branch = re.sub(
+                r"^remotes\/",
+                "",
+                re.sub(r"(\s\[[\w\s]+\]\s)", " ", re.sub(r"\s+", " ", branch[2:])),
+            )
+            m = re.search(
+                r"^(?P<branch>[\w\-\.\/]+)\s(?P<hash>[\w]+)\s(?P<commit>.+)",
+                cleansed_branch,
+                re.IGNORECASE,
+            )
+            branch_dict[m.group("branch")] = {
+                "hash": m.group("hash"),
+                "commit": m.group("commit"),
+            }
+
+            if current_branch:
+                branch_dict["current"] = m.group("branch")
+
+    context = {
+        "repo": repo.todict(),
+        "files": crawler(target_path),
+        "branches": branch_dict,
+    }
+    return response.Response(data={"result": context}, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def tasksummary(request: request, pk: int) -> response.Response:
+
+    if not JobTask.objects.filter(id=pk).exists():
+        return response.Response(
+            data={"message": f"Task for id {pk} not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    task = JobTask.objects.select_related().get(id=pk)
+
+    summary = {
+        "description": task.description,
+        "schema": [
+            [
+                f"{f.source_table.table_name}.{f.source_column}"
+                if f.source_table
+                else " ",
+                ifnull(f.source_data_type, " "),
+                ifnull(f.name, " "),
+                ifnull(f.data_type.name, " "),
+                "NULLABLE" if f.is_nullable else "REQUIRED",
+                f.is_primary_key,
+            ]
+            for f in Field.objects.filter(
+                task_id=task.id, is_source_to_target=True
+            ).order_by("position")
+        ],
+        "grain": [
+            f.name
+            for f in Field.objects.filter(
+                task_id=task.id, is_source_to_target=True, is_primary_key=True
+            ).order_by("position")
+        ],
+        "table_type": task.table_type.name,
+        "joins": [
+            f"join {j.left_table.table_name} to {j.right_table.table_name} on {' '.join([condition(c, i) for i, c in enumerate(Condition.objects.filter(join_id=j.id))])}"
+            for j in Join.objects.filter(task_id=task.id)
+        ],
+        "where": [
+            condition(c, i)
+            for i, c in enumerate(Condition.objects.filter(where_id=task.id))
+        ],
+        "column": [
+            {"column": f.name, "transformation": f.transformation}
+            for f in Field.objects.filter(task_id=task.id, is_source_to_target=True)
+            if f.transformation
+        ],
+    }
+
+    # add auto generated fields - effective_to_dt for history
+    # tables and data warehouse audit fields
+    if task.table_type.code == "HISTORY":
+        to_index = 0
+        for i, col in enumerate(summary["schema"]):
+            if col[2] == "effective_from_dt_seq":
+                to_index = i + 1
+                break
+
+        summary["schema"].insert(
+            to_index, [" ", " ", "effective_to_dt", "TIMESTAMP", "REQUIRED", False]
+        )
+
+    if (
+        task.write_disposition.code == "WRITETRUNCATE"
+        or task.write_disposition.code == "WRITEAPPEND"
+    ):
+        dw_index = 1
+        if task.table_type.code == "TYPE1":
+            for i, field in enumerate(summary["schema"]):
+                if not field[5]:
+                    dw_index = i
+                    break
+
+        summary["schema"].insert(
+            dw_index, [" ", " ", "dw_last_modified_dt", "TIMESTAMP", "REQUIRED", False]
+        )
+
+        if Delta.objects.filter(task_id=task.id).exists():
+            summary["schema"].insert(
+                dw_index, [" ", " ", "dw_created_dt", "TIMESTAMP", "REQUIRED", False]
+            )
+
+    if History.objects.filter(task_id=task.id).exists():
+        history = History.objects.get(task_id=task.id)
+        partition_fields = Partition.objects.select_related().filter(
+            history_id=history.id
+        )
+        order_fields = HistoryOrder.objects.select_related().filter(
+            history_id=history.id
+        )
+        driving_columns = DrivingColumn.objects.select_related().filter(
+            history_id=history.id
+        )
+
+        summary["history_partition"] = [
+            f"{pf.field.source_table.table_name + '.' if pf.field.source_table else ''}{pf.field.source_column}"
+            for pf in partition_fields
+        ]
+        summary["history_order"] = [
+            f"{of.field.source_table.table_name + '.' if of.field.source_table else ''}{of.field.source_column}{' descending' if of.is_desc else ''}"
+            for of in order_fields
+        ]
+        summary["history_columns"] = [
+            f"{dc.field.source_table.table_name + '.' if dc.field.source_table else ''}{dc.field.source_column}"
+            for dc in driving_columns
+        ]
+
+    template = "\n".join(
+        [
+            "*Description*",
+            summary.get("description", ""),
+            "\n",
+            "*Schema Definition*",
+            "||Source||Source Data Type||Column Name||Data Type||Mode||",
+            "\n".join(
+                [f"|{l}|" for l in ["|".join(f[:5]) for f in summary.get("schema", [])]]
+            ),
+            "\n",
+            "*Transformation*",
+            "*Joins*",
+            "\n".join([f"* {j}" for j in summary.get("joins", [])]),
+            "\n",
+            "*Where Conditions*",
+            "\n".join([f"* {w}" for w in summary.get("where", [])]),
+            "\n",
+            "*History Criteria*",
+            f"* Partition by {', '.join(summary.get('history_partition', []))}\n* Order by {', '.join(summary.get('history_order', []))}"
+            if History.objects.filter(task_id=task.id).exists()
+            else "N/A",
+            "\n",
+            "*History Columns*",
+            f"If changes are received for {', '.join(summary.get('history_columns', []))} then the existing record should be closed off and a new record created."
+            if History.objects.filter(task_id=task.id).exists()
+            else "N/A",
+            "\n",
+            "*Column Transformation*",
+            "||Column||Transformation||" if len(summary.get("column", [])) > 0 else "",
+            "\n".join(
+                [
+                    f"|{l}|"
+                    for l in [
+                        "|".join([c["column"], c["transformation"]])
+                        for c in summary.get("column", [])
+                    ]
+                ]
+            )
+            if len(summary.get("column", [])) > 0
+            else "None",
+        ]
+    )
+
+    outp = {
+        "summary": summary,
+        "template": template,
+    }
+
+    return response.Response(data={"result": outp}, status=status.HTTP_200_OK)
+
+
+def condition(condition: Condition, condition_position: int = None) -> str:
+    """
+    > It takes a condition object and returns a string that represents the condition in Python
+
+    Args:
+      condition (Condition): The condition object
+      condition_position (int): This is the position of the condition in the list of conditions. If it's
+    the first condition, then we don't need to add a logic operator.
+
+    Returns:
+      A string that represents a condition.
+    """
+
+    left_parameter = ""
+    lp = condition.left
+
+    if lp.transformation:
+        left_parameter = lp.transformation
+    elif lp.source_column:
+        table = f"{lp.source_table.table_name}."
+        left_parameter = f"{table}{lp.source_column}"
+
+    right_parameter = ""
+    rp = condition.right
+
+    if rp.transformation:
+        right_parameter = rp.transformation
+    elif rp.source_column:
+        table = f"{rp.source_table.table_name}."
+        right_parameter = f"{table}{rp.source_column}"
+
+    return f"{condition.logic_operator.lower() + ' ' if condition_position or condition_position == 1 else ''}{left_parameter} {condition.operator.lower()} {right_parameter}"

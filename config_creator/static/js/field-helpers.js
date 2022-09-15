@@ -30,7 +30,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         positionType = 'order'
       }
 
-      const viewButton = createElement('button', null, ['btn', 'btn-secondary'], 0, null) // eslint-disable-line no-undef
+      const viewButton = createElement('button', null, ['btn', 'row-btn-secondary'], 0, null) // eslint-disable-line no-undef
       viewButton.setAttribute('title', 'View')
       viewButton.setAttribute('type', 'button')
       viewButton.setAttribute('aria-current', 'page')
@@ -49,7 +49,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
         prepareFieldModal(this.dataset.action, this.dataset.fieldId, this.dataset.target, this.dataset.deleteElementId, this.dataset.jobId, this.dataset.taskId)
       })
 
-      const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
+      const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')
@@ -57,7 +57,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       deleteButton.setAttribute('data-bs-placement', 'right')
       deleteButton.setAttribute('data-delete-url', deleteUrl)
       deleteButton.setAttribute('data-delete-element-id', rowId)
-      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
+      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null)) // eslint-disable-line no-undef
       deleteButton.addEventListener('click', function () {
         deleteModelObject(this.dataset.deleteUrl, this.dataset.deleteElementId) // eslint-disable-line no-undef
       })
@@ -93,10 +93,10 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
 
       const prefix = [
         createRowObject(['vertical-grip-col'], null, null, null, createElement('i', null, ['bi', 'bi-grip-vertical'], 0, null)),
-        createRowObject(null, null, null, null, primary),
-        createRowObject(null, null, null, null, null),
-        createRowObject(null, null, null, null, nullable),
-        createRowObject(null, null, null, null, transformation)
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, primary),
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, null),
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, nullable),
+        createRowObject(['vertical-grip-col', 'text-center'], null, null, null, transformation)
       ]
 
       const suffix = [
@@ -362,6 +362,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
 
   if (usage === 'createColumn') {
     resetFieldInput(modalElements, 'reset')
+    submitButton.dataset.deleteElementId = undefined
+    submitButton.dataset.fieldId = undefined
     title.textContent = 'Create New Column'
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')

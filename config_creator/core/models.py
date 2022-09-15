@@ -179,6 +179,15 @@ class LogicOperator(models.Model):
     def __str__(self):
         return self.name
 
+    def lower(self):
+        """
+        The function lower() takes the string self.name and converts it to lowercase
+
+        Returns:
+          The name of the object in lowercase.
+        """
+        return str(self.name).lower()
+
 
 class Operator(models.Model):
     name = models.CharField(
@@ -206,6 +215,15 @@ class Operator(models.Model):
 
     def __str__(self):
         return self.name
+
+    def lower(self):
+        """
+        The function lower() takes the string self.name and converts it to lowercase
+
+        Returns:
+          The name of the object in lowercase.
+        """
+        return str(self.name).lower()
 
 
 class JoinType(models.Model):
@@ -257,7 +275,7 @@ class Job(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.id})"
 
     def get_absolute_url(self):
         """
@@ -382,7 +400,7 @@ class JobTask(models.Model):
     )
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.id})"
 
     def get_property_object(self):
 
@@ -438,7 +456,7 @@ class History(models.Model):
     )
 
     def __str__(self):
-        return f"{self.task.name} history"
+        return f"{self.task.name} history ({self.id})"
 
 
 class BigQueryDataType(models.Model):
@@ -700,6 +718,7 @@ class Field(models.Model):
             "source_data_type": self.source_data_type,
             "transformation": self.transformation,
             "position": self.position,
+            "is_source_to_target": self.is_source_to_target,
             "is_primary_key": self.is_primary_key,
             "is_nullable": self.is_nullable,
             "is_history_key": self.is_history_key,
@@ -772,7 +791,7 @@ class DrivingColumn(models.Model):
     field = models.ForeignKey(Field, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        return f"Driving Column - {self.position}"
+        return f"Driving Column - {self.field} ({self.id})"
 
 
 class Partition(models.Model):
@@ -783,7 +802,7 @@ class Partition(models.Model):
     field = models.ForeignKey(Field, on_delete=models.CASCADE, null=False)
 
     def __str__(self):
-        return f"Partition Column - {self.position}"
+        return f"Partition Column - {self.field} ({self.id})"
 
 
 class HistoryOrder(models.Model):
@@ -809,7 +828,7 @@ class HistoryOrder(models.Model):
     )
 
     def __str__(self):
-        return f"Order By - {self.position}"
+        return f"Order By - {self.field} {'desc' if self.is_desc else ''} ({self.id})"
 
 
 def changeorderposition(

@@ -1,6 +1,6 @@
 from core.views import *
 from django.contrib.auth.decorators import login_required
-from django.urls import path
+from django.urls import path, re_path
 
 urlpatterns = [
     path(
@@ -22,5 +22,10 @@ urlpatterns = [
         "file/upload/",
         login_required(fileselect),
         name="file-upload",
+    ),
+    re_path(
+        r"file\/(?P<path>[\w\/\-\d\.]+)\/upload\/",
+        login_required(gitfileselect),
+        name="git-file-upload",
     ),
 ]

@@ -1,11 +1,7 @@
 from .views import *
 from django.contrib.auth.decorators import login_required
-from django.urls import path
+from django.urls import path, re_path
 
-from .views import PartitionView
-from .views import orderpositionchange
-from .views import JoinView
-from .views import newfieldposition
 
 urlpatterns = [
     path(
@@ -38,8 +34,8 @@ urlpatterns = [
         login_required(SourceTableView.as_view()),
         name="api-source-table",
     ),
-    path(
-        "task/<int:task_id>/connection/<int:connection_id>/dataset/<str:dataset>/table/<str:table_name>/copy/",
+    re_path(
+        r"task\/(?P<task_id>\d+)\/connection\/(?P<connection_id>-?\d+)\/dataset\/(?P<dataset>[\w\-\d]+)\/table\/(?P<table_name>[\w\-\d]+(?: [\w\-\d]+))\/copy\/",
         login_required(copytable),
         name="api-table-copy",
     ),
@@ -187,5 +183,25 @@ urlpatterns = [
         "job/<int:job_id>/task/<int:task_id>/predecessor/tasks/",
         login_required(possibletasks),
         name="api-predecessor-tasks",
+    ),
+    path(
+        "file/upload/",
+        login_required(UploadFileView.as_view()),
+        name="api-file-upload",
+    ),
+    path(
+        "repositories/<int:pk>/pull/",
+        login_required(pullrepository),
+        name="api-repo-pull",
+    ),
+    re_path(
+        r"repositories\/(?P<pk>\d+)\/pull\/(?P<branch>[\w\/\-\d]+)\/",
+        login_required(pullrepository),
+        name="api-repo-pull-branch",
+    ),
+    path(
+        "task/<int:pk>/summary/",
+        login_required(tasksummary),
+        name="api-task-summary",
     ),
 ]

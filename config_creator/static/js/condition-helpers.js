@@ -111,7 +111,7 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
         addRow([createRowObject(null, null, rowContent, null, null, null)], document.getElementById('id_condition_modal_tbody'), document.getElementById('id_condition_modal_tbody').children.lenth) // eslint-disable-line no-undef
       }
 
-      const deleteButton = createElement('button', null, ['btn', 'btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
+      const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'field-delete'], 0, null) // eslint-disable-line no-undef
       deleteButton.setAttribute('title', 'Delete')
       deleteButton.setAttribute('type', 'button')
       deleteButton.setAttribute('aria-current', 'page')
@@ -119,7 +119,7 @@ function addConditionObject (data, addToModal, jobId, taskId, targetId) {
       deleteButton.setAttribute('data-bs-placement', 'right')
       deleteButton.setAttribute('data-delete-url', `/api/condition/${rowData.id}/delete/`)
       deleteButton.setAttribute('data-delete-element-id', `id_join_condition_${rowData.id}_row`)
-      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
+      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null)) // eslint-disable-line no-undef
       deleteButton.addEventListener('click', function () {
         deleteModelObject(this.dataset.deleteUrl, this.dataset.deleteElementId) // eslint-disable-line no-undef
       })
