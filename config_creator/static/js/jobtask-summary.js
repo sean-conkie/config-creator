@@ -1,30 +1,28 @@
 /**
  * It makes an AJAX call to the server, and when the server responds, it populates the modal with the
  * data it received
- * 
+ *
  * Args:
  *   id: The id of the task to load the summary for.
- */ 
-function jobTaskSummaryModalLoad(id) {
+ */
+function jobTaskSummaryModalLoad (id) { // eslint-disable-line no-unused-vars
   document.getElementById('id_task_summary_modal_content_container').classList.add('visually-hidden')
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
-  let spinnerId
-  
+
   const parent = document.getElementById('id_task_summary_modal_content')
-  spinnerId = 'id_task_summary_modal_content_spinner'
+  const spinnerId = 'id_task_summary_modal_content_spinner'
   parent.appendChild(createSpinner(spinnerId, 'large')) // eslint-disable-line no-undef
 
   xhttp.responseType = 'json'
   xhttp.onload = function () {
-
     const data = xhttp.response
     if (xhttp.status === 200) {
       populateJobTaskSummaryModal(data.result)
     } else {
-      const message = HttpStatusEnum.get(xhttp.status)
+      const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
       createToast(message.desc, message.name, true) // eslint-disable-line no-undef
     }
-    
+
     if (spinnerId) {
       const spinner = document.getElementById(spinnerId)
       if (parent && parent.nodeType) {
@@ -33,14 +31,14 @@ function jobTaskSummaryModalLoad(id) {
     }
   }
   xhttp.open('GET', `/api/task/${id}/summary/`, true)
-  xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken'))
+  xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
   xhttp.send()
-  
-  taskSummaryPopulate = false
+
+  taskSummaryPopulate = false // eslint-disable-line no-unused-vars, no-undef
   bootstrap.Modal.getOrCreateInstance(document.getElementById('id_task_summary_modal')).show() // eslint-disable-line no-undef
 }
 
-function populateJobTaskSummaryModal(data) {
+function populateJobTaskSummaryModal (data) {
   const summary = data.summary
   document.getElementById('id_summary_description').textContent = summary.description
 
@@ -58,20 +56,20 @@ function populateJobTaskSummaryModal(data) {
 
   document.getElementById('id_summary_joins').textContent = ''
   const joinList = createElement('ul', null, ['list-group', 'list-group-flush']) // eslint-disable-line no-undef
-  for (let j = 0; j < summary.joins.length; j ++) {
+  for (let j = 0; j < summary.joins.length; j++) {
     joinList.appendChild(createElement('li', summary.joins[j], ['list-group-item', 'list-group-item-action'])) // eslint-disable-line no-undef
   }
   document.getElementById('id_summary_joins').appendChild(joinList)
 
   document.getElementById('id_summary_where').textContent = ''
   const whereList = createElement('ul', null, ['list-group', 'list-group-flush']) // eslint-disable-line no-undef
-  for (let w = 0; w < summary.where.length; w ++) {
+  for (let w = 0; w < summary.where.length; w++) {
     whereList.appendChild(createElement('li', summary.where[w], ['list-group-item', 'list-group-item-action'])) // eslint-disable-line no-undef
   }
 
   document.getElementById('id_summary_where').appendChild(whereList)
 
-  const historyList = createElement('ul', null, ['list-group', 'list-group-flush']) // eslint-disable-line no-undef  
+  const historyList = createElement('ul', null, ['list-group', 'list-group-flush']) // eslint-disable-line no-undef
   if ({}.propertyIsEnumerable.call(summary, 'history_partition')) {
     historyList.appendChild(createElement('li', `Partition by ${summary.history_partition.join(', ')}`, ['list-group-item', 'list-group-item-action'])) // eslint-disable-line no-undef
     if ({}.propertyIsEnumerable.call(summary, 'history_order')) {
@@ -80,43 +78,44 @@ function populateJobTaskSummaryModal(data) {
     document.getElementById('id_summary_history_criteria').appendChild(historyList)
   } else {
     document.getElementById('id_summary_history_criteria').textContent = ''
-    document.getElementById('id_summary_history_criteria').appendChild(createElement('span', 'N/A'))
+    document.getElementById('id_summary_history_criteria').appendChild(createElement('span', 'N/A')) // eslint-disable-line no-undef
   }
-
+  let row
   for (let s = 0; s < summary.schema.length; s++) {
-    let rowContent = [
+    const rowContent = [
+      /* eslint-disable no-undef */
       createRowObject(null, null, null, summary.schema[s][0]),
       createRowObject(null, null, null, summary.schema[s][1]),
       createRowObject(null, null, null, summary.schema[s][2]),
       createRowObject(null, null, null, summary.schema[s][3]),
       createRowObject(null, null, null, summary.schema[s][4])
+      /* eslint-enable no-undef */
     ]
 
-    row = createRowObject(null, null, rowContent)
-    addRow([row], document.getElementById('id_summary_schema_tbody'))
+    row = createRowObject(null, null, rowContent) // eslint-disable-line no-undef
+    addRow([row], document.getElementById('id_summary_schema_tbody')) // eslint-disable-line no-undef
   }
 
   if (summary.schema.length === 0) {
-    row = createRowObject(null, null, [createRowObject(['text-center'], null, null, 'No schema', null, [['colspan', '5']])])
-    addRow([row], document.getElementById('id_summary_schema_tbody'))
+    row = createRowObject(null, null, [createRowObject(['text-center'], null, null, 'No schema', null, [['colspan', '5']])]) // eslint-disable-line no-undef
+    addRow([row], document.getElementById('id_summary_schema_tbody')) // eslint-disable-line no-undef
   }
 
   for (let c = 0; c < summary.column.length; c++) {
-    let rowContent = [
-      createRowObject(null, null, null, summary.column[c].column),
-      createRowObject(null, null, null, summary.column[c].transformation)
+    const rowContent = [
+      createRowObject(null, null, null, summary.column[c].column), // eslint-disable-line no-undef
+      createRowObject(null, null, null, summary.column[c].transformation) // eslint-disable-line no-undef
     ]
 
-    row = createRowObject(null, null, rowContent)
-    addRow([row], document.getElementById('id_summary_column_tbody'))
-  }
-  
-  if (summary.column.length === 0) {
-    row = createRowObject(null, null, [createRowObject(['text-center'], null, null, 'No column transformations', null, [['colspan', '2']])])
-    addRow([row], document.getElementById('id_summary_column_tbody'))
+    row = createRowObject(null, null, rowContent) // eslint-disable-line no-undef
+    addRow([row], document.getElementById('id_summary_column_tbody')) // eslint-disable-line no-undef
   }
 
-  document.getElementById('id_copy_summary_button').dataset['template'] = data.template
+  if (summary.column.length === 0) {
+    row = createRowObject(null, null, [createRowObject(['text-center'], null, null, 'No column transformations', null, [['colspan', '2']])]) // eslint-disable-line no-undef
+    addRow([row], document.getElementById('id_summary_column_tbody')) // eslint-disable-line no-undef
+  }
+
+  document.getElementById('id_copy_summary_button').dataset.template = data.template
   document.getElementById('id_task_summary_modal_content_container').classList.remove('visually-hidden')
 }
-

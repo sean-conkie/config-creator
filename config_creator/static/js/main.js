@@ -550,7 +550,7 @@ function alertMessage (message, parentId) {
  *   text: The text to copy to the clipboard
  *   parentId: The id of the parent element that the alert message will be appended to.
  */
-async function textToClipboard (text, parentId) {
+async function textToClipboard (text, parentId) { // eslint-disable-line no-unused-vars
   await navigator.clipboard.writeText(text)
   alertMessage('Copied to clipboard!', parentId)
 }
