@@ -38,7 +38,7 @@ function addDeltaObject (data, jobId, taskId, targetId) {
       deleteButton.setAttribute('data-task-id', taskId)
       deleteButton.setAttribute('data-job-id', jobId)
       deleteButton.setAttribute('data-target-id', 'id_delta_row')
-      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
+      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null)) // eslint-disable-line no-undef
       deleteButton.addEventListener('click', function () {
         deleteDelta(this.dataset.jobId, this.dataset.taskId, this.dataset.deltaId) // eslint-disable-line no-undef
       })

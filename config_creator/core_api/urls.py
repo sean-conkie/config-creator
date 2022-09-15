@@ -194,9 +194,14 @@ urlpatterns = [
         login_required(pullrepository),
         name="api-repo-pull",
     ),
-    path(
-        "repositories/<int:pk>/pull/<str:branch>/",
+    re_path(
+        r"repositories\/(?P<pk>\d+)\/pull\/(?P<branch>[\w\/\-\d]+)\/",
         login_required(pullrepository),
         name="api-repo-pull-branch",
+    ),
+    path(
+        "task/<int:pk>/summary/",
+        login_required(tasksummary),
+        name="api-task-summary",
     ),
 ]

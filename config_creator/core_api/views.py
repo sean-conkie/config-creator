@@ -41,6 +41,7 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.urls import reverse
 from git import Repo
+from lib.helper import ifnull
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
@@ -68,6 +69,7 @@ __all__ = [
     "JoinView",
     "UploadFileView",
     "pullrepository",
+    "tasksummary",
 ]
 
 
@@ -1352,10 +1354,18 @@ def pullrepository(request: request, pk: int, branch: str = None) -> response.Re
     git = repo_obj.git
 
     if branch:
-        git.checkout(branch)
-
-    git.fetch()
-    git.pull()
+        m = re.search(
+            r"(?:(?P<remote>origin)\/)?(?P<branch>[\w\/\-\d]+)", branch, re.IGNORECASE
+        )
+        if m.group("remote"):
+            git.checkout(m.group("branch"))
+            git.pull(m.group("remote"), m.group("branch"))
+        else:
+            git.checkout(m.group("branch"))
+            git.pull()
+    else:
+        git.fetch()
+        git.pull()
 
     branches = git.branch("-va").split("\n")
 
@@ -1392,3 +1402,198 @@ def pullrepository(request: request, pk: int, branch: str = None) -> response.Re
         "branches": branch_dict,
     }
     return response.Response(data={"result": context}, status=status.HTTP_200_OK)
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def tasksummary(request: request, pk: int) -> response.Response:
+
+    if not JobTask.objects.filter(id=pk).exists():
+        return response.Response(
+            data={"message": f"Task for id {pk} not found."},
+            status=status.HTTP_404_NOT_FOUND,
+        )
+
+    task = JobTask.objects.select_related().get(id=pk)
+
+    summary = {
+        "description": task.description,
+        "schema": [
+            [
+                f"{f.source_table.table_name}.{f.source_column}"
+                if f.source_table
+                else " ",
+                ifnull(f.source_data_type, " "),
+                ifnull(f.name, " "),
+                ifnull(f.data_type.name, " "),
+                "NULLABLE" if f.is_nullable else "REQUIRED",
+                f.is_primary_key,
+            ]
+            for f in Field.objects.filter(
+                task_id=task.id, is_source_to_target=True
+            ).order_by("position")
+        ],
+        "grain": [
+            f.name
+            for f in Field.objects.filter(
+                task_id=task.id, is_source_to_target=True, is_primary_key=True
+            ).order_by("position")
+        ],
+        "table_type": task.table_type.name,
+        "joins": [
+            f"join {j.left_table.table_name} to {j.right_table.table_name} on {' '.join([condition(c, i) for i, c in enumerate(Condition.objects.filter(join_id=j.id))])}"
+            for j in Join.objects.filter(task_id=task.id)
+        ],
+        "where": [
+            condition(c, i)
+            for i, c in enumerate(Condition.objects.filter(where_id=task.id))
+        ],
+        "column": [
+            {"column": f.name, "transformation": f.transformation}
+            for f in Field.objects.filter(task_id=task.id, is_source_to_target=True)
+            if f.transformation
+        ],
+    }
+
+    # add auto generated fields - effective_to_dt for history
+    # tables and data warehouse audit fields
+    if task.table_type.code == "HISTORY":
+        to_index = 0
+        for i, col in enumerate(summary["schema"]):
+            if col[2] == "effective_from_dt_seq":
+                to_index = i + 1
+                break
+
+        summary["schema"].insert(
+            to_index, [" ", " ", "effective_to_dt", "TIMESTAMP", "REQUIRED", False]
+        )
+
+    if (
+        task.write_disposition.code == "WRITETRUNCATE"
+        or task.write_disposition.code == "WRITEAPPEND"
+    ):
+        dw_index = 1
+        if task.table_type.code == "TYPE1":
+            for i, field in enumerate(summary["schema"]):
+                if not field[5]:
+                    dw_index = i
+                    break
+
+        summary["schema"].insert(
+            dw_index, [" ", " ", "dw_last_modified_dt", "TIMESTAMP", "REQUIRED", False]
+        )
+
+        if Delta.objects.filter(task_id=task.id).exists():
+            summary["schema"].insert(
+                dw_index, [" ", " ", "dw_created_dt", "TIMESTAMP", "REQUIRED", False]
+            )
+
+    if History.objects.filter(task_id=task.id).exists():
+        history = History.objects.get(task_id=task.id)
+        partition_fields = Partition.objects.select_related().filter(
+            history_id=history.id
+        )
+        order_fields = HistoryOrder.objects.select_related().filter(
+            history_id=history.id
+        )
+        driving_columns = DrivingColumn.objects.select_related().filter(
+            history_id=history.id
+        )
+
+        summary["history_partition"] = [
+            f"{pf.field.source_table.table_name + '.' if pf.field.source_table else ''}{pf.field.source_column}"
+            for pf in partition_fields
+        ]
+        summary["history_order"] = [
+            f"{of.field.source_table.table_name + '.' if of.field.source_table else ''}{of.field.source_column}{' descending' if of.is_desc else ''}"
+            for of in order_fields
+        ]
+        summary["history_columns"] = [
+            f"{dc.field.source_table.table_name + '.' if dc.field.source_table else ''}{dc.field.source_column}"
+            for dc in driving_columns
+        ]
+
+    template = "\n".join(
+        [
+            "*Description*",
+            summary.get("description", ""),
+            "\n",
+            "*Schema Definition*",
+            "||Source||Source Data Type||Column Name||Data Type||Mode||",
+            "\n".join(
+                [f"|{l}|" for l in ["|".join(f[:5]) for f in summary.get("schema", [])]]
+            ),
+            "\n",
+            "*Transformation*",
+            "*Joins*",
+            "\n".join([f"* {j}" for j in summary.get("joins", [])]),
+            "\n",
+            "*Where Conditions*",
+            "\n".join([f"* {w}" for w in summary.get("where", [])]),
+            "\n",
+            "*History Criteria*",
+            f"* Partition by {', '.join(summary.get('history_partition', []))}\n* Order by {', '.join(summary.get('history_order', []))}"
+            if History.objects.filter(task_id=task.id).exists()
+            else "N/A",
+            "\n",
+            "*History Columns*",
+            f"If changes are received for {', '.join(summary.get('history_columns', []))} then the existing record should be closed off and a new record created."
+            if History.objects.filter(task_id=task.id).exists()
+            else "N/A",
+            "\n",
+            "*Column Transformation*",
+            "||Column||Transformation||" if len(summary.get("column", [])) > 0 else "",
+            "\n".join(
+                [
+                    f"|{l}|"
+                    for l in [
+                        "|".join([c["column"], c["transformation"]])
+                        for c in summary.get("column", [])
+                    ]
+                ]
+            )
+            if len(summary.get("column", [])) > 0
+            else "None",
+        ]
+    )
+
+    outp = {
+        "summary": summary,
+        "template": template,
+    }
+
+    return response.Response(data={"result": outp}, status=status.HTTP_200_OK)
+
+
+def condition(condition: Condition, condition_position: int = None) -> str:
+    """
+    > It takes a condition object and returns a string that represents the condition in Python
+
+    Args:
+      condition (Condition): The condition object
+      condition_position (int): This is the position of the condition in the list of conditions. If it's
+    the first condition, then we don't need to add a logic operator.
+
+    Returns:
+      A string that represents a condition.
+    """
+
+    left_parameter = ""
+    lp = condition.left
+
+    if lp.transformation:
+        left_parameter = lp.transformation
+    elif lp.source_column:
+        table = f"{lp.source_table.table_name}."
+        left_parameter = f"{table}{lp.source_column}"
+
+    right_parameter = ""
+    rp = condition.right
+
+    if rp.transformation:
+        right_parameter = rp.transformation
+    elif rp.source_column:
+        table = f"{rp.source_table.table_name}."
+        right_parameter = f"{table}{rp.source_column}"
+
+    return f"{condition.logic_operator.lower() + ' ' if condition_position or condition_position == 1 else ''}{left_parameter} {condition.operator.lower()} {right_parameter}"

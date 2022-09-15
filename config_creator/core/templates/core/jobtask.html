@@ -26,8 +26,8 @@
         <ul class="dropdown-menu text-small shadow" aria-labelledby="dropdownUser3">
           <li><a class="dropdown-item" href="{% url 'job-task-update' job_id=job.id pk=task.id %}" title="Edit">Edit Task Details</a></li>
           <li><hr class="dropdown-divider"/></li>
-          <li><a class="dropdown-item" id="id_task_description" href="#" title="Download">View Task Summary</a></li>
-          <li><a class="dropdown-item" id="id_task_sql" href="#" title="Download">View Task SQL</a></li>
+          <li><a class="dropdown-item" id="id_task_description" href="#" title="View Summary" data-task-id="{{task.id}}">View Task Summary</a></li>
+          <li><a class="dropdown-item" id="id_task_sql" href="#" title="View Sql">View Task SQL</a></li>
         </ul>
       </div>
     </div>
@@ -121,6 +121,7 @@
   <script src="/static/js/predecessor-helpers.js"></script>
   <script src="/static/js/prism.js"></script>
   <script src="/static/js/code-editor.js"></script>
+  <script src="/static/js/jobtask-summary.js"></script>
   <div class="accordion accordion-flush py-3" id="accordian">
     {% include 'core/jobtask_source_to_target.html' %}
     {% include 'core/jobtask_joins.html' %}
@@ -137,17 +138,20 @@
   </div>  
 </div>
 <script>
-  let ta = document.getElementById("id_properties");
-  let numberOfLineBreaks = (ta.value.match(/\n/g) || []).length;
-  let newHeight = 50 + numberOfLineBreaks * 20 + 12 + 2;
-  ta.style.height = newHeight + "px";
+  let jobTaskListenerMap = new Map([
+    ['id_task_description', {
+      'function': 'jobTaskSummaryModalLoad(this.dataset["taskId"])',
+      'type': 'click'
+    }]
+  ])
 
-  // declar as var to create in window scope
-  window.taskId = '{{ task.id }}'
-  window.jobId = '{{ job.id }}'
+  jobTaskListenerMap.forEach(addListener); 
+  
+  
 </script>
 
 {% include 'core/connection_selector.html' %}
+{% include 'core/jobtask_summary_modal.html' %}
 
 {% endblock %}
 

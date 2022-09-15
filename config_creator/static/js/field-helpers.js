@@ -57,7 +57,7 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       deleteButton.setAttribute('data-bs-placement', 'right')
       deleteButton.setAttribute('data-delete-url', deleteUrl)
       deleteButton.setAttribute('data-delete-element-id', rowId)
-      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null)) // eslint-disable-line no-undef
+      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null)) // eslint-disable-line no-undef
       deleteButton.addEventListener('click', function () {
         deleteModelObject(this.dataset.deleteUrl, this.dataset.deleteElementId) // eslint-disable-line no-undef
       })

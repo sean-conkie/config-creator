@@ -25,7 +25,7 @@ function addPredecessorObject (data, jobId, taskId, targetId) {
       deleteButton.setAttribute('data-job-id', jobId)
       deleteButton.setAttribute('data-target-id', targetRowId)
       /* eslint-disable no-undef */
-      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null))
+      deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash3'], 0, null))
       deleteButton.addEventListener('click', function () {
         deletePredecessor(this.dataset.jobId, this.dataset.taskId, this.dataset.predecessorId)
       })

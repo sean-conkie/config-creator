@@ -179,6 +179,15 @@ class LogicOperator(models.Model):
     def __str__(self):
         return self.name
 
+    def lower(self):
+        """
+        The function lower() takes the string self.name and converts it to lowercase
+
+        Returns:
+          The name of the object in lowercase.
+        """
+        return str(self.name).lower()
+
 
 class Operator(models.Model):
     name = models.CharField(
@@ -206,6 +215,15 @@ class Operator(models.Model):
 
     def __str__(self):
         return self.name
+
+    def lower(self):
+        """
+        The function lower() takes the string self.name and converts it to lowercase
+
+        Returns:
+          The name of the object in lowercase.
+        """
+        return str(self.name).lower()
 
 
 class JoinType(models.Model):

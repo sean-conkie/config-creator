@@ -1,5 +1,6 @@
 .tree-dataset,
-.tree-connection {
+.tree-connection, 
+.tree-dir {
   max-height: 80vh;
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -21,7 +22,8 @@
 
 .tree-dataset::-webkit-scrollbar,
 .tree-connection::-webkit-scrollbar,
-.min-vh-80::-webkit-scrollbar {
+.min-vh-80::-webkit-scrollbar,
+.tree-dir::-webkit-scrollbar {
   display: none;
 }
 
@@ -219,11 +221,35 @@ summary {
   color: #0dcaf0 !important;
 }
 
-.gradient-text {
-  background: linear-gradient(-70deg, #a2facf 0%, #64acff 100%);
+.hero-text {
+  background: linear-gradient(-70deg, #ff9d00 0%, #ff0000 25%,#b5007c 50%, #21429c 75%, #0071ff 100%);
   background-clip: text;
+  background-size: 500%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  width: fit-content;
+  animation: hero-bg-animation 10s infinite;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+
+.hero-gradient {
+  animation: hero-bg-animation 10s infinite;
+  background: linear-gradient(-70deg, #ff9d00 0%, #ff0000 25%,#b5007c 50%, #21429c 75%, #0071ff 100%);
+  background-size: 500%;
+}
+
+@keyframes hero-bg-animation {
+  0% {
+    background-position: left;
+  }
+  50% {
+    background-position: right;
+  }
+  100% {
+    background-position: left;
+  }
 }
 
 .nav-sidebar {
@@ -246,7 +272,11 @@ summary {
   width: 60px;
 }
 
-.tree-file {
+.date-column {
+  width: 200px;
+}
+
+.tree-file, .tree-file-json {
   display: inline-block;
   font-weight: 400;
   line-height: 1.5;
@@ -254,7 +284,6 @@ summary {
   text-align: left;
   text-decoration: none;
   vertical-align: middle;
-  cursor: pointer;
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
@@ -262,6 +291,16 @@ summary {
   border: 1px solid transparent;
   font-size: 1rem;
   min-width: 20vw;
+  width: 100%
+}
+
+.tree-file {
+  cursor: not-allowed;
+  color: #8e0707;
+}
+
+.tree-file-json {
+  cursor: pointer;
 }
 
 .tree-file:hover {
@@ -365,12 +404,12 @@ table.draggable tbody tr:active {
   min-width: 100px;
 }
 
-.modal-content-spinner-container{
+.modal-content-spinner-container, .large-spinner-parent{
   position: relative;
   height: 100%;
 }
 
-#id-modal-content {
+#id-modal-content, #id_git_file_select_modal_content {
   height: inherit;
   overflow-y: scroll;
 }

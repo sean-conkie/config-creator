@@ -2,17 +2,46 @@
   <div class="modal-dialog modal-dialog-centered selector-dialog">
     <div class="modal-content selector-content">
       <div class="modal-header selector-header">
-        <h5 class="modal-title">Select from repository</h5>
+        <div class="col-5"><h5 class="modal-title">Select from repository</h5></div>
+        <div class="col-5">
+          <div class="row visually-hidden" id="id_branch_wrapper">
+            <div class="col-8"> 
+              <select id="id_branch">
+              </select> 
+            </div>
+            <div class="col-4">
+              <button class="btn btn-primary" id="id_submit_branch" type="button" style="padding: 1px 6px;"><i class="bi bi-arrow-repeat"></i> Switch Branch</button>
+            </div>
+          </div>
+        </div>
         <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-      <div class="container row g-3 py-3 modal-content-spinner-container" id="id_git_file_select_modal_content">
+      <div class="container modal-content-spinner-container" id="id_git_file_select_modal_content">
 
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer" id="id_selection_wrapper">
         <div class="lead" id="id_selection"></div>
         <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
-        <button class="btn btn-primary visually-hidden" id="id_git_file_select_modal_submit_button" type="button" >Save changes</button>
       </div>
     </div>
   </div>
 </div>
+
+
+<script>
+$(document).ready(function() {
+  $('#id_branch').select2({
+        dropdownParent: $('#id_git_file_select_modal'),
+        width: "100%"
+    });
+});
+</script>
+<script>
+const gitMap = new Map([
+    ['id_submit_branch', {
+      'function': 'submitBranch(this.dataset["repoId"])',
+      'type': 'click'
+    }]
+  ]).forEach(addListener)
+
+</script>

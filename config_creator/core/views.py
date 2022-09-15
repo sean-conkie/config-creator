@@ -54,6 +54,7 @@ __all__ = [
     "adddependencyview",
     "dependencydeleteview",
     "crawler",
+    "gitfileselect",
 ]
 
 # region core views
@@ -168,6 +169,16 @@ def pullnewrepository(request):
         return redirect(redirect_url)
 
 
+def gitfileselect(request, path):
+    id = handle_uploaded_file(request, path)
+    return redirect(
+        reverse(
+            "job-tasks",
+            kwargs={"job_id": id},
+        )
+    )
+
+
 # endregion
 
 # region local file views
@@ -191,7 +202,7 @@ def fileselect(request):
             return redirect(
                 reverse(
                     "job-tasks",
-                    kwargs={"job_id", id},
+                    kwargs={"job_id": id},
                 )
             )
     else:
@@ -1281,19 +1292,24 @@ def get_where(task_id: str) -> list[dict]:
     ]
 
 
-def handle_uploaded_file(request):
+def handle_uploaded_file(request, path: str = None):
     """
     It takes a JSON file, parses it, and saves the data to the database
 
     Args:
       request: The request object
+      path (str): str=None
 
     Returns:
       The job id is being returned.
     """
 
-    file = file_upload(request).file
+    if path:
+        file = open(path, "r")
+    else:
+        file = file_upload(request).file
     filecontent = file.read()
+
     jscontent = json.loads(filecontent)
 
     job = Job(

@@ -35,7 +35,7 @@
             <td>{{ job.name }}</td>
             <td>{{ job.type }}</td>
             <td>{{ job.description }}</td>
-            <td>{{ job.lastupdate }}</td>
+            <td class="date-column">{{ job.lastupdate }}</td>
             <td class="btn-column"><a class="btn row-btn-secondary" href="{% url 'job-tasks' job_id=job.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
             <td class="btn-column"><a class="btn row-btn-info job-download" id="id_{{ job.id }}_download" href="{% url 'job-download' pk=job.id %}" title="Download" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-box-arrow-down"></i></a></td>
             <td class="btn-column"><button class="btn row-btn-danger job-delete" id="id_job_delete_{{ job.id }}"

@@ -1,0 +1,73 @@
+<div class="modal" id="id_task_summary_modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Task Summary</h5>
+        <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body large-spinner-parent" id="id_task_summary_modal_content">
+        <div class="summary-container visually-hidden" id="id_task_summary_modal_content_container">
+          <h5>Description</h5>
+          <p id="id_summary_description"></p>
+          <h5>Schema Definition</h5>
+          <table class="table table-bordered" id="id_summary_schema">
+            <thead class="table-light">
+              <tr>
+                <th>Source</th><th>Source Data Type</th><th>Column Name</th><th>Data Type</th><th>Mode</th>
+              </tr>
+            </thead>
+            <tbody id="id_summary_schema_tbody">
+
+            </tbody>
+          </table>
+          <h5>Table Metdata</h5>
+          <table id="id_summary_table_metadata">
+            <tbody id="id_summary_table_metadata_tbody"></tbody>
+          </table>
+          <h5>Transformation</h5>
+          <h6>Joins</h6>
+          <div id="id_summary_joins"></div>
+          <h6>Where Conditions</h6>
+          <div id="id_summary_where"></div>
+          <h6>History Criteria</h6>
+          <div id="id_summary_history_criteria"></div>
+          <h6>History Columns</h6>
+          <div id="id_summary_history_column"></div>
+          
+          <h5>Column Transformation</h5>
+          <table class="table table-bordered" id="id_summary_column">
+            <thead class="table-light">
+              <tr>
+                <th>Column</th><th>Transformation</th>
+              </tr>
+            </thead>
+            <tbody id="id_summary_column_tbody">
+
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" type="button" data-bs-dismiss="modal">Close</button>
+        <button class="btn btn-primary" id="id_copy_summary_button" type="button" onclick="textToClipboard(this.dataset['template'], 'id_task_summary_modal')" data-template="">Copy Summary</button>
+      </div>
+    </div>
+  </div>
+</div>
+<style>
+  .summary-container {
+    min-height: fit-content!important;
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .modal-dialog, .modal-content {
+    width: 80vw!important;
+    max-width: inherit!important;
+  }
+
+  .modal-body {
+    min-height: 50vh!important;
+  }
+</style>
+

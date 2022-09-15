@@ -17,12 +17,12 @@ function createGitDirectory (object, layer) {
   if ({}.propertyIsEnumerable.call(object, 'name')) {
     const summary = createElement('summary', null, ['tree-dir-summary'], null, null) // eslint-disable-line no-undef
     summary.appendChild(createElement('i', null, ['fa-solid', 'fa-folder-open'], null, null)) // eslint-disable-line no-undef
-    summary.insertAdjacentText('beforeend', ' ' + object.name)
+    summary.insertAdjacentText('beforeend', '\xa0' + object.name)
     detail.appendChild(summary)
   }
 
-  if ({}.propertyIsEnumerable.call(object, 'content')) {
-    const child = parseGitObject(object.content, layer + 1)
+  if ({}.propertyIsEnumerable.call(object, 'files')) {
+    const child = parseGitObject(object.files, layer + 1)
     if (child) {
       detail.appendChild(child)
     }
@@ -31,6 +31,16 @@ function createGitDirectory (object, layer) {
   return detail
 }
 
+/**
+ * It takes an array of objects, and returns a DOM element
+ * 
+ * Args:
+ *   arr: The array of objects to be parsed
+ *   layer: the layer of the element in the tree
+ * 
+ * Returns:
+ *   A div element with the class 'modal-container'
+ */
 function parseGitObject (arr, layer) {
   if (arr.length === 0) {
     return createElement('div', null, ['modal-container'], null, null) // eslint-disable-line no-undef
@@ -43,10 +53,22 @@ function parseGitObject (arr, layer) {
         html = createGitDirectory(arr[i], layer)
       } else if (arr[i].type === 'file' && /(?:\.([^.]+))?$/.exec(arr[i].name)[1] === 'json') {
         html = createElement('div', null, ['tree-file-json']) // eslint-disable-line no-undef
-        html.appendChild(createElement('i', null, ['fa-solid', 'fa-file-code'], null, null).insertAdjacentText('beforeend', ' ' + arr[i].name)) // eslint-disable-line no-undef
+        let fileIcon = createElement('i', null, ['fa-solid', 'fa-file-code'], layer, null) // eslint-disable-line no-undef
+        html.appendChild(fileIcon)
+        html.insertAdjacentText('beforeend', '\xa0' + arr[i].name)
+        html.dataset['filePath'] = arr[i].path
+        html.dataset['fileName'] = arr[i].name
+        html.addEventListener('click', function () {
+          selectGitElement(this)
+        })
       } else if (arr[i].type === 'file') {
         html = createElement('div', null, ['tree-file']) // eslint-disable-line no-undef
-        html.appendChild(createElement('i', null, ['fa-solid', 'fa-file-cirlce-xmark'], null, null).insertAdjacentText('beforeend', ' ' + arr[i].name)) // eslint-disable-line no-undef
+        let fileIcon = createElement('i', null, ['fa-solid', 'fa-file-circle-xmark'], layer, null) // eslint-disable-line no-undef
+        html.appendChild(fileIcon)
+        html.insertAdjacentText('beforeend', '\xa0' + arr[i].name)
+        html.addEventListener('click', function () {
+          unSelectGitElement()
+        })
       }
 
       if (typeof html !== 'undefined') {
@@ -55,6 +77,49 @@ function parseGitObject (arr, layer) {
     }
   }
   return element
+}
+
+/**
+ * It takes an object with a `current` property and a bunch of other properties, and it creates a
+ * `<select>` element with an `<option>` for each of the other properties, and it sets the `value`
+ * attribute of the `<option>` to the name of the property, and it sets the `selected` attribute of the
+ * `<option>` to `true` if the name of the property is the same as the value of the `current` property
+ * 
+ * Args:
+ *   obj: The object that contains the branch information.
+ */
+function parseBranches(obj) {
+  const keys = Object.keys(obj)
+  const current = obj.current
+  const select = document.getElementById('id_branch')
+  select.textContent = ''
+
+  for (let i = 0; i < keys.length; i ++) {
+    if (keys[i] !== 'current') {
+      const option = createElement('option', keys[i])
+      option.value = keys[i]
+      if (keys[i] === obj.current) {
+        option.setAttribute('selected', 'true')
+      }
+      select.appendChild(option)
+    }
+  }
+
+  document.getElementById('id_branch_wrapper').classList.remove('visually-hidden')
+}
+
+/**
+ * It gets the value of the branch input field, and then calls the getGitData function with the id and
+ * branch as arguments
+ * 
+ * Args:
+ *   id: The id of the element that will be populated with the data
+ */
+function submitBranch(id) {
+  const branch = document.getElementById('id_branch').value.replace(/\//g, '%2F')
+  document.getElementById('id_branch_wrapper').classList.add('visually-hidden')
+  getGitData(id, branch)
+  unSelectGitElement()
 }
 
 /**
@@ -91,6 +156,10 @@ function getGitData (id, branch) { // eslint-disable-line no-unused-vars
           if (html && html.nodeType) {
             parent.appendChild(html)
           }
+
+          document.getElementById('id_submit_branch').dataset['repoId'] = id
+
+          parseBranches(data.result.branches)
         }
       }
     } else {
@@ -125,62 +194,24 @@ function openGitModal (id) { // eslint-disable-line no-unused-vars
  * Args:
  *   element: The element that was clicked on.
  */
-function selectElement (element) { // eslint-disable-line no-unused-vars
-  const selector = returnType.selector // eslint-disable-line no-undef
-  let message
-  if (selector === 'column') {
-    message = "Would you like to select column '" + element.dataset.columnFull + "'?"
-  } else if (selector === 'table') {
-    message = "Would you like to select table '" + element.dataset.tableFull + "'?"
-  } else {
-    message = "Would you like to select dataset '" + element.dataset.datasetName + "'?"
-  }
+function selectGitElement (element) { // eslint-disable-line no-unused-vars
+  const path = element.dataset.filePath.replace(/\//g, '%2F')
+  const name = element.dataset.fileName
+  message = `Would you like to load '${name}'?`
 
   document.getElementById('id_selection').textContent = message
 
-  const submitButton = document.getElementById('id_submit_button')
-  submitButton.setAttribute('onclick', "submitSelection('" + element.id + "');")
-  submitButton.classList.remove('visually-hidden')
+  const submitButton = createElement('a', 'Load', ['btn', 'btn-primary'], null,'id_git_file_select_modal_submit_button')
+  submitButton.setAttribute('href',`/file/${path}/upload/`)
+  document.getElementById('id_selection_wrapper').appendChild(submitButton)
 }
 
 /**
- * It takes an id, finds the element with that id, and then sets the value of the target element to the
- * value of the dataset of the element with the id
- *
- * Args:
- *   id: The id of the element that was clicked.
+ * It removes the submit button from the modal
  */
-function submitSelection (id) { // eslint-disable-line no-unused-vars
-  /* eslint-disable no-undef */
-  const selector = returnType.selector
-  const element = document.getElementById(id)
-  if (selector === 'column' && returnType.column.target) {
-    document.getElementById(returnType.column.target).value = element.dataset[returnType.column.type]
-    document.getElementById(returnType.column.target).dispatchEvent(new Event('input'))
-    if (returnType.datatype.target) {
-      document.getElementById(returnType.datatype.target).value = element.dataset[returnType.datatype.type]
-      document.getElementById(returnType.datatype.target).dispatchEvent(new Event('input'))
-    }
-  }
-  if ((selector === 'column' || selector === 'table') && returnType.table.target) {
-    document.getElementById(returnType.table.target).value = element.dataset[returnType.table.type]
-    document.getElementById(returnType.table.target).dispatchEvent(new Event('input'))
-    const targetName = document.getElementById('id_name')
-    if (targetName !== null) {
-      targetName.value = (targetName.value === '') ? element.dataset.targetName : targetName.value
-    }
-  }
-  if (returnType.dataset.target) {
-    document.getElementById(returnType.dataset.target).value = element.dataset[returnType.dataset.type]
-    document.getElementById(returnType.dataset.target).dispatchEvent(new Event('input'))
-  }
-  if (returnType.connection.target) {
-    document.getElementById(returnType.connection.target).value = element.dataset[returnType.connection.type]
-    document.getElementById(returnType.connection.target).dispatchEvent(new Event('input'))
-  }
-  if (returnType.modal) {
-    bootstrap.Modal.getOrCreateInstance(document.getElementById(returnType.modal)).show()
-  }
-  bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide()
-  /* eslint-enable no-undef */
+function unSelectGitElement () {
+  document.getElementById('id_selection').textContent = ''
+  const submitButton = document.getElementById('id_git_file_select_modal_submit_button')
+  submitButton.parentNode.removeChild(submitButton)
 }
+
