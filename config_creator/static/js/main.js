@@ -471,7 +471,7 @@ function createRowObject (classList, id, content, value, object, attributes) { /
 /**
  * It takes an array of objects, each object containing an array of objects, and creates a table row
  * for each object in the first array, and a table cell for each object in the second array
- * 
+ *
  * Args:
  *   data: an array of objects that contain the data for each row.
  *   parent: The parent element to append the row to.
@@ -500,7 +500,6 @@ function addRow (data, parent, position) { // eslint-disable-line no-unused-vars
         td.appendChild(content[j].object)
       }
 
-      
       if (content[j].attributes) {
         for (let a = 0; a < content[j].attributes.length; a++) {
           td.setAttribute(content[j].attributes[a][0], content[j].attributes[a][1])
@@ -517,16 +516,15 @@ function addRow (data, parent, position) { // eslint-disable-line no-unused-vars
   }
 }
 
-
 /**
  * It creates a Bootstrap toast element, appends it to the DOM, and then shows it
- * 
+ *
  * Args:
  *   message: The message to display in the toast
  *   parentId: The id of the parent element to append the toast to. If not provided, the toast will be
  * appended to the body.
  */
-function alertMessage(message, parentId) {
+function alertMessage (message, parentId) {
   const wrapper = createElement('div', null, ['toast-container', 'position-absolute', 'p-3', 'top-0', 'start-50', 'translate-middle-x'])
   const toastInner = createElement('div', null, ['toast', 'text-white', 'bg-secondary', 'border-0'])
   const toastBody = createElement('div', message, ['toast-body', 'text-center'])
@@ -542,19 +540,17 @@ function alertMessage(message, parentId) {
 
   const toastObj = new bootstrap.Toast(toastInner) // eslint-disable-line no-undef
   toastObj.show()
-
 }
-
 
 /**
  * It takes a string and a parent element id, and then copies the string to the clipboard and displays
  * a message to the user
- * 
+ *
  * Args:
  *   text: The text to copy to the clipboard
  *   parentId: The id of the parent element that the alert message will be appended to.
  */
-async function textToClipboard(text, parentId) {
+async function textToClipboard (text, parentId) {
   await navigator.clipboard.writeText(text)
   alertMessage('Copied to clipboard!', parentId)
 }

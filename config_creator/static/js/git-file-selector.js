@@ -33,11 +33,11 @@ function createGitDirectory (object, layer) {
 
 /**
  * It takes an array of objects, and returns a DOM element
- * 
+ *
  * Args:
  *   arr: The array of objects to be parsed
  *   layer: the layer of the element in the tree
- * 
+ *
  * Returns:
  *   A div element with the class 'modal-container'
  */
@@ -53,17 +53,17 @@ function parseGitObject (arr, layer) {
         html = createGitDirectory(arr[i], layer)
       } else if (arr[i].type === 'file' && /(?:\.([^.]+))?$/.exec(arr[i].name)[1] === 'json') {
         html = createElement('div', null, ['tree-file-json']) // eslint-disable-line no-undef
-        let fileIcon = createElement('i', null, ['fa-solid', 'fa-file-code'], layer, null) // eslint-disable-line no-undef
+        const fileIcon = createElement('i', null, ['fa-solid', 'fa-file-code'], layer, null) // eslint-disable-line no-undef
         html.appendChild(fileIcon)
         html.insertAdjacentText('beforeend', '\xa0' + arr[i].name)
-        html.dataset['filePath'] = arr[i].path
-        html.dataset['fileName'] = arr[i].name
+        html.dataset.filePath = arr[i].path
+        html.dataset.fileName = arr[i].name
         html.addEventListener('click', function () {
           selectGitElement(this)
         })
       } else if (arr[i].type === 'file') {
         html = createElement('div', null, ['tree-file']) // eslint-disable-line no-undef
-        let fileIcon = createElement('i', null, ['fa-solid', 'fa-file-circle-xmark'], layer, null) // eslint-disable-line no-undef
+        const fileIcon = createElement('i', null, ['fa-solid', 'fa-file-circle-xmark'], layer, null) // eslint-disable-line no-undef
         html.appendChild(fileIcon)
         html.insertAdjacentText('beforeend', '\xa0' + arr[i].name)
         html.addEventListener('click', function () {
@@ -84,21 +84,21 @@ function parseGitObject (arr, layer) {
  * `<select>` element with an `<option>` for each of the other properties, and it sets the `value`
  * attribute of the `<option>` to the name of the property, and it sets the `selected` attribute of the
  * `<option>` to `true` if the name of the property is the same as the value of the `current` property
- * 
+ *
  * Args:
  *   obj: The object that contains the branch information.
  */
-function parseBranches(obj) {
+function parseBranches (obj) {
   const keys = Object.keys(obj)
   const current = obj.current
   const select = document.getElementById('id_branch')
   select.textContent = ''
 
-  for (let i = 0; i < keys.length; i ++) {
+  for (let i = 0; i < keys.length; i++) {
     if (keys[i] !== 'current') {
-      const option = createElement('option', keys[i])
+      const option = createElement('option', keys[i]) // eslint-disable-line no-undef
       option.value = keys[i]
-      if (keys[i] === obj.current) {
+      if (keys[i] === current) {
         option.setAttribute('selected', 'true')
       }
       select.appendChild(option)
@@ -111,11 +111,11 @@ function parseBranches(obj) {
 /**
  * It gets the value of the branch input field, and then calls the getGitData function with the id and
  * branch as arguments
- * 
+ *
  * Args:
  *   id: The id of the element that will be populated with the data
  */
-function submitBranch(id) {
+function submitBranch (id) { // eslint-disable-line no-unused-vars
   const branch = document.getElementById('id_branch').value.replace(/\//g, '%2F')
   document.getElementById('id_branch_wrapper').classList.add('visually-hidden')
   getGitData(id, branch)
@@ -157,7 +157,7 @@ function getGitData (id, branch) { // eslint-disable-line no-unused-vars
             parent.appendChild(html)
           }
 
-          document.getElementById('id_submit_branch').dataset['repoId'] = id
+          document.getElementById('id_submit_branch').dataset.repoId = id
 
           parseBranches(data.result.branches)
         }
@@ -197,12 +197,12 @@ function openGitModal (id) { // eslint-disable-line no-unused-vars
 function selectGitElement (element) { // eslint-disable-line no-unused-vars
   const path = element.dataset.filePath.replace(/\//g, '%2F')
   const name = element.dataset.fileName
-  message = `Would you like to load '${name}'?`
+  const message = `Would you like to load '${name}'?`
 
   document.getElementById('id_selection').textContent = message
 
-  const submitButton = createElement('a', 'Load', ['btn', 'btn-primary'], null,'id_git_file_select_modal_submit_button')
-  submitButton.setAttribute('href',`/file/${path}/upload/`)
+  const submitButton = createElement('a', 'Load', ['btn', 'btn-primary'], null, 'id_git_file_select_modal_submit_button') // eslint-disable-line no-undef
+  submitButton.setAttribute('href', `/file/${path}/upload/`)
   document.getElementById('id_selection_wrapper').appendChild(submitButton)
 }
 
@@ -214,4 +214,3 @@ function unSelectGitElement () {
   const submitButton = document.getElementById('id_git_file_select_modal_submit_button')
   submitButton.parentNode.removeChild(submitButton)
 }
-
