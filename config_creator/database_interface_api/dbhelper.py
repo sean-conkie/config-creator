@@ -541,7 +541,6 @@ def get_database_schema(
                 "type": "table",
                 "connection_id": connection.get("id"),
                 "connection_name": connection.get("name"),
-
             }
         )
 
