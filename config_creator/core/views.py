@@ -511,11 +511,17 @@ def editjobtaskview(request, job_id, pk=None):
         else:
             task = JobTask()
 
+        m = re.search(
+            r"^(?:(?P<project>[\w\-\d]+)\.)?(?:(?P<dataset_name>[\w\-\d]+)\.)(?P<table_name>[\w\-\d]+)(?: +(?P<alias>\w+))?$",
+            request.POST.get("driving_table", ""),
+            re.IGNORECASE,
+        )
+
         task.name = request.POST["name"]
         task.description = request.POST["description"]
         task.destination_dataset = request.POST["destination_dataset"]
         task.destination_table = request.POST["destination_table"]
-        task.driving_table = request.POST["driving_table"]
+        task.driving_table = f"{m.group('dataset_name')}.{m.group('table_name')}"
         task.table_type = TableType.objects.get(id=request.POST["table_type"])
         task.write_disposition = WriteDisposition.objects.get(
             id=request.POST["write_disposition"]
@@ -527,24 +533,21 @@ def editjobtaskview(request, job_id, pk=None):
         task.updatedby = request.user
         task.job_id = request.POST["job_id"]
         task.save()
-        if request.POST.get("driving_table", ""):
-            m = re.search(
-                r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
-                request.POST.get("driving_table"),
-                re.IGNORECASE,
-            )
-            get_source_table(
-                task.id,
-                m.group("dataset_name"),
-                m.group("table_name"),
-                "src",
-            )
+
+        get_source_table(
+            task.id,
+            m.group("dataset_name"),
+            m.group("table_name"),
+            "src",
+            m.group("project"),
+        )
 
         get_source_table(
             task.id,
             task.destination_dataset,
             task.destination_table,
             "trg",
+            Job.objects.get(id=task.job_id).get_property_object().target_project,
         )
 
         if (

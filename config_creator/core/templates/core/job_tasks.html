@@ -101,8 +101,8 @@
               <td>{{ task.type }}</td>
               <td>{{ task.description }}</td>
               <td>{{ task.lastupdate }}</td>
-              <td class="btn-column"><a class="btn btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
-              <td class="btn-column"><button class="btn btn-danger task-delete" id="id_task_delete_{{ task.id }}"
+              <td class="btn-column"><a class="btn row-btn-secondary" href="{% url 'job-task' job_id=job.id pk=task.id %}" title="View" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"><i class="bi bi-search"></i></a></td>
+              <td class="btn-column"><button class="btn row-btn-danger task-delete" id="id_task_delete_{{ task.id }}"
                 type="button" title="Delete" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="right"
                 data-delete-url="{% url 'api-task-delete' job_id=job.id pk=task.id %}"
                 data-delete-element-id="id_task_{{task.id}}_row"><i class="bi bi-trash3"></i></button></td>

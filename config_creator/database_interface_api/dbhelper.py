@@ -2,7 +2,7 @@ import os
 import re
 
 from .models import *
-from core.models import Field, JobTask, Join, SourceTable
+from core.models import Field, Job, JobTask, Join, SourceTable
 from django.conf import settings
 from django.db.models import Q
 from google.cloud import bigquery
@@ -378,6 +378,9 @@ def get_database_schema(
                             "content": cols,
                             "type": "table",
                             "connection_id": connection.get("id"),
+                            "connection_name": Job.objects.get(id=job_id)
+                            .get_property_object()
+                            .target_project,
                         }
                     )
 
@@ -488,6 +491,9 @@ def get_database_schema(
                         "is_nullable": None,
                         "type": "column",
                         "connection_id": connection.get("id"),
+                        "connection_name": Job.objects.get(id=job_id)
+                        .get_property_object()
+                        .target_project,
                     }
                     for r in task_tables
                 ],
@@ -534,6 +540,8 @@ def get_database_schema(
                 "content": cols,
                 "type": "table",
                 "connection_id": connection.get("id"),
+                "connection_name": connection.get("name"),
+
             }
         )
 
