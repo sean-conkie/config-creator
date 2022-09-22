@@ -107,7 +107,8 @@ function createTableElement (object, layer) {
       element.setAttribute('onclick', 'selectElement(this)')
       element.insertAdjacentText('beforeend', ' ' + object.name)
       element.setAttribute('data-table-name', object.name)
-      element.setAttribute('data-table-full', object.dataset + '.' + object.name)
+      element.setAttribute('data-table-full', `${object.dataset}.${object.name}`)
+      element.setAttribute('data-project-table-full', `${object.connection_name}.${object.dataset}.${object.name}`)
       element.setAttribute('data-dataset-name', object.dataset)
       element.setAttribute('data-connection-id', object.connection_id)
     } else {

@@ -111,7 +111,7 @@
   <script>
     new Map([
       ["id_staging_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, null, '{{form.staging_dataset.id_for_label}}', null, true)", "type": "click"}],
-      ["id_driving_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.driving_table.id_for_label}}', 'tableFull', null, null, true, null, null, {{job.id}})", "type": "click"}],
+      ["id_driving_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.driving_table.id_for_label}}', 'projectTableFull', null, null, true, null, null, {{job.id}})", "type": "click"}],
       ["id_destination_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, null, '{{form.destination_dataset.id_for_label}}', null, true, null, null, {{job.id}})", "type": "click"}],
       ["id_destination_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', null, true, null, null, {{job.id}})", "type": "click"}],
     ]).forEach(addListener);

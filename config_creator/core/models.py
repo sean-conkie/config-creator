@@ -560,18 +560,23 @@ class SourceTable(models.Model):
 
 
 def get_source_table(
-    task_id: int, dataset_name: str, table_name: str, alias: str = None
+    task_id: int,
+    dataset_name: str,
+    table_name: str,
+    alias: str = None,
+    project: str = None,
 ) -> SourceTable:
     """
     > If a SourceTable object exists with the given task_id, dataset_name, table_name, and alias, return
-    it. Otherwise, create a new SourceTable object with the given task_id, dataset_name, and table_name,
-    and return it
+    it. Otherwise, create a new SourceTable object with those attributes and return it
 
     Args:
-      task_id (int): The id of the task that the source table is associated with.
+      task_id (int): The id of the task that this source table is associated with.
       dataset_name (str): The name of the dataset that the table is in.
       table_name (str): The name of the table in the dataset.
       alias (str): The alias of the table.
+      project (str): The name of the project where the table is located. If not specified, the default
+    project is used.
 
     Returns:
       A SourceTable object
@@ -579,17 +584,26 @@ def get_source_table(
     if dataset_name is None or table_name is None:
         return None
 
+    if not project:
+        project = (
+            Job.objects.get(id=JobTask.objects.get(id=task_id).job_id)
+            .get_property_object()
+            .source_project
+        )
+
     if SourceTable.objects.filter(
         task_id=task_id,
         dataset_name=dataset_name,
         table_name=table_name,
         alias=alias,
+        source_project=project,
     ).exists():
         return SourceTable.objects.get(
             task_id=task_id,
             dataset_name=dataset_name,
             table_name=table_name,
             alias=alias,
+            source_project=project,
         )
     else:
         saved = SourceTable(
@@ -597,6 +611,7 @@ def get_source_table(
             dataset_name=dataset_name,
             table_name=table_name,
             alias=alias,
+            source_project=project,
         )
         saved.save()
         return saved

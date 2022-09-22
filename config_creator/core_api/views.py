@@ -345,7 +345,7 @@ class JoinView(views.APIView):
             else request.POST.get("left")
         )
         m = re.search(
-            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            r"^(?:(?P<project>[\w\-\d]+)\.)?(?:(?P<dataset_name>[\w\-\d]+)\.)(?P<table_name>[\w\-\d]+)(?: +(?P<alias>\w+))?$",
             left,
             re.IGNORECASE,
         )
@@ -355,10 +355,11 @@ class JoinView(views.APIView):
             m.group("dataset_name"),
             m.group("table_name"),
             m.group("alias"),
+            m.group("project"),
         )
 
         m = re.search(
-            r"^(?P<dataset_name>\w+)\.(?P<table_name>\w+)(?:\s(?P<alias>\w+))?",
+            r"^(?:(?P<project>[\w\-\d]+)\.)?(?:(?P<dataset_name>[\w\-\d]+)\.)(?P<table_name>[\w\-\d]+)(?: +(?P<alias>\w+))?$",
             request.POST.get("right", ""),
             re.IGNORECASE,
         )
@@ -368,16 +369,8 @@ class JoinView(views.APIView):
             m.group("dataset_name"),
             m.group("table_name"),
             m.group("alias"),
+            m.group("project"),
         )
-
-        # if request.POST.get("right_connection_id"):
-        #     if request.POST.get("right_connection_id") == '-1':
-
-        #     connection = Connection.objects.get(
-        #         id=request.POST.get("right_connection_id")
-        #     )
-        #     right_table.source_project = connection.name
-        #     right_table.save()
 
         request_post = deepcopy(request.POST)
         request_post["left_table"] = left_table.id
