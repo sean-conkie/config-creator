@@ -1127,7 +1127,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             source_column=column.get("column_name"),
             source_table=source_table,
             source_data_type=column.get("data_type"),
-            is_nullable=column.get("data_type", True),
+            is_nullable=column.get("is_nullable", True),
             is_primary_key=column.get("is_primary_key", False),
             task=task,
             position=i + 1,

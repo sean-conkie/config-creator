@@ -43,6 +43,9 @@ __all__ = [
     "SourceTable",
     "changeorderposition",
     "get_source_table",
+    "Function",
+    "FunctionType",
+    "FunctionToTaskType",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -244,6 +247,66 @@ class JoinType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class BigQueryDataType(models.Model):
+    name = models.CharField(
+        verbose_name="Data Type",
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text="",
+    )
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class FunctionType(models.Model):
+    name = models.CharField(
+        verbose_name="Function Type",
+        max_length=255,
+        blank=False,
+        null=False,
+        unique=True,
+    )
+
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Function(models.Model):
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    syntax = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+
+    description = models.TextField(blank=True, null=True)
+    type = models.ForeignKey(FunctionType, null=False, on_delete=models.CASCADE)
+    return_type = models.ForeignKey(
+        BigQueryDataType, null=False, on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f"{self.type.name} - {self.name}"
+
+
+class FunctionToTaskType(models.Model):
+    function = models.ForeignKey(Function, null=False, on_delete=models.CASCADE)
+    tasktype = models.ForeignKey(TaskType, null=False, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.function.name}: {self.tasktype.name}"
 
 
 class JobToTaskType(models.Model):
@@ -457,20 +520,6 @@ class History(models.Model):
 
     def __str__(self):
         return f"{self.task.name} history ({self.id})"
-
-
-class BigQueryDataType(models.Model):
-    name = models.CharField(
-        verbose_name="Data Type",
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text="",
-    )
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
 
 
 class SourceTable(models.Model):
