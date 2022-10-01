@@ -1117,7 +1117,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             task_id,
         )
 
-        if table.get("result", {}) == {"result":{}}:
+        if table.get("result", {}) == {"result": {}}:
             return response.Response(data=table, status=status.HTTP_404_NOT_FOUND)
 
     source_table = get_source_table(

@@ -1142,8 +1142,6 @@ class BaseJobProperties(models.Model):
     class Meta:
         abstract = True
 
-
-
     def pprint(self):
         opts = self._meta
 
@@ -1230,7 +1228,6 @@ class DagJobProperties(BaseJobProperties):
         null=True,
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
-    
 
     def pprint(self):
         opts = self._meta
@@ -1246,7 +1243,6 @@ class DagJobProperties(BaseJobProperties):
             opts.get_field("email").verbose_name: self.email,
             opts.get_field("imports").verbose_name: self.imports,
         }
-
 
     def todict(self):
         return {
@@ -1271,8 +1267,6 @@ class BaseJobTaskProperties(models.Model):
 
     class Meta:
         abstract = True
-
-
 
     def pprint(self):
         return self.todict()
