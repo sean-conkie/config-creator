@@ -387,14 +387,13 @@ def jobdownload(request, pk):
 # region task views
 def jobtasksview(request, job_id):
     job = Job.objects.select_related().get(id=job_id)
-    properties = safe_dict(job.get_property_object().__dict__)
+    if job.get_property_object():
+        properties = job.get_property_object().pprint()
+    else:
+        properties = {}
     context = {
         "job": job,
-        "properties": [
-            {k: properties.get(k)}
-            for k in properties.keys()
-            if k not in ["_state", "id", "job_id"]
-        ],
+        "properties": [{k: properties.get(k)} for k in properties.keys()],
         "property_id": properties.get("id"),
         "tasks": JobTask.objects.select_related().filter(job=job),
     }
@@ -471,6 +470,10 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
         )
 
     source_tables = SourceTable.objects.filter(task_id=pk)
+    if task.get_property_object():
+        properties = safe_dict(task.get_property_object().pprint())
+    else:
+        properties = {}
 
     return render(
         request,
@@ -500,6 +503,7 @@ def jobtaskview(request, job_id, pk, dependency_id=None, task_id=None):
             "partition": partition if history else [],
             "history_order": history_order if history else [],
             "source_tables": source_tables,
+            "properties": [{k: properties.get(k)} for k in properties.keys()],
         },
     )
 
@@ -610,7 +614,7 @@ def editjobtaskproperty(request, job_id, task_id, pk=None):
 
     if request.method == "POST":
         return_form = form(request.POST)
-        return_form.instance.job_id = job_id
+        return_form.instance.task_id = task_id
         if pk:
             return_form.instance.id = pk
         if return_form.is_valid():

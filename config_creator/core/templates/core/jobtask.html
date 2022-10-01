@@ -57,6 +57,25 @@
       </div>
     </div>
   </div>
+  {% if properties|length > 0 %}
+    <div class="row g-5 py-3">
+      <div class="col-md-12 col-lg-12">
+        <p class="lead">Properties</p>
+        <div class="row g-3">
+          {% for property in properties %}
+            {% for key, value in property.items %}
+              <div class="col-6">
+                <div class="form-floating">
+                  <input id="id_{{ key }}" name="{{ key }}" type="text" value="{{ value }}" disabled />
+                  <label for="id_{{ key }}">{{ key }}:</label>
+                </div>
+              </div>
+            {% endfor %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
   <div class="row g-5 py-3">
     <div class="col-md-12 col-lg-12">
       <p class="lead">Target Table</p>

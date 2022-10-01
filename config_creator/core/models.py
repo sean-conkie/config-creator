@@ -1142,6 +1142,19 @@ class BaseJobProperties(models.Model):
     class Meta:
         abstract = True
 
+
+
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("dataset_source").verbose_name: self.dataset_source,
+            opts.get_field("dataset_publish").verbose_name: self.dataset_publish,
+            opts.get_field("dataset_staging").verbose_name: self.dataset_staging,
+            opts.get_field("target_project").verbose_name: self.target_project,
+            opts.get_field("source_project").verbose_name: self.source_project,
+        }
+
     def todict(self):
         return {
             "dataset_source": self.dataset_source,
@@ -1161,6 +1174,18 @@ class BatchJobProperties(BaseJobProperties):
         null=False,
         help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
     )
+
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("dataset_source").verbose_name: self.dataset_source,
+            opts.get_field("dataset_publish").verbose_name: self.dataset_publish,
+            opts.get_field("dataset_staging").verbose_name: self.dataset_staging,
+            opts.get_field("target_project").verbose_name: self.target_project,
+            opts.get_field("source_project").verbose_name: self.source_project,
+            opts.get_field("prefix").verbose_name: self.prefix,
+        }
 
     def todict(self):
         return {
@@ -1205,6 +1230,23 @@ class DagJobProperties(BaseJobProperties):
         null=True,
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
+    
+
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("dataset_source").verbose_name: self.dataset_source,
+            opts.get_field("dataset_publish").verbose_name: self.dataset_publish,
+            opts.get_field("dataset_staging").verbose_name: self.dataset_staging,
+            opts.get_field("target_project").verbose_name: self.target_project,
+            opts.get_field("source_project").verbose_name: self.source_project,
+            opts.get_field("tags").verbose_name: self.tags,
+            opts.get_field("owner").verbose_name: self.owner,
+            opts.get_field("email").verbose_name: self.email,
+            opts.get_field("imports").verbose_name: self.imports,
+        }
+
 
     def todict(self):
         return {
@@ -1230,19 +1272,31 @@ class BaseJobTaskProperties(models.Model):
     class Meta:
         abstract = True
 
+
+
+    def pprint(self):
+        return self.todict()
+
     def todict(self):
         return {}
 
 
 class BatchCustomJobTaskProperties(BaseJobTaskProperties):
     sql = models.CharField(
-        verbose_name="Sql Script Name",
+        verbose_name="SQL Script Name",
         max_length=255,
         unique=False,
         blank=False,
         null=False,
-        help_text="Enter the name of the sql fiel to be used by this task",
+        help_text="Enter the name of the sql field to be used by this task",
     )
+
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("sql").verbose_name: self.sql,
+        }
 
     def todict(self):
         return {"sql": self.sql}
