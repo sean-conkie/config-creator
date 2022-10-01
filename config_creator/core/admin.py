@@ -99,6 +99,7 @@ class JoinConditionInLine(admin.TabularInline):
 @admin.register(Operator)
 @admin.register(LogicOperator)
 @admin.register(BigQueryDataType)
+@admin.register(FunctionType)
 class TypeAdmin(admin.ModelAdmin):
 
     list_display = ["name", "description"]
@@ -227,6 +228,29 @@ class ConditionAdmin(admin.ModelAdmin):
         "logic_operator",
     ]
     filter_horizontal = ()
+
+
+@admin.register(Function)
+class FunctionAdmin(admin.ModelAdmin):
+    list_display = ["name", "get_type", "get_return_type"]
+    list_filter = ["type"]
+    ordering = ["type__name", "name"]
+    fieldsets = (
+        (None, {"fields": ["name", "type", "syntax"]}),
+        (None, {"fields": ["description", "return_type"]}),
+    )
+
+    def get_type(self, obj):
+        return obj.type.name
+
+    get_type.admin_order_field = "type"
+    get_type.short_description = "Type"
+
+    def get_return_type(self, obj):
+        return obj.return_type.name
+
+    get_return_type.admin_order_field = "return_type"
+    get_return_type.short_description = "Return Type"
 
 
 @admin.register(Field)

@@ -1117,6 +1117,9 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             task_id,
         )
 
+        if table.get("result", {}) == {"result": {}}:
+            return response.Response(data=table, status=status.HTTP_404_NOT_FOUND)
+
     source_table = get_source_table(
         task_id, dataset, m.group("table_name"), m.group("alias")
     )
@@ -1127,7 +1130,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             source_column=column.get("column_name"),
             source_table=source_table,
             source_data_type=column.get("data_type"),
-            is_nullable=column.get("data_type", True),
+            is_nullable=column.get("is_nullable", True),
             is_primary_key=column.get("is_primary_key", False),
             task=task,
             position=i + 1,

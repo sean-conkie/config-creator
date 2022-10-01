@@ -35,7 +35,7 @@ urlpatterns = [
         name="api-source-table",
     ),
     re_path(
-        r"task\/(?P<task_id>\d+)\/connection\/(?P<connection_id>-?\d+)\/dataset\/(?P<dataset>[\w\-\d]+)\/table\/(?P<table_name>[\w\-\d]+(?: [\w\-\d]+))\/copy\/",
+        r"task\/(?P<task_id>\d+)\/connection\/(?P<connection_id>-?\d+)\/dataset\/(?P<dataset>[\w\-\d]+)\/table\/(?P<table_name>[\w\-\d]+(?: [\w\-\d]+)?)\/copy\/",
         login_required(copytable),
         name="api-table-copy",
     ),

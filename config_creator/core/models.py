@@ -43,6 +43,9 @@ __all__ = [
     "SourceTable",
     "changeorderposition",
     "get_source_table",
+    "Function",
+    "FunctionType",
+    "FunctionToTaskType",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -244,6 +247,66 @@ class JoinType(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class BigQueryDataType(models.Model):
+    name = models.CharField(
+        verbose_name="Data Type",
+        max_length=255,
+        blank=False,
+        null=False,
+        help_text="",
+    )
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class FunctionType(models.Model):
+    name = models.CharField(
+        verbose_name="Function Type",
+        max_length=255,
+        blank=False,
+        null=False,
+        unique=True,
+    )
+
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Function(models.Model):
+    name = models.CharField(
+        verbose_name="Name",
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+    syntax = models.CharField(
+        max_length=255,
+        blank=False,
+        null=False,
+    )
+
+    description = models.TextField(blank=True, null=True)
+    type = models.ForeignKey(FunctionType, null=False, on_delete=models.CASCADE)
+    return_type = models.ForeignKey(
+        BigQueryDataType, null=False, on_delete=models.CASCADE
+    )
+
+    def __str__(self):
+        return f"{self.type.name} - {self.name}"
+
+
+class FunctionToTaskType(models.Model):
+    function = models.ForeignKey(Function, null=False, on_delete=models.CASCADE)
+    tasktype = models.ForeignKey(TaskType, null=False, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"{self.function.name}: {self.tasktype.name}"
 
 
 class JobToTaskType(models.Model):
@@ -457,20 +520,6 @@ class History(models.Model):
 
     def __str__(self):
         return f"{self.task.name} history ({self.id})"
-
-
-class BigQueryDataType(models.Model):
-    name = models.CharField(
-        verbose_name="Data Type",
-        max_length=255,
-        blank=False,
-        null=False,
-        help_text="",
-    )
-    description = models.TextField(blank=True, null=True)
-
-    def __str__(self):
-        return self.name
 
 
 class SourceTable(models.Model):
@@ -1093,6 +1142,17 @@ class BaseJobProperties(models.Model):
     class Meta:
         abstract = True
 
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("dataset_source").verbose_name: self.dataset_source,
+            opts.get_field("dataset_publish").verbose_name: self.dataset_publish,
+            opts.get_field("dataset_staging").verbose_name: self.dataset_staging,
+            opts.get_field("target_project").verbose_name: self.target_project,
+            opts.get_field("source_project").verbose_name: self.source_project,
+        }
+
     def todict(self):
         return {
             "dataset_source": self.dataset_source,
@@ -1112,6 +1172,18 @@ class BatchJobProperties(BaseJobProperties):
         null=False,
         help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
     )
+
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("dataset_source").verbose_name: self.dataset_source,
+            opts.get_field("dataset_publish").verbose_name: self.dataset_publish,
+            opts.get_field("dataset_staging").verbose_name: self.dataset_staging,
+            opts.get_field("target_project").verbose_name: self.target_project,
+            opts.get_field("source_project").verbose_name: self.source_project,
+            opts.get_field("prefix").verbose_name: self.prefix,
+        }
 
     def todict(self):
         return {
@@ -1157,6 +1229,21 @@ class DagJobProperties(BaseJobProperties):
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
 
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("dataset_source").verbose_name: self.dataset_source,
+            opts.get_field("dataset_publish").verbose_name: self.dataset_publish,
+            opts.get_field("dataset_staging").verbose_name: self.dataset_staging,
+            opts.get_field("target_project").verbose_name: self.target_project,
+            opts.get_field("source_project").verbose_name: self.source_project,
+            opts.get_field("tags").verbose_name: self.tags,
+            opts.get_field("owner").verbose_name: self.owner,
+            opts.get_field("email").verbose_name: self.email,
+            opts.get_field("imports").verbose_name: self.imports,
+        }
+
     def todict(self):
         return {
             "dataset_source": self.dataset_source,
@@ -1181,19 +1268,29 @@ class BaseJobTaskProperties(models.Model):
     class Meta:
         abstract = True
 
+    def pprint(self):
+        return self.todict()
+
     def todict(self):
         return {}
 
 
 class BatchCustomJobTaskProperties(BaseJobTaskProperties):
     sql = models.CharField(
-        verbose_name="Sql Script Name",
+        verbose_name="SQL Script Name",
         max_length=255,
         unique=False,
         blank=False,
         null=False,
-        help_text="Enter the name of the sql fiel to be used by this task",
+        help_text="Enter the name of the sql field to be used by this task",
     )
+
+    def pprint(self):
+        opts = self._meta
+
+        return {
+            opts.get_field("sql").verbose_name: self.sql,
+        }
 
     def todict(self):
         return {"sql": self.sql}

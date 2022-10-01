@@ -7,11 +7,10 @@
     <h2>Task Properties</h2>
     <p class="lead">View or change your task properties.</p>
   </div>
-  <form method="post" action="{% url 'job-property-update' job_id=job_id pk=pk %}">
   {% if pk != None %}
-    <input id="id_id" name="id" value="{{ pk }}" hidden />
+    <form method="post" action="{% url 'job-task-property-update' job_id=job_id task_id=task_id pk=pk %}">
   {% else %}
-    <input id="id_empty_id" name="id" hidden />
+    <form method="post" action="{% url 'job-task-property-add' job_id=job_id task_id=task_id %}">
   {% endif %}
     {% csrf_token %}
     <div class="row g-5">
