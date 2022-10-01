@@ -113,6 +113,24 @@ class CSVClient:
         return self._data
 
     def get_data(self, query: str = None) -> DataFrame:
+        """
+        It reads a csv file, filters it based on the schema and table filters, and returns the filtered
+        dataframe
+
+        Args:
+          query (str): str = None
+
+        Returns:
+          A dataframe with the following columns:
+            table_schema
+            table_name
+            column_name
+            data_type
+            ordinal_position
+            is_nullable
+            alias
+            raw_table_name
+        """
         if os.path.exists(self._path):
 
             outp = read_csv(
@@ -622,6 +640,8 @@ def get_table(
         table_name,
         re.IGNORECASE,
     )
+    # remove any alias from table_name, this isn't needed
+    # and will impact the filter later
     cleansed_table_name = m.group("table_name")
     alias = m.group("alias") if m.group("alias") else table_name
 
@@ -668,14 +688,19 @@ def get_table(
 
                     return table
 
+        # if we get here, the table isn't part of this job.  return
+        # an empty result
+        return {"result": {}}
+
     elif connection.get("connection_type") == ConnectionType.BIGQUERY:
         client = IBQClient(connection.get("connection_string"))
         query = f"select table_schema, table_name, column_name, data_type, ordinal_position, is_nullable from {connection.get('connection_string')}.{database}.INFORMATION_SCHEMA.COLUMNS where table_name = '{cleansed_table_name}' order by 2, 5"
 
     elif connection.get("connection_type") == ConnectionType.CSV:
+
         query = {
             "database": database,
-            "table_name": table_name,
+            "table_name": cleansed_table_name,
         }
         client = CSVClient(connection.get("schema").name)
 
