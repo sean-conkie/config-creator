@@ -131,6 +131,29 @@ class JobToTaskAdmin(admin.ModelAdmin):
     get_tasktype.short_description = "Task Type"
 
 
+@admin.register(TaskTypeToWriteDisposition)
+class TaskTypeToWriteDispositionAdmin(admin.ModelAdmin):
+
+    list_display = ["get_writedisposition", "get_tasktype"]
+    list_filter = ["task_type", "write_disposition"]
+
+    search_fields = ["task_type", "write_disposition"]
+    ordering = ["task_type", "write_disposition"]
+    filter_horizontal = ()
+
+    def get_tasktype(self, obj):
+        return obj.task_type.name
+
+    get_tasktype.admin_order_field = "task_type"
+    get_tasktype.short_description = "Task Type"
+
+    def get_writedisposition(self, obj):
+        return obj.write_disposition.name
+
+    get_writedisposition.admin_order_field = "write_disposition"
+    get_writedisposition.short_description = "Write Disposition"
+
+
 @admin.register(Dependency)
 class DependencyAdmin(admin.ModelAdmin):
 

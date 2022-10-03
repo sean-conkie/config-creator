@@ -589,9 +589,14 @@ def editjobtaskview(request, job_id, pk=None):
         else:
             form = JobTaskForm()
 
-        types = TaskType.objects.all()
-        table_types = TableType.objects.all()
-        write_dispositions = WriteDisposition.objects.all()
+        types = {
+            type.name: [
+                tttwd.write_disposition.todict()
+                for tttwd in TaskTypeToWriteDisposition.objects.filter(task_type=type)
+            ]
+            for type in TaskType.objects.all()
+        }
+
         job = Job.objects.get(id=job_id)
 
         return render(
@@ -600,8 +605,6 @@ def editjobtaskview(request, job_id, pk=None):
             {
                 "form": form,
                 "types": types,
-                "table_types": table_types,
-                "write_dispositions": write_dispositions,
                 "job": job,
                 "task_id": pk,
             },
