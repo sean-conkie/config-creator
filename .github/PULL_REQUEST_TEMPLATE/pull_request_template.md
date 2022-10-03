@@ -1,4 +1,4 @@
-<!-- Thanks for sending a pull request! Please add the feature label if implementing a feature, bug label if fixing a bug -->
+<!-- Thanks for sending a pull request! Please add matching labels from any issues closed -->
 
 ### What does this implement/fix? Explain your changes.
 ...
