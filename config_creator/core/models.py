@@ -5,6 +5,7 @@ from django.db import models
 from django.conf import settings
 from django.db.models import Q
 from django.urls import reverse
+from lib.helper import ifnull
 from wordsegment import segment
 
 __all__ = [
@@ -46,6 +47,7 @@ __all__ = [
     "Function",
     "FunctionType",
     "FunctionToTaskType",
+    "TaskTypeToWriteDisposition",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -99,7 +101,13 @@ class JobType(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
 
@@ -119,7 +127,13 @@ class TaskType(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
 
@@ -139,7 +153,13 @@ class TableType(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
 
@@ -159,8 +179,39 @@ class WriteDisposition(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
+
+    def todict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "code": self.code,
+            "description": ifnull(self.description, ""),
+        }
+
+
+class TaskTypeToWriteDisposition(models.Model):
+    write_disposition = models.ForeignKey(
+        WriteDisposition, null=False, on_delete=models.CASCADE
+    )
+    task_type = models.ForeignKey(TaskType, null=False, on_delete=models.CASCADE)
+
+    def __str__(self) -> str:
+        """
+        The function returns a string that is the name of the task type and the name of the write
+        disposition
+
+        Returns:
+          The name of the task type and the name of the write disposition.
+        """
+        return f"{self.task_type.name}: {self.write_disposition.name}"
 
 
 class LogicOperator(models.Model):
@@ -179,12 +230,18 @@ class LogicOperator(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
-    def lower(self):
+    def lower(self) -> str:
         """
-        The function lower() takes the string self.name and converts it to lowercase
+        This function takes in a string and returns a lowercase version of that string
 
         Returns:
           The name of the object in lowercase.
@@ -216,12 +273,18 @@ class Operator(models.Model):
         null=True,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
-    def lower(self):
+    def lower(self) -> str:
         """
-        The function lower() takes the string self.name and converts it to lowercase
+        This function takes in a string and returns a lowercase version of that string
 
         Returns:
           The name of the object in lowercase.
@@ -245,7 +308,13 @@ class JoinType(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
 
@@ -259,7 +328,13 @@ class BigQueryDataType(models.Model):
     )
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
 
@@ -274,7 +349,13 @@ class FunctionType(models.Model):
 
     description = models.TextField(blank=True, null=True)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The __str__() function returns a string representation of the object
+
+        Returns:
+          The name of the object.
+        """
         return self.name
 
 
@@ -297,7 +378,14 @@ class Function(models.Model):
         BigQueryDataType, null=False, on_delete=models.CASCADE
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The function returns a string that is the name of the type of the pokemon and the name of the
+        pokemon
+
+        Returns:
+          The name of the type of the pokemon and the name of the pokemon.
+        """
         return f"{self.type.name} - {self.name}"
 
 
@@ -305,7 +393,13 @@ class FunctionToTaskType(models.Model):
     function = models.ForeignKey(Function, null=False, on_delete=models.CASCADE)
     tasktype = models.ForeignKey(TaskType, null=False, on_delete=models.CASCADE)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The function returns a string that is the name of the function and the name of the tasktype
+
+        Returns:
+          The name of the function and the name of the tasktype.
+        """
         return f"{self.function.name}: {self.tasktype.name}"
 
 
@@ -313,7 +407,13 @@ class JobToTaskType(models.Model):
     jobtype = models.ForeignKey(JobType, null=False, on_delete=models.CASCADE)
     tasktype = models.ForeignKey(TaskType, null=False, on_delete=models.CASCADE)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The function returns a string that is the name of the jobtype and the name of the tasktype
+
+        Returns:
+          The name of the jobtype and tasktype
+        """
         return f"{self.jobtype.name}: {self.tasktype.name}"
 
 
@@ -337,21 +437,28 @@ class Job(models.Model):
         User, on_delete=models.CASCADE, related_name="job_updated_by"
     )
 
-    def __str__(self):
-        return f"{self.name} ({self.id})"
-
-    def get_absolute_url(self):
+    def __str__(self) -> str:
         """
-        It returns the URL of the job detail page for the job with the primary key of self.id.
+        The function returns a string that contains the name of the object and its id
 
         Returns:
-          The url for the job-change page.
+          The name and id of the object.
+        """
+        return f"{self.name} ({self.id})"
+
+    def get_absolute_url(self) -> str:
+        """
+        It returns the URL of the job detail page for the job with the primary key (pk) of the job
+        object that the function is called on
+
+        Returns:
+          The url for the job change page.
         """
         return reverse("job-change", kwargs={"pk": self.id})
 
-    def get_property_object(self):
+    def get_property_object(self) -> object:
         """
-        It takes a job object, and returns the job's properties object
+        It takes a job object, and returns the corresponding job properties object
 
         Returns:
           The property object for the job.
@@ -369,7 +476,13 @@ class Job(models.Model):
 
         return None
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It returns a dictionary of the object's attributes
+
+        Returns:
+          A dictionary of the object's attributes.
+        """
         return {
             "name": self.name,
             "type": self.type.name,
@@ -462,16 +575,21 @@ class JobTask(models.Model):
         User, on_delete=models.CASCADE, related_name="job_task_updated_by"
     )
 
-    def __str__(self):
-        return f"{self.name} ({self.id})"
-
-    def get_property_object(self):
-
+    def __str__(self) -> str:
         """
-        It takes a task object, and returns the corresponding property object
+        The __str__() function returns a string representation of the object
 
         Returns:
-          The property object for the task.
+          The name and id of the object.
+        """
+        return f"{self.name} ({self.id})"
+
+    def get_property_object(self) -> object:
+        """
+        It takes a job task object and returns the corresponding job task properties object
+
+        Returns:
+          The property object for the job task.
         """
         property_class = str_to_class(
             f"{self.job.type.code.title()}{self.type.code.title()}JobTaskProperties"
@@ -488,7 +606,28 @@ class JobTask(models.Model):
 
         return None
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It takes a class object and returns a dictionary of the class object's attributes
+
+        Returns:
+          A dictionary with the following keys:
+            name
+            job
+            type
+            table_type
+            write_disposition
+            destination_dataset
+            destination_table
+            driving_table
+            staging_dataset
+            description
+            properties
+            created
+            createdby
+            lastupdate
+            updatedby
+        """
         return {
             "name": self.name,
             "job": self.job.todict(),
@@ -518,7 +657,14 @@ class History(models.Model):
         JobTask, on_delete=models.CASCADE, blank=False, null=False
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The function returns a string that contains the name of the task and the id of the history
+        object
+
+        Returns:
+          The name of the task and the id of the history object.
+        """
         return f"{self.task.name} history ({self.id})"
 
 
@@ -594,10 +740,23 @@ class SourceTable(models.Model):
 
         super(SourceTable, self).save(*args, **kwargs)
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The function returns a string that is the dataset name, table name, and alias of the table
+
+        Returns:
+          The dataset name, table name, and alias.
+        """
         return f"{self.dataset_name}.{self.table_name} {self.alias}"
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It takes a class object and returns a dictionary of the class object's attributes
+
+        Returns:
+          A dictionary with the following keys: id, task_id, source_project, dataset_name, table_name,
+        alias
+        """
         return {
             "id": self.id,
             "task_id": self.task_id,
@@ -725,7 +884,7 @@ class Field(models.Model):
     is_nullable = models.BooleanField(verbose_name="Is Column Nullable", default=True)
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         If the column has a transformation, return the transformation and the name. If the column has a
         source table and column, return the source table and column and the name. If the column has a
@@ -733,7 +892,7 @@ class Field(models.Model):
         table, return the name
 
         Returns:
-          The name of the column, the table it is in, and the dataset it is in.
+          The string representation of the column.
         """
         name = ""
         table = ""
@@ -974,7 +1133,14 @@ $THISMONTH = date of first day of current month
         help_text="Input seconds to add to lower_bound, 86400 represents one day",
     )
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It takes a `Task` object and returns a dictionary with the `id`, `task_id`, `lower_bound`,
+        `upper_bound`, and `field` of the `Task` object
+
+        Returns:
+          A dictionary with the id, task_id, lower_bound, upper_bound, and field.
+        """
         return {
             "id": self.id,
             "task_id": self.task.id,
@@ -1006,7 +1172,7 @@ class Join(models.Model):
     )
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, blank=False, null=False)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """
         The function returns a string that contains the name of the task and the name of the right table
 
@@ -1015,12 +1181,13 @@ class Join(models.Model):
         """
         return f"{self.task.name}: join to {self.right_table}"
 
-    def todict(self):
+    def todict(self) -> dict:
         """
-        It returns a dictionary of the object's attributes
+        It takes a join object and returns a dictionary with the join's id, type, left table, right
+        table, conditions, and task id
 
         Returns:
-          A dictionary of the join object.
+          A dictionary with the id, type, left_table, right_table, conditions, and task_id of the join.
         """
         return {
             "id": self.id,
@@ -1081,10 +1248,23 @@ class Condition(models.Model):
         on_delete=models.CASCADE,
     )
 
-    def __str__(self):
+    def __str__(self) -> str:
+        """
+        The function returns the name of the task that the condition is associated with, or the name of
+        the condition itself if it is not associated with a task
+
+        Returns:
+          The name of the task and the type of condition.
+        """
         return f"{self.join.task.name if self.join else (self.where.name if self.where else '')}{'Join Condition' if self.join else ('Where Condition' if self.where else '')}"
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It takes a `Rule` object and returns a dictionary representation of it
+
+        Returns:
+          A dictionary with the id, operator, logic_operator, left, and right.
+        """
         return {
             "id": self.id,
             "operator": self.operator.name,
@@ -1142,7 +1322,15 @@ class BaseJobProperties(models.Model):
     class Meta:
         abstract = True
 
-    def pprint(self):
+    def pprint(self) -> dict:
+        """
+        The function takes the object and returns a dictionary of the object's fields and their verbose
+        names
+
+        Returns:
+          A dictionary with the verbose names of the fields as keys and the values of the fields as
+        values.
+        """
         opts = self._meta
 
         return {
@@ -1153,7 +1341,18 @@ class BaseJobProperties(models.Model):
             opts.get_field("source_project").verbose_name: self.source_project,
         }
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        This function takes the class object and returns a dictionary of the class object's attributes
+
+        Returns:
+          A dictionary with the following keys:
+            dataset_source
+            dataset_publish
+            dataset_staging
+            target_project
+            source_project
+        """
         return {
             "dataset_source": self.dataset_source,
             "dataset_publish": self.dataset_publish,
@@ -1173,7 +1372,14 @@ class BatchJobProperties(BaseJobProperties):
         help_text="Enter the prefix which will be used for all tasks in this job; i.e. spine_order",
     )
 
-    def pprint(self):
+    def pprint(self) -> dict:
+        """
+        The function takes the object and returns a dictionary of the object's fields and their values
+
+        Returns:
+          A dictionary with the verbose names of the fields as keys and the values of the fields as
+        values.
+        """
         opts = self._meta
 
         return {
@@ -1185,7 +1391,19 @@ class BatchJobProperties(BaseJobProperties):
             opts.get_field("prefix").verbose_name: self.prefix,
         }
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        This function takes the class attributes and returns a dictionary of the class attributes
+
+        Returns:
+          A dictionary with the following keys:
+            dataset_source
+            dataset_publish
+            dataset_staging
+            target_project
+            source_project
+            prefix
+        """
         return {
             "dataset_source": self.dataset_source,
             "dataset_publish": self.dataset_publish,
@@ -1229,7 +1447,14 @@ class DagJobProperties(BaseJobProperties):
         help_text="Enter any python packages to be imported, seperated by a semi-colon ';'",
     )
 
-    def pprint(self):
+    def pprint(self) -> str:
+        """
+        The function takes the object and returns a dictionary of the object's fields and their values
+
+        Returns:
+          A dictionary with the verbose names of the fields as keys and the values of the fields as
+        values.
+        """
         opts = self._meta
 
         return {
@@ -1244,7 +1469,22 @@ class DagJobProperties(BaseJobProperties):
             opts.get_field("imports").verbose_name: self.imports,
         }
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        This function takes the attributes of the class and returns a dictionary of those attributes
+
+        Returns:
+          A dictionary with the following keys:
+            dataset_source
+            dataset_publish
+            dataset_staging
+            target_project
+            source_project
+            tags
+            owner
+            email
+            imports
+        """
         return {
             "dataset_source": self.dataset_source,
             "dataset_publish": self.dataset_publish,
@@ -1268,10 +1508,22 @@ class BaseJobTaskProperties(models.Model):
     class Meta:
         abstract = True
 
-    def pprint(self):
+    def pprint(self) -> dict:
+        """
+        `pprint` is a function that takes in a `self` parameter and returns a dictionary
+
+        Returns:
+          A dictionary of the object's attributes.
+        """
         return self.todict()
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It returns an empty dictionary.
+
+        Returns:
+          A dictionary
+        """
         return {}
 
 
@@ -1285,26 +1537,39 @@ class BatchCustomJobTaskProperties(BaseJobTaskProperties):
         help_text="Enter the name of the sql field to be used by this task",
     )
 
-    def pprint(self):
+    def pprint(self) -> dict:
+        """
+        It returns a dictionary of the model's fields and their values
+
+        Returns:
+          A dictionary with the verbose name of the field as the key and the value of the field as the
+        value.
+        """
         opts = self._meta
 
         return {
             opts.get_field("sql").verbose_name: self.sql,
         }
 
-    def todict(self):
+    def todict(self) -> dict:
+        """
+        It returns a dictionary with a key of "sql" and a value of the sql attribute of the object
+
+        Returns:
+          A dictionary with the key "sql" and the value of the sql attribute of the object.
+        """
         return {"sql": self.sql}
 
 
-def str_to_class(classname):
+def str_to_class(classname: str) -> object:
     """
     It takes a string and returns the class object that the string represents
 
     Args:
-      classname: The name of the class you want to instantiate.
+      classname (str): The name of the class you want to get.
 
     Returns:
-      The class object of the classname string.
+      The class object
     """
     try:
         return getattr(sys.modules[__name__], classname)

@@ -106,7 +106,30 @@
     </div>  
     
   </form>
-  
+  <script>
+    var typeWriteDistribution = {{ types | safe }};
+
+    function changeWriteDisposition() {
+      const writeDispositionElement = document.getElementById('id_write_disposition')
+      writeDispositionElement.textContent = ''
+
+      const typeElement = document.getElementById('id_type')
+
+      const taskTypeOptions = typeWriteDistribution[typeElement.children[typeElement.selectedIndex].text]
+
+      for (let i = 0; i < taskTypeOptions.length; i ++) {
+        let opt = document.createElement('option')
+        opt.value = taskTypeOptions[i].id
+        opt.text = taskTypeOptions[i].name
+
+        writeDispositionElement.appendChild(opt)
+      }
+
+    }
+
+    changeWriteDisposition()
+
+  </script>
   <script src="/static/js/lazy-listener.js" ></script>
   <script>
     new Map([
@@ -114,6 +137,7 @@
       ["id_driving_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.driving_table.id_for_label}}', 'projectTableFull', null, null, true, null, null, {{job.id}})", "type": "click"}],
       ["id_destination_dataset_tree", {"function": "setReturnType('dataset', null, null, null, null, null, '{{form.destination_dataset.id_for_label}}', null, true, null, null, {{job.id}})", "type": "click"}],
       ["id_destination_table_tree", {"function": "setReturnType('table', null, null, null, '{{form.destination_table.id_for_label}}', 'tableName', '{{form.destination_dataset.id_for_label}}', null, true, null, null, {{job.id}})", "type": "click"}],
+      ['id_type', {'function': 'changeWriteDisposition()', 'type': 'change'}],
     ]).forEach(addListener);
   </script>
   {% include 'core/connection_selector.html' %}
