@@ -1,4 +1,15 @@
 
+/**
+ * It adds a row to a table
+ * 
+ * Args:
+ *   data: The data returned from the API call.
+ *   elementToAddId: The id of the table to add the row to
+ *   action: The action that is being performed. This is used to determine what type of field is being
+ * added.
+ *   jobId: The id of the job that the task belongs to
+ *   taskId: The id of the task that the field belongs to.
+ */
 function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
   if ('result' in data) {
     const parent = document.getElementById(elementToAddId)
@@ -325,6 +336,7 @@ function resetFieldInput (elements, action) {
 
   document.getElementById('id_field_modal_edit_button').classList.add('visually-hidden')
   document.getElementById('id_field_modal_submit_button').classList.add('visually-hidden')
+  document.getElementById('id_field_transformation_load').classList.add('visually-hidden')
   document.getElementById('id_id').setAttribute('hidden', 'true')
   document.getElementById('id_field_modal_action').setAttribute('hidden', 'true')
 }
@@ -355,6 +367,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
   submitButton.dataset.jobId = (jobId !== undefined) ? jobId : submitButton.dataset.jobId
   submitButton.dataset.taskId = (taskId !== undefined) ? taskId : submitButton.dataset.taskId
 
+  const transformationLoadButton = document.getElementById('id_field_transformation_load')
+
   const title = document.getElementById('id_field_modal_title')
 
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
@@ -367,6 +381,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     title.textContent = 'Create New Column'
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
+    transformationLoadButton.classList.remove('visually-hidden')
+    
     document.getElementById('id_id').setAttribute('hidden', 'true')
 
     xhttp.onload = function () {
@@ -447,6 +463,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetFieldInput(modalElements, 'edit')
     title.textContent = 'Edit Column Details'
     submitButton.classList.remove('visually-hidden')
+    transformationLoadButton.classList.remove('visually-hidden')
+    
     document.getElementById('id_field_modal_action').value = usage
 
     if (usage === 'editDrivingColumn') {
@@ -529,6 +547,13 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   submitButton.dataset.taskId = undefined
 }
 
+/**
+ * It takes a data type as a parameter, makes an AJAX request to the server, and then sets the selected
+ * option in the data type dropdown to the data type returned by the server
+ * 
+ * Args:
+ *   dataType: The data type to map to a data type option.
+ */
 function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
   if (dataType && dataType !== '' && dataType !== 'undefined' && dataType !== 'null' && dataType !== undefined && dataType !== null) {
     const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef

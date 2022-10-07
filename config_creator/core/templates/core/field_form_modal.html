@@ -72,7 +72,7 @@
                   </div>
                 </div>
                 <div class="row g-3 py-1">
-                  <div class="lead">Transformation</div>
+                  <div class="lead">Transformation <button class="btn btn-primary text-primary" id="id_field_transformation_load" type="button"><i class="fa-solid fa-flask"></i></button></div>
                   <div class="col-sm-12">
                     <div class="form-floating">
                       <div class="form-floating" style="height: 20vh">
@@ -90,13 +90,16 @@
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" type="button" data-bs-dismiss="modal"><i class="bi bi-x-lg"></i> Close</button>
-          <button class="btn btn-info" id="id_field_modal_edit_button" type="submit" title=""><i class="bi bi-pencil"></i> Edit</button>
-          <button class="btn btn-primary" id="id_field_modal_submit_button" type="button"><i class="bi bi-check-lg"></i> Submit</button>
+          <button class="btn btn-info" id="id_field_modal_edit_button" type="button" title=""><i class="bi bi-pencil"></i> Edit</button>
+          <button class="btn btn-success" id="id_field_modal_submit_button" type="button"><i class="bi bi-check-lg"></i> Submit</button>
         </div>
       </div>
     </div>
   </div>
+  
+  {% include 'core/transformation_form_modal.html' %}
     <script src="/static/js/lazy-listener.js"></script>
+    <script src="/static/js/field-transformation-helper.js"></script>
     <script>
       
       let fieldModalListenerMap = new Map([
@@ -143,6 +146,30 @@
         ["id_source_column_tree", {
             "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, true, {{task.id}}, 'id_field_modal')",
             "type": "click"
+        }],
+        ["id_field_transformation_load", {
+            "function": "prepareFieldTransformationModal()",
+            "type": "click"
+        }],
+        ["id_field_transformation_modal_close", {
+            "function": "closeFieldTransformationModal()",
+            "type": "click"
+        }],
+        ["id_function_type", {
+            "function": "switchFunctionType(this.options[this.selectedIndex].text)",
+            "type": "click"
+        }],
+        ["id_function", {
+            "function": "displayFunction(this.options[this.selectedIndex].text)",
+            "type": "click"
+        }],
+        ["id_field_transformation_modal_submit", {
+            "function": "saveTransformation()",
+            "type": "click"
+        }],
+        ["id_function_description", {
+            "function": "functionDescriptionReSize()",
+            "type": "input"
         }]
       ]);
       
