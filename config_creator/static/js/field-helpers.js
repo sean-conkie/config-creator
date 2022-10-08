@@ -1,7 +1,7 @@
 
 /**
  * It adds a row to a table
- * 
+ *
  * Args:
  *   data: The data returned from the API call.
  *   elementToAddId: The id of the table to add the row to
@@ -382,7 +382,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
     transformationLoadButton.classList.remove('visually-hidden')
-    
+
     document.getElementById('id_id').setAttribute('hidden', 'true')
 
     xhttp.onload = function () {
@@ -464,7 +464,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     title.textContent = 'Edit Column Details'
     submitButton.classList.remove('visually-hidden')
     transformationLoadButton.classList.remove('visually-hidden')
-    
+
     document.getElementById('id_field_modal_action').value = usage
 
     if (usage === 'editDrivingColumn') {
@@ -550,7 +550,7 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
 /**
  * It takes a data type as a parameter, makes an AJAX request to the server, and then sets the selected
  * option in the data type dropdown to the data type returned by the server
- * 
+ *
  * Args:
  *   dataType: The data type to map to a data type option.
  */
