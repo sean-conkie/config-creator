@@ -5,7 +5,7 @@ const functionObject = {}
  * field string
  */
 function prepareFieldTransformationModal () { // eslint-disable-line no-unused-vars
-  const field = document.getElementById('id_name').value
+  const field = document.getElementById('id_source_column').value
   const sourceTable = document.getElementById('id_source_name').value
   const match = sourceTable.match(/([\w\d-]+)\s*([\w\d]+)$/)
   const transformation = document.getElementById('id_field_transformation').value
@@ -359,4 +359,27 @@ function saveTransformation () { // eslint-disable-line no-unused-vars
   update(transformationString, 'id_field_transformation_highlighting') // eslint-disable-line no-undef
 
   closeFieldTransformationModal()
+}
+
+/**
+ * It takes the value of the field selected in the dropdown and inserts it into the textarea at the
+ * cursor position
+ */
+function addFieldToCode () { // eslint-disable-line no-unused-vars
+  const field = document.getElementById('id_field_transformation_field').value
+  const string = document.getElementById('id_modal_field_transformation').value
+  let newString
+
+  if (tAreaPosStart === tAreaPosEnd) {
+    const preString = string.substr(0, tAreaPosStart)
+    const postString = string.substr(tAreaPosStart, tAreaPosEnd)
+    newString = `${preString}${field}${postString}`
+  } else {
+    const replaceLength = tAreaPosEnd - tAreaPosStart
+    const replaceString = string.substr(tAreaPosStart, replaceLength)
+    newString = string.replace(replaceString, field)
+  }
+
+  document.getElementById('id_modal_field_transformation').textContent = newString
+  update(newString, 'id_field_transformation_modal_highlighting') // eslint-disable-line no-undef
 }

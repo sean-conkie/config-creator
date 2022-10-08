@@ -103,75 +103,79 @@
     <script>
       
       let fieldModalListenerMap = new Map([
-        ["id_data_type", {
-          "function": "dataComparison()",
-          "type": "change"
-        }],
-        ["id_source_data_type", {
-          "function": "dataComparison()",
-          "type": "input"
-        }],
-        ["id_source_name", {
-          "function": "dataComparison()",
-          "type": "input"
-        }],
-        ["id_source_column", {
-          "function": "dataComparison()",
-          "type": "input"
-        }],
-        ["id_field_modal_edit_button", {
-          "function": "prepareFieldModal(this.dataset.usage)",
-          "type": "click"
-        }],
-        ["id_field_modal_submit_button", {
-          "function": "sendField(this.dataset['target'], this.dataset['deleteElementId'], this.dataset['fieldId'], this.dataset['jobId'], this.dataset['taskId'])",
-          "type": "click"
-        }],
-        ["id_is_primary_key", {
-          "function": "this.value = (this.checked) ? 'true' : 'false'",
-          "type": "click"
-        }],
-        ["id_is_nullable", {
-          "function": "this.value = (this.checked) ? 'true' : 'false'",
-          "type": "click"
-        }],
-        ["{{ field_form.source_data_type.id_for_label }}", {
-          "function": "dataTypeMap(this.value)",
-          "type": "input"
-        }],
-        ["id_source_name_tree", {
-            "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, true, {{task.id}}, 'id_field_modal')",
-            "type": "click"
-        }],
-        ["id_source_column_tree", {
-            "function": "setReturnType('column', 'id_source_column', 'columnName', 'id_source_data_type', 'id_source_name', 'tableFull', null, null, true, {{task.id}}, 'id_field_modal')",
-            "type": "click"
-        }],
-        ["id_field_transformation_load", {
-            "function": "prepareFieldTransformationModal()",
-            "type": "click"
-        }],
-        ["id_field_transformation_modal_close", {
-            "function": "closeFieldTransformationModal()",
-            "type": "click"
-        }],
-        ["id_function_type", {
-            "function": "switchFunctionType(this.options[this.selectedIndex].text)",
-            "type": "click"
-        }],
-        ["id_function", {
-            "function": "displayFunction(this.options[this.selectedIndex].text)",
-            "type": "click"
-        }],
-        ["id_field_transformation_modal_submit", {
-            "function": "saveTransformation()",
-            "type": "click"
-        }],
-        ["id_function_description", {
-            "function": "functionDescriptionReSize()",
-            "type": "input"
-        }]
-      ]);
+      ['id_data_type', {
+        'function': 'dataComparison()',
+        'type': 'change'
+      }],
+      ['id_source_data_type', {
+        'function': 'dataComparison()',
+        'type': 'input'
+      }],
+      ['id_source_name', {
+        'function': 'dataComparison()',
+        'type': 'input'
+      }],
+      ['id_source_column', {
+        'function': 'dataComparison()',
+        'type': 'input'
+      }],
+      ['id_field_modal_edit_button', {
+        'function': 'prepareFieldModal(this.dataset.usage)',
+        'type': 'click'
+      }],
+      ['id_field_modal_submit_button', {
+        'function': 'sendField(this.dataset["target"], this.dataset["deleteElementId"], this.dataset["fieldId"], this.dataset["jobId"], this.dataset["taskId"])',
+        'type': 'click'
+      }],
+      ['id_is_primary_key', {
+        'function': 'this.value = (this.checked) ? "true" : "false"',
+        'type': 'click'
+      }],
+      ['id_is_nullable', {
+        'function': 'this.value = (this.checked) ? "true" : "false"',
+        'type': 'click'
+      }],
+      ['{{ field_form.source_data_type.id_for_label }}', {
+        'function': 'dataTypeMap(this.value)',
+        'type': 'input'
+      }],
+      ['id_source_name_tree', {
+          'function': 'setReturnType("column", "id_source_column", "columnName", "id_source_data_type", "id_source_name", "tableFull", null, null, true, {{task.id}}, "id_field_modal")',
+          'type': 'click'
+      }],
+      ['id_source_column_tree', {
+          'function': 'setReturnType("column", "id_source_column", "columnName", "id_source_data_type", "id_source_name", "tableFull", null, null, true, {{task.id}}, "id_field_modal")',
+          'type': 'click'
+      }],
+      ['id_field_transformation_load', {
+          'function': 'prepareFieldTransformationModal()',
+          'type': 'click'
+      }],
+      ['id_field_transformation_modal_close', {
+          'function': 'closeFieldTransformationModal()',
+          'type': 'click'
+      }],
+      ['id_function_type', {
+          'function': 'switchFunctionType(this.options[this.selectedIndex].text)',
+          'type': 'click'
+      }],
+      ['id_function', {
+          'function': 'displayFunction(this.options[this.selectedIndex].text)',
+          'type': 'click'
+      }],
+      ['id_field_transformation_modal_submit', {
+          'function': 'saveTransformation()',
+          'type': 'click'
+      }],
+      ['id_field_transformation_modal_add_field_button', {
+          'function': 'setReturnType("column", "id_field_transformation_field", "columnFull", null, null, null, null, null, true, {{task.id}}, "id_field_transformation_modal")',
+          'type': 'click'
+      }],
+      ['id_field_transformation_field', {
+          'function': 'addFieldToCode()',
+          'type': 'input'
+      }]
+    ]);
       
       fieldModalListenerMap.forEach(addListener);
 

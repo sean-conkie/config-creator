@@ -5,7 +5,7 @@
       <div class="modal-content">
         <div class="modal-header selector-header">
           <h5 class="modal-title" id="id_field_transformation_modal_title">Add Transformation to Column</h5>
-          <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button>
+          <!-- <button class="btn-close" type="button" data-bs-dismiss="modal" aria-label="Close"></button> -->
         </div>
         <div class="container" id="id_field_transformation_modal_content">
           <div class="row g-3">
@@ -13,7 +13,7 @@
               <div class="lead">Transformation</div>
             </div>
             <div class="col-2">
-              <button class="btn btn-primary w-100"><i class="fa-solid fa-folder-tree"></i> Add Field</button>
+              <button class="btn btn-primary w-100" id="id_field_transformation_modal_add_field_button"><i class="fa-solid fa-folder-tree"></i> Add Field</button>
             </div>
             <div class="col-sm-12">
               <div class="form-floating">
@@ -37,11 +37,10 @@
             </div>
             <div class="col-4">
               <div class="container bg-light function-container py-3" id="id_function_container">
-
               </div>
             </div>
+            <input id="id_field_transformation_field" hidden />
           </div>
-
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" id="id_field_transformation_modal_close" type="button"><i class="bi bi-arrow-left"></i> Back</button>
