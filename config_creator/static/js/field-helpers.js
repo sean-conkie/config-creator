@@ -291,9 +291,14 @@ function dataComparison () { // eslint-disable-line no-unused-vars
  */
 function resetFieldInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
-  document.getElementById('id_field_transformation').classList.remove('form-control')
-  document.getElementById('id_field_transformation').value = ''
-  update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
+  const transformationTArea = document.getElementById('id_field_transformation')
+  transformationTArea.classList.remove('form-control')
+  if (action === 'reset') {
+    // reset transformation textArea separately because we need to
+    // handle the formatting and code syntax
+    transformationTArea.value = ''
+    update(transformationTArea.value, transformationTArea.dataset.targetId) // eslint-disable-line no-undef
+  }
 
   for (let i = 0; i < elements.length; i++) {
     if (action === 'reset') {
@@ -502,6 +507,7 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   document.getElementById('id_position').removeAttribute('disabled')
   document.getElementById('id_source_data_type').removeAttribute('disabled')
   document.getElementById('id_field_transformation').removeAttribute('disabled')
+
   const form = document.getElementById('id_field_form')
   const formData = new FormData(form) // eslint-disable-line no-undef
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef

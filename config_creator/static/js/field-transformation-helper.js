@@ -24,7 +24,8 @@ function prepareFieldTransformationModal () { // eslint-disable-line no-unused-v
     fieldString = ''
   }
 
-  document.getElementById('id_modal_field_transformation').textContent = fieldString
+  // document.getElementById('id_modal_field_transformation').textContent = fieldString
+  document.getElementById('id_modal_field_transformation').value = fieldString
   update(fieldString, 'id_field_transformation_modal_highlighting') // eslint-disable-line no-undef
   document.getElementById('id_modal_field_transformation').classList.remove('form-control')
 
@@ -291,7 +292,7 @@ function wrapCode () {
   } else {
     newString = `${getSyntax()}${string}`
   }
-  document.getElementById('id_modal_field_transformation').textContent = newString
+  document.getElementById('id_modal_field_transformation').value = newString
   update(newString, 'id_field_transformation_modal_highlighting') // eslint-disable-line no-undef
 }
 
@@ -334,7 +335,7 @@ function insertCode () {
 
   const finalString = string.replace(codeString, newString)
 
-  document.getElementById('id_modal_field_transformation').textContent = finalString
+  document.getElementById('id_modal_field_transformation').value = finalString
   update(finalString, 'id_field_transformation_modal_highlighting') // eslint-disable-line no-undef
 }
 
@@ -355,7 +356,7 @@ function saveTransformation () { // eslint-disable-line no-unused-vars
     }
   }
 
-  document.getElementById('id_field_transformation').textContent = transformationString
+  document.getElementById('id_field_transformation').value = transformationString.trim()
   update(transformationString, 'id_field_transformation_highlighting') // eslint-disable-line no-undef
 
   closeFieldTransformationModal()
@@ -380,6 +381,6 @@ function addFieldToCode () { // eslint-disable-line no-unused-vars
     newString = string.replace(replaceString, field)
   }
 
-  document.getElementById('id_modal_field_transformation').textContent = newString
+  document.getElementById('id_modal_field_transformation').value = newString
   update(newString, 'id_field_transformation_modal_highlighting') // eslint-disable-line no-undef
 }
