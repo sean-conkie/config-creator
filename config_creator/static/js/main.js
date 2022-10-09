@@ -309,6 +309,18 @@ function createToast (message, type, show) {
 
   const toastHeaderMessage = document.createElement('strong')
   toastHeaderMessage.classList.add('me-auto')
+  if (type.toUpperCase() === 'ERROR' || type.toUpperCase() === 'DANGER') {
+    toastHeaderMessage.classList.add('text-danger')
+  } else if (type.toUpperCase() === 'SUCCESS') {
+    toastHeaderMessage.classList.add('text-success')
+  } else if (type.toUpperCase() === 'WARNING') {
+    toastHeaderMessage.classList.add('text-warning')
+  } else if (type.toUpperCase() === 'INFO') {
+    toastHeaderMessage.classList.add('text-info')
+  } else {
+    toastHeaderMessage.classList.add('text-primary')
+  }
+
   toastHeaderMessage.textContent = type
 
   const toastButton = document.createElement('button')
@@ -360,20 +372,16 @@ function callModelApi (url, method, spinnerElementId, spinnerType) {
   xhttp.onload = function () {
     if (spinnerId) {
       const spinner = document.getElementById(spinnerId)
+      const spinnerParent = spinner.parentElement
       /* eslint-disable no-undef */
-      if (parent && parent.nodeType) {
-        parent.removeChild(spinner)
+      if (spinnerParent && spinnerParent.nodeType) {
+        spinnerParent.removeChild(spinner)
       }
       /* eslint-enable no-undef */
     }
 
     const data = xhttp.response
-    if ((xhttp.status === 200 || xhttp.status === 404) && 'message' in data) {
-      createToast(data.message, data.type, true)
-    } else {
-      const message = HttpStatusEnum.get(xhttp.status)
-      createToast(message.desc, message.name, true)
-    }
+    responseMessage(data, xhttp.status)
   }
 
   if (!method) {
@@ -553,4 +561,26 @@ function alertMessage (message, parentId) {
 async function textToClipboard (text, parentId) { // eslint-disable-line no-unused-vars
   await navigator.clipboard.writeText(text)
   alertMessage('Copied to clipboard!', parentId)
+}
+
+/**
+ * It takes a response object and a status code and creates a toast message based on the response
+ * object or the status code
+ *
+ * Args:
+ *   data: The response data from the server.
+ *   status: The HTTP status code
+ */
+function responseMessage (data, status) {
+  if (data) {
+    if ('message' in data) {
+      createToast(data.message, data.type, true)
+    } else {
+      const message = HttpStatusEnum.get(status)
+      createToast(message.desc, message.name, true)
+    }
+  } else {
+    const message = HttpStatusEnum.get(status)
+    createToast(message.desc, message.name, true)
+  }
 }

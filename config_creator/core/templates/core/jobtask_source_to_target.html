@@ -30,6 +30,7 @@
             <td class="vertical-grip-col"><i class="bi bi-grip-vertical"></i></td>
             <td class="vertical-grip-col text-center">
               {% if field.is_primary_key == True %}<i class="bi bi-key" title="Key field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
+              {% if field.is_surrogate_key == True %}<i class="bi bi-key text-primary" title="Surrogate Key field" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
             </td>
             <td class="vertical-grip-col text-center">
               {% if field.is_history_key %}<i class="bi bi-clock-history" title="History partition" aria-current="page" data-bs-toggle="tooltip" data-bs-placement="top"></i>{% endif %}
@@ -76,10 +77,13 @@
             <div class="btn-group" role="group">
               <button class="btn btn-group-dropdown btn-group-right btn-primary dropdown-toggle" id="id_source_to_target_button_group" type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
               <ul class="dropdown-menu text-small shadow" aria-labelledby="id_source_to_target_button_group">
-                    <li>
-                      <button class="dropdown-item" id="id_copy_table" type="button" data-task-id="{{ task.id }}">Copy Table</button>
-                    </li>
-                  </ul>
+                <li>
+                  <button class="dropdown-item" id="id_add_sk" type="button" data-task-id="{{ task.id }}">Add Surrogate key</button>
+                </li>
+                <li>
+                  <button class="dropdown-item" id="id_copy_table" type="button" data-task-id="{{ task.id }}">Copy Table</button>
+                </li>
+              </ul>
             </div>
           </div>
           <input id="id_field_source_table_name" hidden />
@@ -103,6 +107,10 @@
     }],
     ["id_add_column_button", {
       "function": "prepareFieldModal('createColumn', undefined, 'id_source_to_target', undefined, {{ job.id }}, {{ task.id }})",
+      "type": "click"
+    }],
+    ["id_add_sk", {
+      "function": "createSK('{% url 'api-sk-add' task_id=task.id %}', 'GET', 'id_source_to_target_table', 'large', 'id_source_to_target', {{ job.id }}, {{ task.id }})",
       "type": "click"
     }]
   ])

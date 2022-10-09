@@ -33,6 +33,7 @@ from core.models import (
     get_source_table,
     FunctionType,
     Function,
+    sk_transformation,
 )
 from core.views import crawler, handle_uploaded_file
 from database_interface_api.dbhelper import get_table
@@ -74,6 +75,7 @@ __all__ = [
     "tasksummary",
     "function_type",
     "function_by_type",
+    "create_sk",
 ]
 
 
@@ -1625,6 +1627,62 @@ def function_by_type(request: request, function_type: str) -> response.Response:
                     "name"
                 )
             ]
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def create_sk(request: request, task_id: int) -> response.Response:
+
+    if Field.objects.filter(
+        task_id=task_id, is_source_to_target=True, is_surrogate_key=True
+    ).exists():
+        return response.Response(
+            data={
+                "result": [],
+                "message": f"Surrogate Key already exists for task id {task_id}.",
+                "type": "Error",
+            },
+            status=status.HTTP_409_CONFLICT,
+        )
+
+    task = JobTask.objects.get(id=task_id)
+
+    m = re.search(
+        r"(?:^[a-zA-Z0-9]+_)(\w+)(?:_p\d+)?$", task.destination_table, re.IGNORECASE
+    )
+
+    field_name = m.group(1) if m else "sk"
+
+    if Field.objects.filter(task_id=task_id).exists():
+        position = (
+            len(Field.objects.filter(task_id=task_id, is_source_to_target=True)) + 1
+        )
+    elif JobTask.objects.filter(id=task_id).exists():
+        position = 1
+
+    field = Field(
+        task_id=task_id,
+        is_surrogate_key=True,
+        name=f"{'_'.join([w for w in segment(field_name)])}_sk",
+        data_type=BigQueryDataType.objects.get(name="STRING"),
+        position=1,
+        transformation=sk_transformation(task_id),
+        is_nullable=False,
+    )
+    field.save()
+
+    changefieldposition(field, position, 1)
+
+    return response.Response(
+        data={
+            "message": f"{field.name} created.",
+            "type": "Success",
+            "result": {
+                "content": [field.todict()],
+            },
         },
         status=status.HTTP_200_OK,
     )

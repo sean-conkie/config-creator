@@ -92,12 +92,17 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
       }
 
       let primary = null
-      if (content[i].is_primary_key) {
+      if (content[i].is_primary_key || content[i].is_surrogate_key) {
         primary = createElement('i', null, ['bi', 'bi-key'], 0, null)
         primary.title = 'Key field'
         primary.setAttribute('aria-current', 'page')
         primary.dataset.bsToggle = 'tooltip'
         primary.dataset.bsPlacement = 'top'
+      }
+
+      if (content[i].is_surrogate_key) {
+        primary.title = 'Surrogate Key field'
+        primary.classList.add('text-primary')
       }
 
       let rowContent = []
@@ -118,9 +123,11 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
 
       const sourceDiv = createElement('div')
       let sourceTableAlias = null
+      let alias = null
       let sourceColumn = null
       if (['createColumn', 'editColumn'].includes(action)) {
-        sourceTableAlias = createElement('span', content[i].source_table_alias + '.')
+        alias = (content[i].source_table_alias) ? content[i].source_table_alias + '.' : ''
+        sourceTableAlias = createElement('span', alias)
         sourceColumn = createElement('strong', content[i].source_column)
         sourceDiv.appendChild(sourceTableAlias)
         sourceDiv.appendChild(sourceColumn)
@@ -131,7 +138,8 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
           createRowObject(null, null, null, null, sourceDiv)
         ], suffix)
       } else if (['copyTable'].includes(action)) {
-        sourceTableAlias = createElement('span', content[i].alias + '.')
+        alias = (content[i].alias) ? content[i].alias + '.' : ''
+        sourceTableAlias = createElement('span', alias)
         sourceColumn = createElement('strong', content[i].column_name)
         sourceDiv.appendChild(sourceTableAlias)
         sourceDiv.appendChild(sourceColumn)
@@ -515,8 +523,9 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   xhttp.responseType = 'json'
   xhttp.onload = function () {
     const data = xhttp.response
-    if ((xhttp.status === 200 || xhttp.status === 404) && 'message' in data) {
-      createToast(data.message, data.type, true) // eslint-disable-line no-undef
+
+    responseMessage(data, xhttp.status) // eslint-disable-line no-undef
+    if (xhttp.status === 200) {
       if (deleteElementId !== undefined && deleteElementId !== 'undefined') {
         const element = document.getElementById(deleteElementId)
         if (element.tagName === 'TR') {
@@ -528,9 +537,6 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
 
       addFieldToTable(data, target, document.getElementById('id_field_modal_action').value, jobId, taskId) // eslint-disable-line no-undef
       bootstrap.Modal.getOrCreateInstance(document.getElementById('id_field_modal')).hide() // eslint-disable-line no-undef
-    } else {
-      const message = HttpStatusEnum.get(xhttp.status) // eslint-disable-line no-undef
-      createToast(message.desc, message.name, true) // eslint-disable-line no-undef
     }
   }
 
@@ -584,4 +590,41 @@ function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
     xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
     xhttp.send()
   }
+}
+
+function createSK (url, method, spinnerElementId, spinnerType, target, jobId, taskId) { // eslint-disable-line no-unused-vars
+  const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
+  let spinnerId
+  if (spinnerElementId) {
+    const parent = document.getElementById(spinnerElementId)
+    spinnerId = spinnerElementId + '_spinner'
+    if (parent.children.length > 0) {
+      parent.children[0].appendChild(createSpinner(spinnerId, spinnerType)) // eslint-disable-line no-undef
+    } else {
+      parent.appendChild(createSpinner(spinnerId, spinnerType)) // eslint-disable-line no-undef
+    }
+  }
+  xhttp.responseType = 'json'
+  xhttp.onload = function () {
+    if (spinnerId) {
+      const spinner = document.getElementById(spinnerId)
+      const spinnerParent = spinner.parentElement
+      /* eslint-disable no-undef */
+      if (spinnerParent && spinnerParent.nodeType) {
+        spinnerParent.removeChild(spinner)
+      }
+      /* eslint-enable no-undef */
+    }
+
+    const data = xhttp.response
+    responseMessage(data, xhttp.status) // eslint-disable-line no-undef
+    addFieldToTable(data, target, 'createColumn', jobId, taskId) // eslint-disable-line no-undef
+  }
+
+  if (!method) {
+    method = 'GET'
+  }
+  xhttp.open(method, url, true)
+  xhttp.setRequestHeader('X-CSRFToken', getCookie('csrftoken')) // eslint-disable-line no-undef
+  xhttp.send()
 }

@@ -75,6 +75,11 @@ urlpatterns = [
         name="api-field-add",
     ),
     path(
+        "task/<int:task_id>/sk/add/",
+        login_required(create_sk),
+        name="api-sk-add",
+    ),
+    path(
         "task/<int:task_id>/field/<int:pk>/update/",
         login_required(FieldView.as_view()),
         name="api-field-update",

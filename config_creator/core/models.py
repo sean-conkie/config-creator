@@ -48,6 +48,7 @@ __all__ = [
     "FunctionType",
     "FunctionToTaskType",
     "TaskTypeToWriteDisposition",
+    "sk_transformation",
 ]
 
 User = settings.AUTH_USER_MODEL
@@ -898,6 +899,9 @@ class Field(models.Model):
     is_history_key = models.BooleanField(
         verbose_name="History Key Field", default=False
     )
+    is_surrogate_key = models.BooleanField(
+        verbose_name="Surrogate Key Field", default=False
+    )
     is_nullable = models.BooleanField(verbose_name="Is Column Nullable", default=True)
     task = models.ForeignKey(JobTask, on_delete=models.CASCADE, null=False)
 
@@ -960,6 +964,7 @@ class Field(models.Model):
             "position": self.position,
             "is_source_to_target": self.is_source_to_target,
             "is_primary_key": self.is_primary_key,
+            "is_surrogate_key": self.is_surrogate_key,
             "is_nullable": self.is_nullable,
             "is_history_key": self.is_history_key,
             "id": self.id,
@@ -973,6 +978,56 @@ class Field(models.Model):
             )
 
         return outp
+
+    def get_source(self) -> str:
+        """
+        If the column has a transformation, replace the table name in the transformation with the table
+        alias
+
+        Returns:
+          The source column name, or the transformation if it exists.
+        """
+
+        if not self.transformation:
+            return f"{self.source_table.alias}.{self.source_column}"
+        else:
+            table = f"{self.source_table.dataset_name}.{self.source_table.table_name}"
+
+            return self.transformation.replace(table, self.source_table.alias)
+
+    def save(self, *args, **kwargs):
+        super(Field, self).save(*args, **kwargs)
+
+        if (
+            Field.objects.filter(
+                task_id=self.task_id, is_source_to_target=True, is_surrogate_key=True
+            ).exists()
+            and self.is_primary_key == True
+        ):
+            sk = Field.objects.get(
+                task_id=self.task_id, is_source_to_target=True, is_surrogate_key=True
+            )
+
+            sk.transformation = sk_transformation(self.task_id)
+            sk.save()
+
+
+def sk_transformation(task_id: int) -> str:
+    """
+    It takes a task_id and returns a string that is a SQL expression that will generate a surrogate key
+    for that task
+
+    Args:
+      task_id (int): The id of the task you want to get the transformation for.
+
+    Returns:
+      A string that is the concatenation of the primary key fields for the task, separated by a colon.
+    """
+    pk = Field.objects.select_related().filter(
+        task_id=task_id, is_source_to_target=True, is_primary_key=True
+    )
+    pk_string = ",':',".join([f"{field.get_source()}" for field in pk])
+    return f"to_base64(sha512(concat({pk_string})))"
 
 
 def changefieldposition(field: Field, original_position: int, position: int) -> int:
