@@ -31,6 +31,8 @@ from core.models import (
     SourceTable,
     str_to_class,
     get_source_table,
+    FunctionType,
+    Function,
 )
 from core.views import crawler, handle_uploaded_file
 from database_interface_api.dbhelper import get_table
@@ -70,6 +72,8 @@ __all__ = [
     "UploadFileView",
     "pullrepository",
     "tasksummary",
+    "function_type",
+    "function_by_type",
 ]
 
 
@@ -111,7 +115,9 @@ class FieldView(views.APIView):
 
     def get(self, request: request, pk: int) -> response.Response:
         field = (
-            Field.objects.get(id=pk) if Field.objects.filter(id=pk).exists() else None
+            Field.objects.get(id=pk)
+            if Field.objects.select_related().filter(id=pk).exists()
+            else None
         )
         if field:
             outp = field.todict()
@@ -1593,3 +1599,32 @@ def condition(condition: Condition, condition_position: int = None) -> str:
         right_parameter = f"{table}{rp.source_column}"
 
     return f"{condition.logic_operator.lower() + ' ' if condition_position or condition_position == 1 else ''}{left_parameter} {condition.operator.lower()} {right_parameter}"
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def function_type(request: request) -> response.Response:
+    return response.Response(
+        data={
+            "result": [
+                type.todict() for type in FunctionType.objects.all().order_by("name")
+            ]
+        },
+        status=status.HTTP_200_OK,
+    )
+
+
+@api_view(http_method_names=["GET"])
+@permission_classes([IsAuthenticated])
+def function_by_type(request: request, function_type: str) -> response.Response:
+    return response.Response(
+        data={
+            "result": [
+                type.todict()
+                for type in Function.objects.filter(type__name=function_type).order_by(
+                    "name"
+                )
+            ]
+        },
+        status=status.HTTP_200_OK,
+    )

@@ -204,4 +204,14 @@ urlpatterns = [
         login_required(tasksummary),
         name="api-task-summary",
     ),
+    path(
+        "function/type/",
+        login_required(function_type),
+        name="api-function-type",
+    ),
+    path(
+        "function/type/<str:function_type>/",
+        login_required(function_by_type),
+        name="api-function-by-type",
+    ),
 ]

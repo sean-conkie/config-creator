@@ -97,6 +97,13 @@ def addfunctiontypes(apps, schema_editor):
             name="UTILITY",
         ).save()
 
+    if not model.objects.filter(
+        name="CONDITIONAL",
+    ).exists():
+        model(
+            name="CONDITIONAL",
+        ).save()
+
 
 def adddatatypes(apps, schema_editor):
     model = apps.get_model("core", "BigQueryDataType")
@@ -1335,11 +1342,11 @@ BigQuery supports casting to ARRAY.""",
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS ARRAY",
+        name="SAFE_CAST AS ARRAY",
     ).exists():
         model(
-            name="SELF_CAST AS ARRAY",
-            syntax="SELF_CAST(expression AS ARRAY<element_type>)",
+            name="SAFE_CAST AS ARRAY",
+            syntax="SAFE_CAST(expression AS ARRAY<element_type>)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.
@@ -1352,11 +1359,11 @@ BigQuery supports casting to ARRAY.""",
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS INT64",
+        name="SAFE_CAST AS INT64",
     ).exists():
         model(
-            name="SELF_CAST AS INT64",
-            syntax="SELF_CAST(expression AS INT64)",
+            name="SAFE_CAST AS INT64",
+            syntax="SAFE_CAST(expression AS INT64)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1367,11 +1374,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS FLOAT64",
+        name="SAFE_CAST AS FLOAT64",
     ).exists():
         model(
-            name="SELF_CAST AS FLOAT64",
-            syntax="SELF_CAST(expression AS FLOAT64)",
+            name="SAFE_CAST AS FLOAT64",
+            syntax="SAFE_CAST(expression AS FLOAT64)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1382,11 +1389,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS NUMERIC",
+        name="SAFE_CAST AS NUMERIC",
     ).exists():
         model(
-            name="SELF_CAST AS NUMERIC",
-            syntax="SELF_CAST(expression AS NUMERIC)",
+            name="SAFE_CAST AS NUMERIC",
+            syntax="SAFE_CAST(expression AS NUMERIC)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1397,11 +1404,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS BIGNUMERIC",
+        name="SAFE_CAST AS BIGNUMERIC",
     ).exists():
         model(
-            name="SELF_CAST AS BIGNUMERIC",
-            syntax="SELF_CAST(expression AS BIGNUMERIC)",
+            name="SAFE_CAST AS BIGNUMERIC",
+            syntax="SAFE_CAST(expression AS BIGNUMERIC)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1412,11 +1419,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS STRING",
+        name="SAFE_CAST AS STRING",
     ).exists():
         model(
-            name="SELF_CAST AS STRING",
-            syntax="SELF_CAST(expression AS STRING)",
+            name="SAFE_CAST AS STRING",
+            syntax="SAFE_CAST(expression AS STRING)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1427,11 +1434,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS BOOL",
+        name="SAFE_CAST AS BOOL",
     ).exists():
         model(
-            name="SELF_CAST AS BOOL",
-            syntax="SELF_CAST(expression AS BOOL)",
+            name="SAFE_CAST AS BOOL",
+            syntax="SAFE_CAST(expression AS BOOL)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1442,11 +1449,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS BYTES",
+        name="SAFE_CAST AS BYTES",
     ).exists():
         model(
-            name="SELF_CAST AS BYTES",
-            syntax="SELF_CAST(expression AS BYTES)",
+            name="SAFE_CAST AS BYTES",
+            syntax="SAFE_CAST(expression AS BYTES)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1457,11 +1464,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS DATE",
+        name="SAFE_CAST AS DATE",
     ).exists():
         model(
-            name="SELF_CAST AS DATE",
-            syntax="SELF_CAST(expression AS DATE)",
+            name="SAFE_CAST AS DATE",
+            syntax="SAFE_CAST(expression AS DATE)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1472,11 +1479,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS DATETIME",
+        name="SAFE_CAST AS DATETIME",
     ).exists():
         model(
-            name="SELF_CAST AS DATETIME",
-            syntax="SELF_CAST(expression AS DATETIME)",
+            name="SAFE_CAST AS DATETIME",
+            syntax="SAFE_CAST(expression AS DATETIME)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1487,11 +1494,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS INTERVAL",
+        name="SAFE_CAST AS INTERVAL",
     ).exists():
         model(
-            name="SELF_CAST AS INTERVAL",
-            syntax="SELF_CAST(expression AS INTERVAL)",
+            name="SAFE_CAST AS INTERVAL",
+            syntax="SAFE_CAST(expression AS INTERVAL)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1502,11 +1509,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS STRUCT",
+        name="SAFE_CAST AS STRUCT",
     ).exists():
         model(
-            name="SELF_CAST AS STRUCT",
-            syntax="SELF_CAST(expression AS STRUCT)",
+            name="SAFE_CAST AS STRUCT",
+            syntax="SAFE_CAST(expression AS STRUCT)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1517,11 +1524,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS TIME",
+        name="SAFE_CAST AS TIME",
     ).exists():
         model(
-            name="SELF_CAST AS TIME",
-            syntax="SELF_CAST(expression AS TIME)",
+            name="SAFE_CAST AS TIME",
+            syntax="SAFE_CAST(expression AS TIME)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -1532,11 +1539,11 @@ SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising a
         ).save()
 
     if not model.objects.filter(
-        name="SELF_CAST AS TIMESTAMP",
+        name="SAFE_CAST AS TIMESTAMP",
     ).exists():
         model(
-            name="SELF_CAST AS TIMESTAMP",
-            syntax="SELF_CAST(expression AS TIMESTAMP)",
+            name="SAFE_CAST AS TIMESTAMP",
+            syntax="SAFE_CAST(expression AS TIMESTAMP)",
             description="""Cast syntax is used in a query to indicate that the result type of an expression should be converted to some other type.
 
 SAFE_CAST is identical to SELF_CAST, except it returns NULL instead of raising an error.""",
@@ -3595,6 +3602,87 @@ ISOYEAR: The first day of the ISO 8601 week-numbering year in the ISO year that 
             syntax="GENERATE_UUID()",
             description="""Returns a random universally unique identifier (UUID) as a STRING. The returned STRING consists of 32 hexadecimal digits in five groups separated by hyphens in the form 8-4-4-4-12. The hexadecimal digits represent 122 random bits and 6 fixed bits, in compliance with RFC 4122 section 4.4. The returned STRING is lowercase.""",
             type=apps.get_model("core", "FunctionType").objects.get(name="UTILITY"),
+            return_type=apps.get_model("core", "BigQueryDataType").objects.get(
+                name="STRING"
+            ),
+        ).save()
+
+    if not model.objects.filter(
+        name="COALESCE",
+    ).exists():
+        model(
+            name="COALESCE",
+            syntax="COALESCE(expr[, ...])",
+            description="""Returns the value of the first non-null expression. The remaining expressions are not evaluated. An input expression can be any type. There may be multiple input expression types. All input expressions must be implicitly coercible to a common supertype.""",
+            type=apps.get_model("core", "FunctionType").objects.get(name="CONDITIONAL"),
+            return_type=apps.get_model("core", "BigQueryDataType").objects.get(
+                name="STRING"
+            ),
+        ).save()
+
+    if not model.objects.filter(
+        name="IF",
+    ).exists():
+        model(
+            name="IF",
+            syntax="IF(expr, true_result, else_result)",
+            description="""If expr is true, returns true_result, else returns else_result. else_result is not evaluated if expr is true. true_result is not evaluated if expr is false or NULL.
+
+expr must be a boolean expression. true_result and else_result must be coercible to a common supertype.""",
+            type=apps.get_model("core", "FunctionType").objects.get(name="CONDITIONAL"),
+            return_type=apps.get_model("core", "BigQueryDataType").objects.get(
+                name="STRING"
+            ),
+        ).save()
+
+    if not model.objects.filter(
+        name="IFNULL",
+    ).exists():
+        model(
+            name="IFNULL",
+            syntax="IFNULL(expr, null_result)",
+            description="""If expr is NULL, return null_result. Otherwise, return expr. If expr is not NULL, null_result is not evaluated.
+
+expr and null_result can be any type and must be implicitly coercible to a common supertype. Synonym for COALESCE(expr, null_result).""",
+            type=apps.get_model("core", "FunctionType").objects.get(name="CONDITIONAL"),
+            return_type=apps.get_model("core", "BigQueryDataType").objects.get(
+                name="STRING"
+            ),
+        ).save()
+
+    if not model.objects.filter(
+        name="NULLIF",
+    ).exists():
+        model(
+            name="NULLIF",
+            syntax="NULLIF(expr, expr_to_match)",
+            description="""Returns NULL if expr = expr_to_match is true, otherwise returns expr.
+
+expr and expr_to_match must be implicitly coercible to a common supertype, and must be comparable.
+
+This expression supports specifying collation.""",
+            type=apps.get_model("core", "FunctionType").objects.get(name="CONDITIONAL"),
+            return_type=apps.get_model("core", "BigQueryDataType").objects.get(
+                name="STRING"
+            ),
+        ).save()
+
+    if not model.objects.filter(
+        name="CASE",
+    ).exists():
+        model(
+            name="CASE",
+            syntax="""CASE
+  WHEN condition THEN result
+  [ ... ]
+  [ ELSE else_result ]
+  END""",
+            description="""Evaluates the condition of each successive WHEN clause and returns the first result where the condition is true; any remaining WHEN clauses and else_result are not evaluated. If all conditions are false or NULL, returns else_result if present; if not present, returns NULL.
+
+condition must be a boolean expression. There may be multiple result types. result and else_result expressions must be implicitly coercible to a common supertype.
+
+This expression supports specifying collation.""",
+            type=apps.get_model("core", "FunctionType").objects.get(name="CONDITIONAL"),
             return_type=apps.get_model("core", "BigQueryDataType").objects.get(
                 name="STRING"
             ),

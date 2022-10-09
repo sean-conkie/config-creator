@@ -1,4 +1,15 @@
 
+/**
+ * It adds a row to a table
+ *
+ * Args:
+ *   data: The data returned from the API call.
+ *   elementToAddId: The id of the table to add the row to
+ *   action: The action that is being performed. This is used to determine what type of field is being
+ * added.
+ *   jobId: The id of the job that the task belongs to
+ *   taskId: The id of the task that the field belongs to.
+ */
 function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
   if ('result' in data) {
     const parent = document.getElementById(elementToAddId)
@@ -280,9 +291,14 @@ function dataComparison () { // eslint-disable-line no-unused-vars
  */
 function resetFieldInput (elements, action) {
   const formElements = ['LABEL', 'INPUT', 'SELECT', 'TEXTAREA']
-  document.getElementById('id_field_transformation').classList.remove('form-control')
-  document.getElementById('id_field_transformation').value = ''
-  update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
+  const transformationTArea = document.getElementById('id_field_transformation')
+  transformationTArea.classList.remove('form-control')
+  if (action === 'reset') {
+    // reset transformation textArea separately because we need to
+    // handle the formatting and code syntax
+    transformationTArea.value = ''
+    update(transformationTArea.value, transformationTArea.dataset.targetId) // eslint-disable-line no-undef
+  }
 
   for (let i = 0; i < elements.length; i++) {
     if (action === 'reset') {
@@ -325,6 +341,7 @@ function resetFieldInput (elements, action) {
 
   document.getElementById('id_field_modal_edit_button').classList.add('visually-hidden')
   document.getElementById('id_field_modal_submit_button').classList.add('visually-hidden')
+  document.getElementById('id_field_transformation_load').setAttribute('disabled', 'true')
   document.getElementById('id_id').setAttribute('hidden', 'true')
   document.getElementById('id_field_modal_action').setAttribute('hidden', 'true')
 }
@@ -355,6 +372,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
   submitButton.dataset.jobId = (jobId !== undefined) ? jobId : submitButton.dataset.jobId
   submitButton.dataset.taskId = (taskId !== undefined) ? taskId : submitButton.dataset.taskId
 
+  const transformationLoadButton = document.getElementById('id_field_transformation_load')
+
   const title = document.getElementById('id_field_modal_title')
 
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
@@ -367,6 +386,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     title.textContent = 'Create New Column'
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
+    transformationLoadButton.removeAttribute('disabled')
+
     document.getElementById('id_id').setAttribute('hidden', 'true')
 
     xhttp.onload = function () {
@@ -447,6 +468,8 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetFieldInput(modalElements, 'edit')
     title.textContent = 'Edit Column Details'
     submitButton.classList.remove('visually-hidden')
+    transformationLoadButton.removeAttribute('disabled')
+
     document.getElementById('id_field_modal_action').value = usage
 
     if (usage === 'editDrivingColumn') {
@@ -484,6 +507,7 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   document.getElementById('id_position').removeAttribute('disabled')
   document.getElementById('id_source_data_type').removeAttribute('disabled')
   document.getElementById('id_field_transformation').removeAttribute('disabled')
+
   const form = document.getElementById('id_field_form')
   const formData = new FormData(form) // eslint-disable-line no-undef
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
@@ -529,6 +553,13 @@ function sendField (target, deleteElementId, fieldId, jobId, taskId) { // eslint
   submitButton.dataset.taskId = undefined
 }
 
+/**
+ * It takes a data type as a parameter, makes an AJAX request to the server, and then sets the selected
+ * option in the data type dropdown to the data type returned by the server
+ *
+ * Args:
+ *   dataType: The data type to map to a data type option.
+ */
 function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
   if (dataType && dataType !== '' && dataType !== 'undefined' && dataType !== 'null' && dataType !== undefined && dataType !== null) {
     const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef

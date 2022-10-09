@@ -358,6 +358,13 @@ class FunctionType(models.Model):
         """
         return self.name
 
+    def todict(self) -> dict:
+        return {
+            "id": self.id,
+            "name": self.name,
+            "description": self.description,
+        }
+
 
 class Function(models.Model):
     name = models.CharField(
@@ -387,6 +394,16 @@ class Function(models.Model):
           The name of the type of the pokemon and the name of the pokemon.
         """
         return f"{self.type.name} - {self.name}"
+
+    def todict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "syntax": self.syntax,
+            "description": self.description,
+            "type": self.type.name,
+            "return_type": self.return_type.name,
+        }
 
 
 class FunctionToTaskType(models.Model):
