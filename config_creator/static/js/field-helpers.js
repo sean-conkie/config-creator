@@ -341,7 +341,7 @@ function resetFieldInput (elements, action) {
 
   document.getElementById('id_field_modal_edit_button').classList.add('visually-hidden')
   document.getElementById('id_field_modal_submit_button').classList.add('visually-hidden')
-  document.getElementById('id_field_transformation_load').classList.add('visually-hidden')
+  document.getElementById('id_field_transformation_load').setAttribute('disabled', 'true')
   document.getElementById('id_id').setAttribute('hidden', 'true')
   document.getElementById('id_field_modal_action').setAttribute('hidden', 'true')
 }
@@ -386,7 +386,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     title.textContent = 'Create New Column'
     resetFieldInput(modalElements, 'edit')
     submitButton.classList.remove('visually-hidden')
-    transformationLoadButton.classList.remove('visually-hidden')
+    transformationLoadButton.removeAttribute('disabled')
 
     document.getElementById('id_id').setAttribute('hidden', 'true')
 
@@ -468,7 +468,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
     resetFieldInput(modalElements, 'edit')
     title.textContent = 'Edit Column Details'
     submitButton.classList.remove('visually-hidden')
-    transformationLoadButton.classList.remove('visually-hidden')
+    transformationLoadButton.removeAttribute('disabled')
 
     document.getElementById('id_field_modal_action').value = usage
 

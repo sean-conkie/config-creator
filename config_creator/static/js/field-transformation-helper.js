@@ -196,16 +196,40 @@ function displayFunction (selectedFunction) { // eslint-disable-line no-unused-v
   copyBtn.addEventListener('click', function () {
     copySyntax()
   })
+  copyBtn.setAttribute('title', 'Copy function')
+  copyBtn.setAttribute('aria-current', 'page')
+  copyBtn.setAttribute('data-bs-toggle', 'tooltip')
+  copyBtn.setAttribute('data-bs-container', 'body')
+  copyBtn.setAttribute('data-bs-placement', 'top')
+  copyBtn.setAttribute('data-bs-original-title', 'Copy function')
+  copyBtn.setAttribute('aria-label', 'Copy function')
+
   const insertBtn = createElement('button', null, ['alt-btn', 'btn-primary'])
   insertBtn.appendChild(createElement('i', null, ['bi', 'bi-input-cursor-text']))
   insertBtn.addEventListener('click', function () {
     insertCode()
   })
+  insertBtn.setAttribute('title', 'Insert function')
+  insertBtn.setAttribute('aria-current', 'page')
+  insertBtn.setAttribute('data-bs-toggle', 'tooltip')
+  insertBtn.setAttribute('data-bs-container', 'body')
+  insertBtn.setAttribute('data-bs-placement', 'top')
+  insertBtn.setAttribute('data-bs-original-title', 'Insert function')
+  insertBtn.setAttribute('aria-label', 'Insert function')
+
   const wrapBtn = createElement('button', null, ['alt-btn', 'btn-primary'])
   wrapBtn.appendChild(createElement('i', null, ['bi', 'bi-braces']))
   wrapBtn.addEventListener('click', function () {
     wrapCode()
   })
+  wrapBtn.setAttribute('title', 'Wrap code')
+  wrapBtn.setAttribute('aria-current', 'page')
+  wrapBtn.setAttribute('data-bs-toggle', 'tooltip')
+  wrapBtn.setAttribute('data-bs-container', 'body')
+  wrapBtn.setAttribute('data-bs-placement', 'top')
+  wrapBtn.setAttribute('data-bs-original-title', 'Wrap code')
+  wrapBtn.setAttribute('aria-label', 'Wrap code')
+
   btnGroup.appendChild(copyBtn)
   btnGroup.appendChild(insertBtn)
   btnGroup.appendChild(wrapBtn)
@@ -226,6 +250,11 @@ function displayFunction (selectedFunction) { // eslint-disable-line no-unused-v
   parent.appendChild(descRow)
 
   document.getElementById('id_function_description').setAttribute('style', 'height:' + (document.getElementById('id_function_description').scrollHeight) + 'px;overflow-y:hidden;')
+
+  const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl) // eslint-disable-line no-undef
+  })
 }
 
 /**
