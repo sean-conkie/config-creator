@@ -855,6 +855,13 @@ class Field(models.Model):
         null=False,
         blank=True,
     )
+    default = models.CharField(
+        verbose_name="Default Value",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Enter the default value for the field, it must be the same type as the target data type.",
+    )
     position = models.IntegerField(
         verbose_name="Ordinal Position",
         null=False,
