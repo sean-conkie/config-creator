@@ -258,6 +258,9 @@ function positionChange (element, type) { // eslint-disable-line no-unused-vars
  * AJAX request to the server to get the transformation code
  */
 function dataComparison () { // eslint-disable-line no-unused-vars
+  if (document.getElementById('id_field_transformation').value !== '' && document.getElementById('id_field_transformation').value.substring(0, 9).toLowerCase() !== 'safe_cast') {
+    return
+  }
   const source = document.getElementById('id_source_data_type').value
   let target
   const options = document.getElementById('id_data_type').childNodes
@@ -453,6 +456,7 @@ function prepareFieldModal (usage, fieldId, target, deleteElementId, jobId, task
         document.getElementById('id_source_name').value = `${result.source_name} ${result.source_table_alias}`
         document.getElementById('id_source_data_type').value = result.source_data_type
         document.getElementById('id_field_transformation').value = result.transformation
+        document.getElementById('id_default').value = result.default
         update(document.getElementById('id_field_transformation').value, document.getElementById('id_field_transformation').dataset.targetId) // eslint-disable-line no-undef
         document.getElementById('id_id').value = result.id
       } else {
@@ -592,6 +596,18 @@ function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
   }
 }
 
+/**
+ * It creates a new column in the table
+ * 
+ * Args:
+ *   url: The URL to send the request to.
+ *   method: The HTTP method to use.
+ *   spinnerElementId: The id of the element that will contain the spinner.
+ *   spinnerType: The type of spinner to display.
+ *   target: The id of the table to add the new row to.
+ *   jobId: The id of the job that the task is associated with.
+ *   taskId: The id of the task that the SK is being created for.
+ */
 function createSK (url, method, spinnerElementId, spinnerType, target, jobId, taskId) { // eslint-disable-line no-unused-vars
   const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
   let spinnerId

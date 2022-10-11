@@ -1193,7 +1193,23 @@ def datatypecomparison(
     """
     data = None
 
-    cleansed_column = re.sub(r"(\s\w+)", "", column, re.IGNORECASE)
+    m = re.search(
+        r"(?:(?P<dataset>\w+)\.)?(?P<table_name>\w+)(?:\s(?P<alias>\w+))?\.(?P<column>\w+)",
+        column,
+        re.IGNORECASE,
+    )
+
+    if m is None:
+        return response.Response(data={}, status=status.HTTP_400_BAD_REQUEST)
+
+    if m.group("alias"):
+        cleansed_column = f"{m.group('alias')}.{m.group('column')}"
+    elif m.group("dataset"):
+        cleansed_column = (
+            f"{m.group('dataset')}.{m.group('table_name')}.{m.group('column')}"
+        )
+    else:
+        cleansed_column = f"{m.group('table_name')}.{m.group('column')}"
 
     if (
         target != DATA_TYPE_MAPPING.get(source.upper())
