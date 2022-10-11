@@ -82,6 +82,7 @@ class FieldForm(forms.ModelForm):
             "position",
             "data_type",
             "source_data_type",
+            "default",
         ]
 
 

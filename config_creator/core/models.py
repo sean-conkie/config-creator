@@ -855,6 +855,13 @@ class Field(models.Model):
         null=False,
         blank=True,
     )
+    default = models.CharField(
+        verbose_name="Default Value",
+        max_length=255,
+        blank=True,
+        null=True,
+        help_text="Enter the default value for the field, it must be the same type as the target data type.",
+    )
     position = models.IntegerField(
         verbose_name="Ordinal Position",
         null=False,
@@ -951,6 +958,7 @@ class Field(models.Model):
             "name": self.name,
             "data_type": self.data_type.name if self.data_type else None,
             "data_type_id": self.data_type_id,
+            "default": self.default,
             "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}"
             if self.source_table
             else None,
