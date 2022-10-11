@@ -1103,8 +1103,10 @@ def copytable(request, task_id, connection_id, dataset, table_name):
         job_properties = Job.objects.get(id=task.job_id).get_property_object()
         connection_name = job_properties.target_project
 
+    connection = get_connection(request.user.id, connection_id, connection_name)
+
     table = get_table(
-        get_connection(request.user.id, connection_id, connection_name),
+        connection,
         dataset,
         table_name,
         task_id,
@@ -1129,7 +1131,11 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             return response.Response(data=table, status=status.HTTP_404_NOT_FOUND)
 
     source_table = get_source_table(
-        task_id, dataset, m.group("table_name"), m.group("alias")
+        task_id,
+        dataset,
+        m.group("table_name"),
+        m.group("alias"),
+        connection.get("name"),
     )
 
     for i, column in enumerate(table.get("result", {}).get("content", [])):
