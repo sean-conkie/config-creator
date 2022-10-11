@@ -598,7 +598,7 @@ function dataTypeMap (dataType) { // eslint-disable-line no-unused-vars
 
 /**
  * It creates a new column in the table
- * 
+ *
  * Args:
  *   url: The URL to send the request to.
  *   method: The HTTP method to use.
