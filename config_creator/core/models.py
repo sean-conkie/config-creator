@@ -958,6 +958,7 @@ class Field(models.Model):
             "name": self.name,
             "data_type": self.data_type.name if self.data_type else None,
             "data_type_id": self.data_type_id,
+            "default_value": self.default,
             "source_name": f"{self.source_table.dataset_name}.{self.source_table.table_name}"
             if self.source_table
             else None,

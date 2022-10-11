@@ -1430,6 +1430,8 @@ def handle_uploaded_file(request, path: str = None):
                 is_primary_key=field.get("is_primary_key", False),
                 is_history_key=field.get("is_history_key", False),
                 is_nullable=field.get("is_nullable", True),
+                source_data_type=field.get("source_data_type"),
+                default=field.get("default"),
                 position=i + 1,
                 task=t,
             )
@@ -1597,6 +1599,8 @@ def get_field_from_dict(field_structure: dict, task_id: int) -> Field:
         is_history_key=field_structure.get("is_history_key", False),
         is_nullable=field_structure.get("is_nullable", True),
         task_id=task_id,
+        source_data_type=field_structure.get("source_data_type"),
+        default=field_structure.get("default"),
     ).exists():
         f = Field.objects.get(
             name=field_structure.get("name", field_structure.get("source_column")),
@@ -1620,6 +1624,8 @@ def get_field_from_dict(field_structure: dict, task_id: int) -> Field:
             is_history_key=field_structure.get("is_history_key", False),
             is_nullable=field_structure.get("is_nullable", True),
             task_id=task_id,
+            source_data_type=field_structure.get("source_data_type"),
+            default=field_structure.get("default"),
         )
     else:
 
@@ -1645,6 +1651,8 @@ def get_field_from_dict(field_structure: dict, task_id: int) -> Field:
             is_history_key=field_structure.get("is_history_key", False),
             is_nullable=field_structure.get("is_nullable", True),
             task_id=task_id,
+            source_data_type=field_structure.get("source_data_type"),
+            default=field_structure.get("default"),
         )
         f.save()
 

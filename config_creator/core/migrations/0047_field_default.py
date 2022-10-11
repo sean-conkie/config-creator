@@ -6,13 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0046_field_is_surrogate_key'),
+        ("core", "0046_field_is_surrogate_key"),
     ]
 
     operations = [
         migrations.AddField(
-            model_name='field',
-            name='default',
-            field=models.CharField(blank=True, help_text='Enter the default value for the field, it must be the same type as the target data type.', max_length=255, null=True, verbose_name='Default Value'),
+            model_name="field",
+            name="default",
+            field=models.CharField(
+                blank=True,
+                help_text="Enter the default value for the field, it must be the same type as the target data type.",
+                max_length=255,
+                null=True,
+                verbose_name="Default Value",
+            ),
         ),
     ]
