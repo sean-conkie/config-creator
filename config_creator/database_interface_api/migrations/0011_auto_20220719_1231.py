@@ -13,6 +13,13 @@ def createjobtypesdata(apps, schema_editor):
             description="BigQuery",
         ).save()
 
+    if not model.objects.filter(
+        description="CSV",
+    ).exists():
+        model(
+            description="CSV",
+        ).save()
+
 
 class Migration(migrations.Migration):
 

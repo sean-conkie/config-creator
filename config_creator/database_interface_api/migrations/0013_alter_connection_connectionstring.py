@@ -6,13 +6,15 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('database_interface_api', '0012_dataset_table_column'),
+        ("database_interface_api", "0012_dataset_table_column"),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='connection',
-            name='connectionstring',
-            field=models.CharField(blank=True, max_length=250, null=True, verbose_name='Connection String'),
+            model_name="connection",
+            name="connectionstring",
+            field=models.CharField(
+                blank=True, max_length=250, null=True, verbose_name="Connection String"
+            ),
         ),
     ]

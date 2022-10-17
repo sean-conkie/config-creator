@@ -2,8 +2,7 @@ import re
 
 from .models import *
 from core.models import BigQueryDataType
-from database_interface_api.dbhelper import get_database_schema, get_schema
-from database_interface_api.views import get_connection
+from database_interface_api.dbhelper import IBQClient, get_database_schema, get_schema
 from django.contrib import admin
 
 
@@ -32,11 +31,11 @@ class ConnectionAdmin(admin.ModelAdmin):
 
     def refresh(self, request, queryset):
         for connection in queryset:
+            client = IBQClient(connection.name)
             schema = get_schema(
-                get_connection(
-                    connection.user_id,
-                    connection.id,
-                )
+                connection,
+                client,
+                "select schema_name table_schema from `region-eu`.INFORMATION_SCHEMA.SCHEMATA order by 1",
             )
 
             for dataset in schema.get("result", {}):
@@ -64,11 +63,9 @@ class ConnectionAdmin(admin.ModelAdmin):
                 ).delete()
 
                 dataset_schema = get_database_schema(
-                    get_connection(
-                        connection.user_id,
-                        connection.id,
-                    ),
-                    dataset.get("name"),
+                    connection,
+                    client,
+                    f"select table_schema, table_name, table_name raw_table_name, null alias, column_name, data_type, ordinal_position, is_nullable from {connection.name}.{dataset.get('name')}.INFORMATION_SCHEMA.COLUMNS order by 2, 5",
                 )
 
                 for table in dataset_schema.get("result", {}):

@@ -93,6 +93,7 @@ function createColumnElement (object, layer) {
  */
 function createTableElement (object, layer) {
   let element
+
   if (returnType.selector === 'table') { // eslint-disable-line no-undef
     element = createElement('div', null, ['tree-table-select'], layer * 10, null)
   } else {
@@ -118,16 +119,20 @@ function createTableElement (object, layer) {
       element.appendChild(summary)
       const layerInner = layer + 1
 
-      const table = createElement('table', null, ['table', 'table-hover'], layerInner, null)
-
       if ({}.propertyIsEnumerable.call(object, 'content')) {
+        const table = createElement('table', null, ['table', 'table-hover'], layerInner, null)
         const child = parseObject(object.content, layerInner)
         if (child) {
           table.appendChild(child)
         }
+        element.appendChild(table)
+      } else {
+        if (object.connection_id < 1) {
+          element.setAttribute('onclick', `getData(${object.connection_id}, '${object.connection_name}', '${object.dataset}', '${id}', ${returnType.task}, '${object.name}')`) // eslint-disable-line no-undef
+        } else {
+          element.setAttribute('onclick', `getData(${object.connection_id}, null, '${object.dataset}', '${id}', ${returnType.task}, '${object.name}')`) // eslint-disable-line no-undef
+        }
       }
-
-      element.appendChild(table)
     }
   }
   return element
@@ -195,13 +200,12 @@ function createDatasetElement (object, layer) {
  *   A connection element
  */
 function createConnectionElement (object, layer) {
-  const detail = createElement('details', null, ['tree-connection'], layer, null)
+  const id = `id_connection_${object.id}_${object.name}`
+  const detail = createElement('details', null, ['tree-connection'], layer, id)
   if (object.id < 1) {
-    detail.setAttribute('id', `id_connection_${object.name}`)
-    detail.setAttribute('onclick', `getData(${object.id}, '${object.name}', null, 'id_connection_${object.name}', ${returnType.task})`) // eslint-disable-line no-undef
+    detail.setAttribute('onclick', `getData(${object.id}, '${object.name}', null, '${id}', ${returnType.task})`) // eslint-disable-line no-undef
   } else {
-    detail.setAttribute('id', `id_connection_${object.id}`)
-    detail.setAttribute('onclick', `getData(${object.id}, null, null, 'id_connection_${object.id}', ${returnType.task})`) // eslint-disable-line no-undef
+    detail.setAttribute('onclick', `getData(${object.id}, null, null, '${id}', ${returnType.task})`) // eslint-disable-line no-undef
   }
 
   if ({}.propertyIsEnumerable.call(object, 'name')) {
@@ -329,7 +333,15 @@ function callConnectionApi (url, modalId) {
         if ({}.propertyIsEnumerable.call(data, 'result')) {
           const html = parseObject(data.result, 1)
           if (html && html.nodeType) {
-            parent.appendChild(html)
+            const existing = document.getElementById(html.children[0].id)
+            if (existing) {
+              existing.parentNode.replaceChild(html, existing)
+              if (html.children[0].tagName === 'DETAILS') {
+                html.children[0].setAttribute('open', 'true ')
+              }
+            } else {
+              parent.appendChild(html)
+            }
           }
         }
       }
@@ -348,17 +360,17 @@ function callConnectionApi (url, modalId) {
 }
 
 /**
- * It takes in a bunch of parameters, and then calls the `callConnectionApi` function with a URL and an
- * element ID
+ * It calls the API to get the schema of a connection, dataset, or table
  *
  * Args:
- *   id: The id of the schema.
- *   connectionName: The name of the connection.
- *   datasetName: The name of the dataset to get the schema for.
+ *   id: The id of the connection.
+ *   connectionName: The name of the connection
+ *   datasetName: The name of the dataset
  *   elementId: The id of the element that will be used to display the data.
- *   taskId: The id of the task.
+ *   taskId: The id of the task that the schema is being retrieved for.
+ *   tableName: The name of the table to get the schema for.
  */
-function getData (id, connectionName, datasetName, elementId, taskId) { // eslint-disable-line no-unused-vars
+function getData (id, connectionName, datasetName, elementId, taskId, tableName) { // eslint-disable-line no-unused-vars
   let url = null
 
   if (id < 1) {
@@ -375,6 +387,8 @@ function getData (id, connectionName, datasetName, elementId, taskId) { // eslin
     url = `${url}${id}/${connectionName}/${datasetName}/`
   } else if (connectionName) {
     url = `${url}${id}/${connectionName}/`
+  } else if (datasetName && tableName) {
+    url = `${url}${id}/${datasetName}/${tableName}/`
   } else if (datasetName) {
     url = `${url}${id}/${datasetName}/`
   } else {
@@ -457,25 +471,29 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
  * It sets the return type for the connection modal
  *
  * Args:
- *   selector: The id of the element that will be used to display the selected value.
+ *   selector: The id of the element that will be used to select the connection.
  *   columnTarget: The id of the input field where the column name will be placed.
- *   columnType: The type of the column that will be returned.
- *   dataTypeTarget: The id of the element that will be populated with the data type.
+ *   columnType: The type of the column you want to set.
+ *   dataTypeTarget: The id of the element that will be populated with the data type of the selected
+ * column.
  *   tableTarget: The id of the table input field
- *   tableType: The type of table you want to return.
- *   datasetTarget: The id of the input field where the dataset name will be placed.
+ *   tableType: The type of table you want to return. For example, if you want to return a table name,
+ * you would pass in 'tableName'.
+ *   datasetTarget: The id of the dataset input field
  *   connectionTarget: The id of the input field where the connection id will be stored.
- *   reLoadModal: If true, the modal will be reloaded with the new data.
- *   taskId: The id of the task that you want to get the schema for.
+ *   reLoadModal: If true, the modal will be reloaded with the new schema.
+ *   taskId: The task id of the task you want to set the return type for.
  *   hideModalId: The id of the modal to hide after the connection modal is shown.
- *   jobId: The job id of the job that is being edited.
+ *   jobId: The job id of the job you want to get the schema for.
+ *   isFullSchema: If true, the modal will show all the schemas in the database. If false, it will only
+ * show the schemas that are part of this job or task. Defaults to false
  */
-function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId, jobId) { // eslint-disable-line no-unused-vars
+function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId, jobId, isFullSchema = false) { // eslint-disable-line no-unused-vars
   let datasetType = null
   let connectionType = null
   let dataType = null
   let modalId = null
-  let url = '/api/schema/'
+  let url = `/api/schema/${isFullSchema}/`
   if (datasetTarget) {
     datasetType = 'datasetName'
   }
@@ -486,10 +504,10 @@ function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tabl
     dataType = 'dataType'
   }
   if (taskId) {
-    url = `/api/task/${taskId}/schema/`
+    url = `/api/task/${taskId}/schema/${isFullSchema}/`
   }
   if (jobId) {
-    url = `/api/job/${jobId}/schema/`
+    url = `/api/job/${jobId}/schema/${isFullSchema}/`
   }
   if (hideModalId) {
     modalId = hideModalId

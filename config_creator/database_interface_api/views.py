@@ -1,13 +1,13 @@
-from .dbhelper import get_database_schema, get_schema
+from .dbhelper import AppClient, get_database_schema, get_schema
 from .models import Connection, ConnectionType
+from accounts.models import User
 from core.models import Job, JobTask, SourceTable
 from django import views
-from lib.baseclasses import ConnectionType as eConnectionType
+from django.db.models import Q
 from rest_framework import renderers, response, request, status, views
 
 __all__ = [
     "SchemaView",
-    "get_connection",
     "get_connections",
 ]
 
@@ -22,98 +22,64 @@ class SchemaView(views.APIView):
         connection_id: int = None,
         connection_name: int = None,
         database: str = None,
+        table: str = None,
         job_id: int = None,
         task_id: int = None,
+        is_full_schema: str = None,
     ) -> response.Response:
-
-        if database and connection_name:
-            outp = get_database_schema(
-                get_connection(
-                    request.user.id,
-                    connection_id,
-                    connection_name,
-                ),
-                database,
-                job_id,
-                task_id,
-                request.user.id,
-            )
-
-        elif connection_name:
-            outp = get_schema(
-                get_connection(
-                    request.user.id,
-                    connection_id,
-                    connection_name,
-                ),
-                job_id,
-                task_id,
-                request.user.id,
-            )
-        elif database:
-            outp = get_database_schema(
-                get_connection(
-                    request.user.id,
-                    connection_id,
-                ),
-                database,
-                job_id,
-                task_id,
-                request.user.id,
+        if connection_name:
+            connection = Connection.objects.get(
+                name=connection_name,
             )
         elif connection_id:
-            outp = get_schema(
-                get_connection(request.user.id, connection_id),
-                job_id,
-                task_id,
+            connection = Connection.objects.get(
+                id=connection_id,
             )
         else:
-            outp = get_connections(request, job_id, task_id)
+            connection = None
+
+        if connection_id == "-1" and task_id:
+            job_id = JobTask.objects.get(id=task_id).job_id
+
+        if connection:
+            connection.id = connection_id
+
+        if database:
+            outp = get_database_schema(
+                connection,
+                AppClient(
+                    connection,
+                    database,
+                    job_id=job_id,
+                    task_id=task_id,
+                ),
+                table,
+            )
+        elif connection:
+            outp = get_schema(
+                connection,
+                AppClient(
+                    connection,
+                    job_id=job_id,
+                    task_id=task_id,
+                ),
+            )
+        else:
+            outp = get_connections(request, job_id, task_id, is_full_schema)
 
         return response.Response(data=outp, status=status.HTTP_200_OK)
 
 
-def get_connection(user_id: int, connection_id: int, name: str = None) -> dict:
-    connection_id = int(connection_id)
-    if connection_id < 1:
-        connection_type = eConnectionType(connection_id)
-
-        return {
-            "id": connection_id,
-            "name": name if name else "This Task",
-            "credentials": None,
-            "connection_string": None,
-            "user_name": None,
-            "host": None,
-            "sid": None,
-            "port": None,
-            "schema": None,
-            "secret_key": None,
-            "connection_type": connection_type,
-        }
-
-    else:
-        connection = Connection.objects.get(id=connection_id, user_id=user_id)
-        connection_type = eConnectionType(connection.connectiontype.id)
-
-        return {
-            "id": connection.id,
-            "name": connection.name,
-            "credentials": connection.credentials,
-            "connection_string": connection.connectionstring,
-            "user_name": connection.user_name,
-            "host": connection.host,
-            "sid": connection.sid,
-            "port": connection.port,
-            "schema": connection.schema,
-            "secret_key": connection.secret_key,
-            "connection_type": connection_type,
-        }
-
-
-def get_connections(request: request, job_id: int = None, task_id: int = None) -> dict:
+def get_connections(
+    request: request,
+    job_id: int = None,
+    task_id: int = None,
+    is_full_schema: str = None,
+) -> dict:
     connections = (
-        Connection.objects.select_related().filter(user=request.user).order_by("name")
+        Connection.objects.select_related()
+        .filter(Q(user=request.user) | Q(user=User.objects.get(email="admin@root.com")))
+        .order_by("name")
     )
     tree_source = []
     connection_map = {}
@@ -151,12 +117,16 @@ def get_connections(request: request, job_id: int = None, task_id: int = None) -
             if table.source_project
         ]
 
-        source_project = (
-            JobTask.objects.select_related()
-            .get(id=task_id)
-            .job.get_property_object()
-            .source_project
-        )
+        source_project = {
+            "name": (
+                JobTask.objects.select_related()
+                .get(id=task_id)
+                .job.get_property_object()
+                .source_project
+            ),
+            "type": "connection",
+            "id": 0,
+        }
 
         if source_project not in source_tables:
             source_tables.extend(

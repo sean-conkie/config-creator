@@ -36,9 +36,8 @@ from core.models import (
     sk_transformation,
 )
 from core.views import crawler, handle_uploaded_file
-from database_interface_api.dbhelper import get_table
+from database_interface_api.dbhelper import get_database_schema
 from database_interface_api.models import Connection
-from database_interface_api.views import get_connection
 from django import views
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
@@ -1098,18 +1097,11 @@ def copytable(request, task_id, connection_id, dataset, table_name):
             status=status.HTTP_404_NOT_FOUND,
         )
 
-    connection_name = None
-    if connection_id == "-1":
-        job_properties = Job.objects.get(id=task.job_id).get_property_object()
-        connection_name = job_properties.target_project
+    connection = Connection.objects.get(id=connection_id)
 
-    connection = get_connection(request.user.id, connection_id, connection_name)
-
-    table = get_table(
+    table = get_database_schema(
         connection,
         dataset,
-        table_name,
-        task_id,
     )
 
     m = re.search(
@@ -1120,11 +1112,9 @@ def copytable(request, task_id, connection_id, dataset, table_name):
     # for a task creating it and pull columns.
     if len(table.get("result", {}).get("content", [])) == 0:
 
-        table = get_table(
-            get_connection(request.user.id, -1, connection_name),
+        table = get_database_schema(
+            connection,
             dataset,
-            table_name,
-            task_id,
         )
 
         if table.get("result", {}) == {"result": {}}:
@@ -1135,7 +1125,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
         dataset,
         m.group("table_name"),
         m.group("alias"),
-        connection.get("name"),
+        connection.name,
     )
 
     for i, column in enumerate(table.get("result", {}).get("content", [])):

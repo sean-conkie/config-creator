@@ -34,49 +34,12 @@ class Connection(models.Model):
         on_delete=models.CASCADE,
         verbose_name="Connection Type",
     )
-    connectionstring = models.CharField(
-        blank=True,
-        unique=False,
-        max_length=250,
-        verbose_name="Connection String",
-        null=True,
-    )
-    credentials = models.FileField(
-        verbose_name="Credentials File",
-        upload_to=f"credential/",
-        blank=True,
-        null=True,
-    )
     name = models.CharField(
         blank=False,
-        unique=False,
+        unique=True,
         max_length=250,
         verbose_name="Connection Name",
         null=False,
-    )
-    user_name = models.CharField(
-        blank=True,
-        unique=False,
-        max_length=250,
-        verbose_name="User Name",
-        null=True,
-    )
-    host = models.CharField(
-        blank=True,
-        unique=False,
-        max_length=250,
-        verbose_name="Host Name",
-        null=True,
-    )
-    sid = models.CharField(
-        blank=True,
-        unique=False,
-        max_length=250,
-        verbose_name="SID",
-        null=True,
-    )
-    port = models.IntegerField(
-        blank=True, unique=False, verbose_name="Port", null=True, default=0
     )
     schema = models.FileField(
         verbose_name="Schema File",
@@ -84,7 +47,6 @@ class Connection(models.Model):
         blank=True,
         null=True,
     )
-    secret_key = models.CharField(blank=True, unique=True, null=True, max_length=250)
 
     def __str__(self) -> str:
         return self.name
@@ -97,13 +59,7 @@ class Connection(models.Model):
             "id": self.id,
             "name": self.name,
             "credentials": self.credentials,
-            "connection_string": self.connectionstring,
             "user_name": self.user_name,
-            "host": self.host,
-            "sid": self.sid,
-            "port": self.port,
-            "schema": self.schema,
-            "secret_key": self.secret_key,
             "connection_type": self.connectiontype.todict(),
         }
 

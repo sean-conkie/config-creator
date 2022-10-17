@@ -7,36 +7,100 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('core', '0047_field_default'),
-        ('database_interface_api', '0011_auto_20220719_1231'),
+        ("core", "0047_field_default"),
+        ("database_interface_api", "0011_auto_20220719_1231"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='Dataset',
+            name="Dataset",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=250, verbose_name='Dataset Name')),
-                ('connection', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='database_interface_api.connection', verbose_name='Project')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=250, verbose_name="Dataset Name")),
+                (
+                    "connection",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="database_interface_api.connection",
+                        verbose_name="Project",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Table',
+            name="Table",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=250, verbose_name='Table Name')),
-                ('dataset', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='database_interface_api.dataset', verbose_name='Dataset')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=250, verbose_name="Table Name")),
+                (
+                    "dataset",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="database_interface_api.dataset",
+                        verbose_name="Dataset",
+                    ),
+                ),
             ],
         ),
         migrations.CreateModel(
-            name='Column',
+            name="Column",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=250, verbose_name='Table Name')),
-                ('position', models.IntegerField(blank=True, default=-1, verbose_name='Ordinal Position')),
-                ('is_nullable', models.BooleanField(default=True, verbose_name='Is Column Nullable')),
-                ('data_type', models.ForeignKey(blank=True, default=1, on_delete=django.db.models.deletion.SET_DEFAULT, to='core.bigquerydatatype', verbose_name='Data Type')),
-                ('table', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='database_interface_api.table', verbose_name='Table')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=250, verbose_name="Table Name")),
+                (
+                    "position",
+                    models.IntegerField(
+                        blank=True, default=-1, verbose_name="Ordinal Position"
+                    ),
+                ),
+                (
+                    "is_nullable",
+                    models.BooleanField(
+                        default=True, verbose_name="Is Column Nullable"
+                    ),
+                ),
+                (
+                    "data_type",
+                    models.ForeignKey(
+                        blank=True,
+                        default=1,
+                        on_delete=django.db.models.deletion.SET_DEFAULT,
+                        to="core.bigquerydatatype",
+                        verbose_name="Data Type",
+                    ),
+                ),
+                (
+                    "table",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        to="database_interface_api.table",
+                        verbose_name="Table",
+                    ),
+                ),
             ],
         ),
     ]
