@@ -3,23 +3,23 @@ from django.contrib.auth.decorators import login_required
 from django.urls import path, re_path
 
 urlpatterns = [
-    path(
-        "schema/",
+    re_path(
+        r"schema\/(?P<is_full_schema>true|false)\/$",
         login_required(SchemaView.as_view()),
         name="api-connections",
     ),
-    path(
-        "task/<int:task_id>/schema/",
+    re_path(
+        r"task\/(?P<task_id>\d+)\/schema\/(?P<is_full_schema>true|false)\/$",
         login_required(SchemaView.as_view()),
         name="api-connections-task",
     ),
-    path(
-        "job/<int:job_id>/schema/",
+    re_path(
+        r"job\/(?P<job_id>\d+)\/schema\/(?P<is_full_schema>true|false)\/$",
         login_required(SchemaView.as_view()),
         name="api-connections-job",
     ),
-    path(
-        "schema/<int:connection_id>/",
+    re_path(
+        r"schema\/(?P<connection_id>-?\d+)\/$",
         login_required(SchemaView.as_view()),
         name="api-schema",
     ),
@@ -37,6 +37,11 @@ urlpatterns = [
         "schema/<int:connection_id>/<str:database>/",
         login_required(SchemaView.as_view()),
         name="api-database",
+    ),
+    path(
+        "schema/<int:connection_id>/<str:database>/<str:table>/",
+        login_required(SchemaView.as_view()),
+        name="api-database-table",
     ),
     re_path(
         r"task\/(?P<task_id>\d+)\/schema\/(?P<connection_id>-?\d+)\/(?P<connection_name>[\w\-\d]+)\/(?P<database>[\w\-\d]+)\/$",

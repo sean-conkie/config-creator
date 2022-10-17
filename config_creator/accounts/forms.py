@@ -115,14 +115,7 @@ class ConnectionForm(forms.ModelForm):
         fields = [
             "id",
             "name",
-            "connectionstring",
             "connectiontype",
-            "credentials",
-            "user_name",
-            "schema",
-            "host",
-            "port",
-            "sid",
         ]
 
         widgets = {

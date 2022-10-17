@@ -159,9 +159,9 @@ function addJoinObject (data, jobId, taskId) {
 
       /* eslint-enable no-undef */
 
-      headerCol.append(headerTest)
-      header.append(headerCol)
-      joinContainer.append(header)
+      headerCol.appendChild(headerTest)
+      header.appendChild(headerCol)
+      joinContainer.appendChild(header)
 
       /* eslint-disable no-undef */
       const body = createElement('div', null, ['row', 'g-3', 'py-1'], 0, null)
@@ -169,8 +169,8 @@ function addJoinObject (data, jobId, taskId) {
       const bodyCol1Text = createElement('p', 'on', ['lead'], 0, null)
 
       /* eslint-enable no-undef */
-      bodyCol1.append(bodyCol1Text)
-      body.append(bodyCol1)
+      bodyCol1.appendChild(bodyCol1Text)
+      body.appendChild(bodyCol1)
 
       /* eslint-disable no-undef */
       const bodyCol2 = createElement('div', null, ['col-md-11', 'col-lg-11'], 0, null)
@@ -183,10 +183,10 @@ function addJoinObject (data, jobId, taskId) {
 
         /* eslint-enable no-undef */
 
-        tableHeaderRow.append(th)
+        tableHeaderRow.appendChild(th)
       }
-      tableHeader.append(tableHeaderRow)
-      table.append(tableHeader)
+      tableHeader.appendChild(tableHeaderRow)
+      table.appendChild(tableHeader)
 
       /* eslint-disable no-undef */
       const tableBody = createElement('tbody', null, ['text-center', 'align-middle'], 0, `id_join_table_body_${joinId}`)
@@ -195,8 +195,8 @@ function addJoinObject (data, jobId, taskId) {
         const placeholderRow = createElement('tr', null, ['placeholder-row'])
         const placeholderColumn = createElement('td', 'No conditions linked to join!', ['text-center'])
         placeholderColumn.setAttribute('colspan', '6')
-        placeholderRow.append(placeholderColumn)
-        tableBody.append(placeholderRow)
+        placeholderRow.appendChild(placeholderColumn)
+        tableBody.appendChild(placeholderRow)
       }
 
       for (let c = 0; c < conditions.length; c++) {
@@ -223,7 +223,7 @@ function addJoinObject (data, jobId, taskId) {
         viewButton.setAttribute('data-bs-placement', 'right')
         viewButton.setAttribute('data-condition-id', conditionId)
         viewButton.appendChild(createElement('i', null, ['bi', 'bi-search'], 0, null))
-        col5.append(viewButton)
+        col5.appendChild(viewButton)
         const col6 = createElement('td', null, ['btn-column'], 0, null)
         const deleteButton = createElement('button', null, ['btn', 'row-btn-danger', 'condition-delete'], 0, null)
         deleteButton.setAttribute('title', 'Delete')
@@ -235,19 +235,19 @@ function addJoinObject (data, jobId, taskId) {
         deleteButton.setAttribute('data-delete-url', `/api/condition/${conditionId}/delete/`)
         deleteButton.setAttribute('data-delete-element-id', rowId)
         deleteButton.appendChild(createElement('i', null, ['bi', 'bi-trash'], 0, null))
-        col6.append(deleteButton)
+        col6.appendChild(deleteButton)
 
-        tr.append(col1)
-        tr.append(col2)
-        tr.append(col3)
-        tr.append(col4)
-        tr.append(col5)
-        tr.append(col6)
-        tableBody.append(tr)
+        tr.appendChild(col1)
+        tr.appendChild(col2)
+        tr.appendChild(col3)
+        tr.appendChild(col4)
+        tr.appendChild(col5)
+        tr.appendChild(col6)
+        tableBody.appendChild(tr)
       }
-      table.append(tableBody)
-      bodyCol2.append(table)
-      body.append(bodyCol2)
+      table.appendChild(tableBody)
+      bodyCol2.appendChild(table)
+      body.appendChild(bodyCol2)
 
       const buttonRow = createElement('div', null, ['row', 'g-3', 'py-1'], 0, null)
       const addCol = createElement('div', null, ['col-md-2', 'col-lg-2'], 0, null)
@@ -287,21 +287,21 @@ function addJoinObject (data, jobId, taskId) {
         deleteJoin(this.dataset.jobId, this.dataset.taskId, this.dataset.joinId)
       })
 
-      buttonGroup.append(dropdownButton)
-      const li = createElement('li').append(deleteJoinButton) // eslint-disable-line no-undef
+      buttonGroup.appendChild(dropdownButton)
+      const li = createElement('li').appendChild(deleteJoinButton) // eslint-disable-line no-undef
       const ul = createElement('ul', null, ['dropdown-menu', 'text-small', 'shadow']) // eslint-disable-line no-undef
       ul.setAttribute('aria-labelledby', `id_join_button_group_${joinId}`)
-      ul.append(li)
-      buttonGroup.append(ul)
+      ul.appendChild(li)
+      buttonGroup.appendChild(ul)
 
-      parentButtonGroup.append(addConditionButton)
-      parentButtonGroup.append(buttonGroup)
+      parentButtonGroup.appendChild(addConditionButton)
+      parentButtonGroup.appendChild(buttonGroup)
 
-      addCol.append(parentButtonGroup)
-      buttonRow.append(addCol)
-      body.append(buttonRow)
-      joinContainer.append(body)
-      parent.append(joinContainer)
+      addCol.appendChild(parentButtonGroup)
+      buttonRow.appendChild(addCol)
+      body.appendChild(buttonRow)
+      joinContainer.appendChild(body)
+      parent.appendChild(joinContainer)
     }
   }
 }
