@@ -65,7 +65,7 @@ function createColumnElement (object, layer) {
   columnName.setAttribute('data-dataset-name', object.dataset)
   columnName.setAttribute('data-data-type', object.data_type)
   columnName.setAttribute('data-target-name', object.target_name)
-  const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.raw_table_name + '_' + object.column_name
+  const id = 'id_connection_' + object.connection_id + '_dataset_' + object.dataset + '_' + object.raw_table_name + '_' + object.alias + '_' + object.column_name
   columnName.setAttribute('id', id)
   const dataType = createElement('td', object.data_type, null, null, null)
   let mode
@@ -112,6 +112,7 @@ function createTableElement (object, layer) {
       element.setAttribute('data-project-table-full', `${object.connection_name}.${object.dataset}.${object.name}`)
       element.setAttribute('data-dataset-name', object.dataset)
       element.setAttribute('data-connection-id', object.connection_id)
+      element.setAttribute('data-connection-name', object.connection_name)
     } else {
       const summary = createElement('summary', null, ['tree-table-summary'], null, null)
       summary.appendChild(createElement('i', null, ['fa-solid', 'fa-table'], null, null))
@@ -165,6 +166,7 @@ function createDatasetElement (object, layer) {
       element.insertAdjacentText('beforeend', ' ' + object.name)
       element.setAttribute('data-dataset-name', object.name)
       element.setAttribute('data-connection-id', object.connection_id)
+      element.setAttribute('data-connection-name', object.connection_name)
     } else {
       const summary = createElement('summary', null, ['tree-dataset-summary'], null, null)
       summary.appendChild(createElement('i', null, ['fa-solid', 'fa-database'], null, null))
@@ -457,7 +459,12 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
     document.getElementById(returnType.dataset.target).dispatchEvent(new Event('input'))
   }
   if (returnType.connection.target) {
-    document.getElementById(returnType.connection.target).value = element.dataset[returnType.connection.type]
+    if (returnType.connection.type === 'connectionId' && element.dataset[returnType.connection.type] === 0) {
+      connectionType = 'connectionName'
+    } else {
+      connectionType = returnType.connection.type
+    }
+    document.getElementById(returnType.connection.target).value = element.dataset[connectionType]
     document.getElementById(returnType.connection.target).dispatchEvent(new Event('input'))
   }
   if (returnType.modal) {
@@ -466,39 +473,35 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
   bootstrap.Modal.getInstance(document.getElementById('connection-modal')).hide()
   /* eslint-enable no-undef */
 }
-
 /**
  * It sets the return type for the connection modal
- *
+ * 
  * Args:
- *   selector: The id of the element that will be used to select the connection.
+ *   selector: The selector for the element that will be populated with the selected value.
  *   columnTarget: The id of the input field where the column name will be placed.
- *   columnType: The type of the column you want to set.
+ *   columnType: The type of the column.
  *   dataTypeTarget: The id of the element that will be populated with the data type of the selected
  * column.
- *   tableTarget: The id of the table input field
- *   tableType: The type of table you want to return. For example, if you want to return a table name,
- * you would pass in 'tableName'.
- *   datasetTarget: The id of the dataset input field
+ *   tableTarget: The id of the input field where the table name will be placed.
+ *   tableType: The type of the table. This is used to determine the type of the table.
+ *   datasetTarget: The id of the input field where the dataset name will be placed.
  *   connectionTarget: The id of the input field where the connection id will be stored.
  *   reLoadModal: If true, the modal will be reloaded with the new schema.
- *   taskId: The task id of the task you want to set the return type for.
+ *   taskId: The task id of the task you want to get the schema for.
  *   hideModalId: The id of the modal to hide after the connection modal is shown.
- *   jobId: The job id of the job you want to get the schema for.
- *   isFullSchema: If true, the modal will show all the schemas in the database. If false, it will only
- * show the schemas that are part of this job or task. Defaults to false
+ *   jobId: The job id of the job you want to get the schema from.
+ *   isFullSchema: If true, the modal will show all the tables in the schema. If false, it will only
+ * show the tables that have been selected in the task. Defaults to false
+ *   connectionType: The type of connection you want to use. Defaults to connectionId
  */
-function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId, jobId, isFullSchema = false) { // eslint-disable-line no-unused-vars
+
+function setReturnType (selector, columnTarget, columnType, dataTypeTarget, tableTarget, tableType, datasetTarget, connectionTarget, reLoadModal, taskId, hideModalId, jobId, isFullSchema = false, connectionType = 'connectionId') { // eslint-disable-line no-unused-vars
   let datasetType = null
-  let connectionType = null
   let dataType = null
   let modalId = null
   let url = `/api/schema/${isFullSchema}/`
   if (datasetTarget) {
     datasetType = 'datasetName'
-  }
-  if (connectionTarget) {
-    connectionType = 'connectionId'
   }
   if (dataTypeTarget) {
     dataType = 'dataType'
