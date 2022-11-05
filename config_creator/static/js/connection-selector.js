@@ -475,7 +475,7 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
 }
 /**
  * It sets the return type for the connection modal
- * 
+ *
  * Args:
  *   selector: The selector for the element that will be populated with the selected value.
  *   columnTarget: The id of the input field where the column name will be placed.
