@@ -39,6 +39,11 @@ urlpatterns = [
         login_required(copytable),
         name="api-table-copy",
     ),
+    re_path(
+        r"task\/(?P<task_id>\d+)\/connection\/(?P<connection_name>[\w\-\d]+)\/dataset\/(?P<dataset>[\w\-\d]+)\/table\/(?P<table_name>[\w\-\d]+(?: [\w\-\d]+)?)\/copy\/",
+        login_required(copytable),
+        name="api-table-copy-alt",
+    ),
     path(
         "data-type-comparison/<str:source>/<str:target>/<str:column>/",
         login_required(datatypecomparison),

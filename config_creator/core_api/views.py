@@ -36,8 +36,8 @@ from core.models import (
     sk_transformation,
 )
 from core.views import crawler, handle_uploaded_file
-from database_interface_api.dbhelper import get_database_schema
-from database_interface_api.models import Connection
+from database_interface_api.dbhelper import AppClient, get_database_schema
+from database_interface_api.models import Connection, Dataset
 from django import views
 from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
@@ -101,14 +101,14 @@ class FieldView(views.APIView):
         if field:
             outp = {
                 "message": f"Field '{field.name}' deleted.",
-                "type": "success",
+                "type": "Success",
             }
             field.delete()
             return_status = status.HTTP_200_OK
         else:
             outp = {
                 "message": f"Field with id '{pk}' does not exist.",
-                "type": "error",
+                "type": "Error",
             }
             return_status = status.HTTP_404_NOT_FOUND
 
@@ -1072,7 +1072,14 @@ class UploadFileView(views.APIView):
 
 @api_view(http_method_names=["POST"])
 @permission_classes([IsAuthenticated])
-def copytable(request, task_id, connection_id, dataset, table_name):
+def copytable(
+    request,
+    task_id: int,
+    dataset: str,
+    table_name: str,
+    connection_id: int = None,
+    connection_name: str = None,
+):
     """
     It takes a connection id, a dataset name, and a table name, and copies the table's columns into the
     database
@@ -1087,38 +1094,46 @@ def copytable(request, task_id, connection_id, dataset, table_name):
     Returns:
       A list of columns in the table.
     """
-    try:
-        task = JobTask.objects.get(id=task_id)
-    except ObjectDoesNotExist:
+    if not JobTask.objects.filter(id=task_id).exists():
         return response.Response(
             data={
                 "message": f"JobTask for id {task_id} not found.",
             },
             status=status.HTTP_404_NOT_FOUND,
         )
+    task = JobTask.objects.get(id=task_id)
 
-    connection = Connection.objects.get(id=connection_id)
+    if connection_id:
+        connection = Connection.objects.get(id=connection_id)
+    elif connection_name:
+        connection = Connection.objects.get(name=connection_name)
+    else:
+        return response.Response(
+            data={
+                "message": "Either connection id or connection name must be provided.",
+                "type": "Error",
+            },
+            status=status.HTTP_400_BAD_REQUEST,
+        )
 
-    table = get_database_schema(
-        connection,
-        dataset,
+    database = Dataset.objects.get(
+        connection=connection,
+        name=dataset,
     )
 
     m = re.search(
         r"(?P<table_name>\w+)(?:\s(?P<alias>\w+))?", table_name, re.IGNORECASE
     )
 
-    # if the table returned is empty, check the job
-    # for a task creating it and pull columns.
-    if len(table.get("result", {}).get("content", [])) == 0:
-
-        table = get_database_schema(
+    table = get_database_schema(
+        connection,
+        AppClient(
             connection,
-            dataset,
-        )
-
-        if table.get("result", {}) == {"result": {}}:
-            return response.Response(data=table, status=status.HTTP_404_NOT_FOUND)
+            database,
+            task_id=task_id,
+        ),
+        m.group("table_name"),
+    )
 
     source_table = get_source_table(
         task_id,
@@ -1128,7 +1143,7 @@ def copytable(request, task_id, connection_id, dataset, table_name):
         connection.name,
     )
 
-    for i, column in enumerate(table.get("result", {}).get("content", [])):
+    for i, column in enumerate(table.get("result", {})[0].get("content", [])):
         field = Field(
             name="_".join([w for w in segment(column.get("column_name"))]),
             source_column=column.get("column_name"),
@@ -1143,12 +1158,13 @@ def copytable(request, task_id, connection_id, dataset, table_name):
         if BigQueryDataType.objects.filter(
             name=DATA_TYPE_MAPPING.get(column.get("data_type", "").upper())
         ).exists():
-            field.data_type = BigQueryDataType.objects.filter(
-                name=DATA_TYPE_MAPPING.get(column.get("data_type"))
-            )[0]
+            field.data_type = BigQueryDataType.objects.get(
+                name=DATA_TYPE_MAPPING.get(column.get("data_type").upper())
+            )
 
-        if field.data_type.name != DATA_TYPE_MAPPING.get(
-            column.get("data_type", "").upper()
+        if (
+            field.data_type.name.upper()
+            != DATA_TYPE_MAPPING.get(column.get("data_type", "").upper()).upper()
         ):
             field.transformation = f"safe_cast({column.get('column_name')} as {field.data_type.name.lower()})"
             column["transformation"] = True
@@ -1160,7 +1176,9 @@ def copytable(request, task_id, connection_id, dataset, table_name):
         column["data_type"] = field.data_type.name
         column["position"] = i
 
-    return response.Response(data=table, status=status.HTTP_200_OK)
+    return response.Response(
+        data={"result": table["result"][0]}, status=status.HTTP_200_OK
+    )
 
 
 @api_view(http_method_names=["GET"])

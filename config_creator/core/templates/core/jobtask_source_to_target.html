@@ -98,7 +98,7 @@
 <script>
   let listenerMap = new Map([
     ["id_copy_table", {
-      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true, {{ task.id }}); document.getElementById('id_field_source_connection').dataset['taskId'] = this.dataset['taskId'];",
+      "function": "setReturnType('table', null, null, null, 'id_field_source_table_name', 'tableName', 'id_field_source_dataset', 'id_field_source_connection', true, {{ task.id }}, null, null, true, 'connectionName'); document.getElementById('id_field_source_connection').dataset['taskId'] = this.dataset['taskId'];",
       "type": "click"
     }],
     ["id_field_source_connection", {

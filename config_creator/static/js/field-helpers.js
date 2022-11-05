@@ -187,12 +187,11 @@ function addFieldToTable (data, elementToAddId, action, jobId, taskId) {
  *   taskId: The id of the task that is being created.
  */
 function submitCopyTable (taskId) { // eslint-disable-line no-unused-vars
-  const connectionId = document.getElementById('id_field_source_connection').value
+  const connection = document.getElementById('id_field_source_connection').value
   const dataset = document.getElementById('id_field_source_dataset').value
   const tableName = document.getElementById('id_field_source_table_name').value
   if (tableName !== '') {
-    const url = `/api/task/${taskId}/connection/${connectionId}/dataset/${dataset}/table/${tableName}/copy/`
-
+    const url = `/api/task/${taskId}/connection/${connection}/dataset/${dataset}/table/${tableName}/copy/`
     const xhttp = new XMLHttpRequest() // eslint-disable-line no-undef
     const spinnerId = 'id_copy_table_spinner'
 
