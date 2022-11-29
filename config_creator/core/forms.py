@@ -157,6 +157,8 @@ class DagJobPropertiesForm(forms.ModelForm):
             "dataset_source",
             "dataset_staging",
             "dataset_publish",
+            "source_project",
+            "target_project",
             "owner",
             "email",
             "tags",
