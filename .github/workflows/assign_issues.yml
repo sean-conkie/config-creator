@@ -19,4 +19,5 @@ jobs:
       uses: srggrs/assign-one-project-github-action@1.2.1
       if: github.event.action == 'opened'
       with:
-        project: 'https://github.com/srggrs/assign-one-project-github-action/projects/3'
+        project: 'https://github.com/users/sean-conkie/projects/3'
+        column_name: 'New'
