@@ -129,15 +129,7 @@ def get_connections(
         }
 
         if source_project not in source_tables:
-            source_tables.extend(
-                [
-                    {
-                        "name": source_project,
-                        "type": "connection",
-                        "id": 0,
-                    }
-                ]
-            )
+            source_tables.extend([source_project])
 
         source_tables = [dict(t) for t in {tuple(d.items()) for d in source_tables}]
 

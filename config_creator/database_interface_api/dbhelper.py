@@ -17,7 +17,7 @@ from django.db.models import Q
 from django.db.models.query import QuerySet
 from google.cloud import bigquery
 from lib.helper import ifnull, isnullorwhitespace
-from pandas import DataFrame, read_csv
+from pandas import DataFrame, isnull, read_csv
 from wordsegment import segment
 
 
@@ -442,20 +442,43 @@ def get_database_schema(
     for table in client.data["table_name"].unique():
         cols = [
             {
-                "dataset": ifnull(row.get("table_schema"), "").lower(),
-                "table_name": ifnull(row.get("table_name"), "").lower(),
-                "alias": ifnull(row.get("alias"), "").lower(),
-                "raw_table_name": ifnull(
-                    row.get("raw_table_name", "table_name"), ""
-                ).lower(),
-                "column_name": ifnull(row.get("column_name"), "").lower(),
+                "dataset": ""
+                if isnull(row.get("table_schema"))
+                else ifnull(row.get("table_schema"), "").lower(),
+                "table_name": ""
+                if isnull(row.get("table_name"))
+                else ifnull(row.get("table_name"), "").lower(),
+                "alias": ""
+                if isnull(row.get("alias"))
+                else ifnull(row.get("table_schema"), "").lower(),
+                "raw_table_name": ""
+                if isnull(row.get("raw_table_name", "table_name"))
+                else ifnull(row.get("raw_table_name", "table_name"), "").lower(),
+                "column_name": ""
+                if isnull(row.get("column_name"))
+                else ifnull(row.get("column_name"), "").lower(),
                 "target_name": "_".join(
-                    [w for w in segment(ifnull(row.get("column_name"), ""))]
+                    [
+                        w
+                        for w in segment(
+                            ""
+                            if isnull(row.get("column_name"))
+                            else ifnull(row.get("column_name"), "").lower()
+                        )
+                    ]
                 ),
-                "data_type": ifnull(row.get("data_type"), "").lower(),
-                "ordinal_position": ifnull(str(row.get("ordinal_position")), ""),
+                "data_type": ""
+                if isnull(row.get("data_type"))
+                else ifnull(row.get("data_type"), "").lower(),
+                "ordinal_position": 0
+                if isnull(row.get("ordinal_position"))
+                else row.get("ordinal_position"),
                 "is_nullable": True
-                if ifnull(row.get("is_nullable"), "") == "YES"
+                if (
+                    ""
+                    if isnull(row.get("is_nullable"))
+                    else ifnull(row.get("is_nullable"), "").lower()
+                )
                 else False,
                 "type": "column",
                 "connection_id": connection.id,
