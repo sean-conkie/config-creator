@@ -1,4 +1,4 @@
-name: Add bugs to bugs project
+name: Add issues to project
 
 on:
   issues:
@@ -10,11 +10,12 @@ on:
 
 jobs:
   add-to-project:
-    name: Add issue to project
+    name: Add issues to project
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/add-to-project@v0.4.0
-        if: ${{ github.actor != 'dependabot[bot]' }}
+      - name: Add issue to project
+        uses: actions/add-to-project@v0.4.0
+        if: github.actor != 'dependabot[bot]'
         with:
           # You can target a repository in a different organization
           # to the issue
