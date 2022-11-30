@@ -388,13 +388,16 @@ def jobdownload(request, pk):
 def jobtasksview(request, job_id):
     job = Job.objects.select_related().get(id=job_id)
     if job.get_property_object():
-        properties = job.get_property_object().pprint()
+        job_property = job.get_property_object()
+        properties = job_property.pprint()
+        job_property_id = job_property.id
     else:
         properties = {}
+        job_property_id = None
     context = {
         "job": job,
         "properties": [{k: properties.get(k)} for k in properties.keys()],
-        "property_id": properties.get("id"),
+        "property_id": job_property_id,
         "tasks": JobTask.objects.select_related().filter(job=job),
     }
     return render(
