@@ -1198,9 +1198,11 @@ def datatypecomparison(
     """
     data = None
 
+    parsed_column = re.sub(r" {2,}", " ", column.strip(), flags=re.IGNORECASE)
+
     m = re.search(
-        r"(?:(?P<dataset>\w+)\.)?(?P<table_name>\w+)(?:\s(?P<alias>\w+))?\.(?P<column>\w+)",
-        column,
+        r"^(?:(?P<dataset>\w+)\.)?(?P<table_name>\w+)(?:\s(?P<alias>\w+))?\.(?P<column>\w+)$",
+        parsed_column,
         re.IGNORECASE,
     )
 
