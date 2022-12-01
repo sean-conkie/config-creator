@@ -458,6 +458,8 @@ function submitSelection (id) { // eslint-disable-line no-unused-vars
     document.getElementById(returnType.dataset.target).value = element.dataset[returnType.dataset.type]
     document.getElementById(returnType.dataset.target).dispatchEvent(new Event('input'))
   }
+
+  let connectionType
   if (returnType.connection.target) {
     if (returnType.connection.type === 'connectionId' && element.dataset[returnType.connection.type] === 0) {
       connectionType = 'connectionName'

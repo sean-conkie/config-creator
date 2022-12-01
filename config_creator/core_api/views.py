@@ -39,7 +39,6 @@ from core.views import crawler, handle_uploaded_file
 from database_interface_api.dbhelper import AppClient, get_database_schema
 from database_interface_api.models import Connection, Dataset
 from django import views
-from django.core.exceptions import ObjectDoesNotExist
 from django.db.models import Q
 from django.urls import reverse
 from git import Repo
