@@ -2,6 +2,7 @@ from .dbhelper import AppClient, get_database_schema, get_schema
 from .models import Connection, ConnectionType
 from accounts.models import User
 from core.models import Job, JobTask, SourceTable
+from html import escape
 from django import views
 from django.db.models import Q
 from rest_framework import renderers, response, request, status, views
@@ -20,13 +21,21 @@ class SchemaView(views.APIView):
         self,
         request: request,
         connection_id: int = None,
-        connection_name: int = None,
+        connection_name: str = None,
         database: str = None,
         table: str = None,
         job_id: int = None,
         task_id: int = None,
         is_full_schema: str = None,
     ) -> response.Response:
+
+        connection_name = (
+            escape(connection_name) if connection_name is not None else None
+        )
+        database = escape(database) if database is not None else None
+        table = escape(table) if table is not None else None
+        is_full_schema = escape(is_full_schema) if is_full_schema is not None else None
+
         if connection_name:
             connection = Connection.objects.get(
                 name=connection_name,
