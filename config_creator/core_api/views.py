@@ -42,6 +42,7 @@ from django import views
 from django.db.models import Q
 from django.urls import reverse
 from git import Repo
+from html import escape
 from lib.helper import ifnull
 from rest_framework import renderers, response, request, status, views
 from rest_framework.decorators import api_view, permission_classes
@@ -855,6 +856,9 @@ class DeltaConditionView(views.APIView):
 
     def get(self, request: request, pk: int) -> response.Response:
 
+        if type(pk) != int:
+            return response.Response(data={}, status=status.HTTP_400_BAD_REQUEST)
+
         delta = Delta.objects.filter(id=pk).exists()
         if delta:
             delta = Delta.objects.get(id=pk)
@@ -962,6 +966,9 @@ class PredecessorView(views.APIView):
 
     def get(self, request: request, pk: int) -> response.Response:
 
+        if type(pk) != int:
+            return response.Response(data={}, status=status.HTTP_400_BAD_REQUEST)
+
         dependency = Dependency.objects.filter(id=pk).exists()
         if dependency:
             dependency = Dependency.objects.get(id=pk)
@@ -1017,6 +1024,9 @@ class PredecessorView(views.APIView):
     def delete(
         self, request: request, job_id: int, task_id: int, pk: int
     ) -> response.Response:
+
+        if type(pk) != int:
+            return response.Response(data={}, status=status.HTTP_400_BAD_REQUEST)
 
         indb = Dependency.objects.filter(id=pk).exists()
         if indb:
@@ -1198,6 +1208,10 @@ def datatypecomparison(
     """
     data = None
 
+    target = escape(target) if target is not None else None
+    source = escape(source) if source is not None else None
+    column = escape(column) if column is not None else None
+
     parsed_column = re.sub(r" {2,}", " ", column.strip(), flags=re.IGNORECASE)
 
     m = re.search(
@@ -1253,6 +1267,10 @@ def fieldpositionchange(
     Returns:
       A response object with the data and status code.
     """
+
+    if type(position) != int:
+        return response.Response(data={}, status=status.HTTP_400_BAD_REQUEST)
+
     field = Field.objects.get(id=field_id)
     if field.position == position:
         return response.Response(data=None, status=status.HTTP_304_NOT_MODIFIED)
