@@ -346,24 +346,22 @@ class JoinView(views.APIView):
         """
 
         task = JobTask.objects.get(id=task_id)
-        left = (
-            f"{task.driving_table} src"
-            if request.POST.get("left") == ""
-            else request.POST.get("left")
-        )
-        m = re.search(
-            r"^(?:(?P<project>[\w\-\d]+)\.)?(?:(?P<dataset_name>[\w\-\d]+)\.)(?P<table_name>[\w\-\d]+)(?: +(?P<alias>\w+))?$",
-            left,
-            re.IGNORECASE,
-        )
+        if request.POST.get("left") == "":
+            left_table = task.get_driving_table()
+        else:
+            m = re.search(
+                r"^(?:(?P<project>[\w\-\d]+)\.)?(?:(?P<dataset_name>[\w\-\d]+)\.)(?P<table_name>[\w\-\d]+)(?: +(?P<alias>\w+))?$",
+                request.POST.get("left"),
+                re.IGNORECASE,
+            )
 
-        left_table = get_source_table(
-            task_id,
-            m.group("dataset_name"),
-            m.group("table_name"),
-            m.group("alias"),
-            m.group("project"),
-        )
+            left_table = get_source_table(
+                task_id,
+                m.group("dataset_name"),
+                m.group("table_name"),
+                m.group("alias"),
+                m.group("project"),
+            )
 
         m = re.search(
             r"^(?:(?P<project>[\w\-\d]+)\.)?(?:(?P<dataset_name>[\w\-\d]+)\.)(?P<table_name>[\w\-\d]+)(?: +(?P<alias>\w+))?$",

@@ -434,6 +434,17 @@ def get_database_schema(
     client: object,
     query: int = None,
 ) -> dict:
+    """
+    It returns a dictionary of tables and columns for a given database connection.
+
+    Args:
+      connection (Connection): Connection
+      client (object): the client object that you created in the previous step
+      query (int): The query to run to get the schema.
+
+    Returns:
+      A dictionary with a key of 'result' and a value of a list of dictionaries.
+    """
 
     tables = []
 
@@ -450,7 +461,7 @@ def get_database_schema(
                 else ifnull(row.get("table_name"), "").lower(),
                 "alias": ""
                 if isnull(row.get("alias"))
-                else ifnull(row.get("table_schema"), "").lower(),
+                else ifnull(row.get("alias"), "").lower(),
                 "raw_table_name": ""
                 if isnull(row.get("raw_table_name", "table_name"))
                 else ifnull(row.get("raw_table_name", "table_name"), "").lower(),
@@ -691,6 +702,16 @@ def _tasks_to_source_table(
                 and st.alias != "trg"
             ):
                 rs = AppClient(connection, dataset).get_data(query).to_dict("records")
+                if len(rs) == 0:
+                    rs = (
+                        AppClient(
+                            connection,
+                            dataset,
+                            job_id=t.job_id,
+                        )
+                        .get_data(query)
+                        .to_dict("records")
+                    )
                 for r in rs:
                     r["alias"] = st.alias
                     r["table_name"] = f"{r['raw_table_name']} {st.alias}"

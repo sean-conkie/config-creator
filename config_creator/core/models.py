@@ -624,6 +624,23 @@ class JobTask(models.Model):
 
         return None
 
+    def get_driving_table(self) -> str:
+        """
+        "If there is a source table with an alias of 'src' for this task, return it, otherwise return
+        None."
+
+        The first line of the function is a type hint. It tells the Python interpreter that the function
+        will return a string
+
+        Returns:
+          The driving table for the task.
+        """
+        dt = SourceTable.objects.filter(task_id=self.id, alias="src")
+        if dt.exists():
+            return dt[0]
+        else:
+            return None
+
     def todict(self) -> dict:
         """
         It takes a class object and returns a dictionary of the class object's attributes
@@ -793,16 +810,14 @@ def get_source_table(
     project: str = None,
 ) -> SourceTable:
     """
-    > If a SourceTable object exists with the given task_id, dataset_name, table_name, and alias, return
-    it. Otherwise, create a new SourceTable object with those attributes and return it
+    > If the SourceTable exists, return it. If it doesn't, create it and return it
 
     Args:
-      task_id (int): The id of the task that this source table is associated with.
-      dataset_name (str): The name of the dataset that the table is in.
-      table_name (str): The name of the table in the dataset.
+      task_id (int): The id of the task that the source table is being used in.
+      dataset_name (str): The name of the dataset in BigQuery.
+      table_name (str): The name of the table in BigQuery.
       alias (str): The alias of the table.
-      project (str): The name of the project where the table is located. If not specified, the default
-    project is used.
+      project (str): The project that the table is in.
 
     Returns:
       A SourceTable object
@@ -810,12 +825,23 @@ def get_source_table(
     if dataset_name is None or table_name is None:
         return None
 
-    if not project:
+    if project is None:
         project = (
             Job.objects.get(id=JobTask.objects.get(id=task_id).job_id)
             .get_property_object()
             .source_project
         )
+
+    if alias:
+        tbl = SourceTable.objects.filter(
+            alias=alias,
+            task_id=task_id,
+        )
+        if tbl.exists():
+            tbl = tbl[0]
+
+            if tbl.dataset_name == dataset_name and tbl.table_name == table_name:
+                return tbl
 
     if SourceTable.objects.filter(
         task_id=task_id,
