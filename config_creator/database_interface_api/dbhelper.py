@@ -717,7 +717,7 @@ def _columns_to_source_table(
         raise TableException()
 
     where = (
-        f"table_schema = '{dataset.name}' and raw_table_name = '{table}'"
+        f"table_schema = '{dataset.name}' and raw_table_name = '{m.group()}'"
         if table
         else f"table_schema = '{dataset.name}'"
     )
