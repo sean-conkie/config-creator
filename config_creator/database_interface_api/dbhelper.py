@@ -4,10 +4,13 @@ import re
 from .models import *
 from core.models import (
     BigQueryDataType,
+    Condition,
     Field,
     Job,
     JobTask,
     Join,
+    Operator,
+    LogicOperator,
     SourceTable,
     TaskType,
 )
@@ -520,6 +523,65 @@ def get_database_schema(
     return outp
 
 
+def get_table_deletion_columns(table: SourceTable, join_id: int = None) -> None:
+
+    connection = Connection.objects.get(
+        name=table.source_project,
+    )
+
+    table_structure = get_database_schema(
+        connection,
+        AppClient(
+            connection,
+            table.dataset_name,
+        ),
+        table.table_name,
+    )
+
+    if len(table_structure.get("result", [])) == 0:
+        return None
+
+    outp = []
+    for col in table_structure.get("result", [])[0].get("content", []):
+        if col["column_name"].lower() in ["rdmaction", "logically_deleted"]:
+            left_field = Field(
+                source_column=col["column_name"].lower(),
+                name=col["column_name"].lower(),
+                source_table=table,
+                is_source_to_target=False,
+                task_id=table.task.id,
+            )
+
+            left_field.save()
+
+            right_field = Field(
+                transformation="'D'"
+                if col["column_name"].lower() == "rdmaction"
+                else "0",
+                task_id=table.task.id,
+                is_source_to_target=False,
+            )
+
+            right_field.save()
+
+            condition = Condition(
+                logic_operator=LogicOperator.objects.get(code="AND"),
+                operator=Operator.objects.get(code="NE")
+                if col["column_name"].lower() == "rdmaction"
+                else Operator.objects.get(code="EQ"),
+                join_id=join_id,
+                where_id=table.task.id if join_id is None else None,
+                left=left_field,
+                right=right_field,
+            )
+
+            condition.save()
+
+            outp.append(condition)
+
+    return outp
+
+
 def _tasks_to_destination_dataset(
     tasks: QuerySet,
     connection: Connection,
@@ -650,8 +712,12 @@ def _columns_to_source_table(
     Returns:
       A list of dictionaries.
     """
+    m = re.search(r"^[\w\-]+$", table, re.IGNORECASE)
+    if m is None:
+        raise TableException()
+
     where = (
-        f"table_schema = '{dataset.name}' and raw_table_name = '{table}'"
+        f"table_schema = '{dataset.name}' and raw_table_name = '{m.group()}'"
         if table
         else f"table_schema = '{dataset.name}'"
     )
@@ -719,3 +785,7 @@ def _tasks_to_source_table(
                 qs.extend(rs)
 
     return qs
+
+
+class TableException(Exception):
+    """Provided table name is an invalid format"""

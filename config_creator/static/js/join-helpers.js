@@ -208,11 +208,11 @@ function addJoinObject (data, jobId, taskId) {
         const col1 = createElement('td', null, null, 0, null)
         col1.textContent = conditions[c].logic_operator
         const col2 = createElement('td', null, null, 0, null)
-        col2.textContent = conditions[c].left
+        col2.textContent = conditions[c].left.text
         const col3 = createElement('td', null, null, 0, null)
         col3.textContent = conditions[c].operator
         const col4 = createElement('td', null, null, 0, null)
-        col4.textContent = conditions[c].right
+        col4.textContent = conditions[c].right.text
         const col5 = createElement('td', null, ['btn-column'], 0, null)
         const viewButton = createElement('button', null, ['btn', 'row-btn-secondary'], 0, null)
         viewButton.setAttribute('title', 'View')

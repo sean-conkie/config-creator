@@ -36,7 +36,11 @@ from core.models import (
     sk_transformation,
 )
 from core.views import crawler, handle_uploaded_file
-from database_interface_api.dbhelper import AppClient, get_database_schema
+from database_interface_api.dbhelper import (
+    AppClient,
+    get_database_schema,
+    get_table_deletion_columns,
+)
 from database_interface_api.models import Connection, Dataset
 from django import views
 from django.db.models import Q
@@ -387,6 +391,9 @@ class JoinView(views.APIView):
         form.instance.task_id = task_id
         if form.is_valid():
             form.save()
+
+            get_table_deletion_columns(right_table, form.instance.id)
+
             data = {
                 "message": message,
                 "type": "Success",

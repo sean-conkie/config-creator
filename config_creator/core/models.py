@@ -940,35 +940,48 @@ class Field(models.Model):
 
     def __str__(self) -> str:
         """
-        If the column has a transformation, return the transformation and the name. If the column has a
-        source table and column, return the source table and column and the name. If the column has a
-        source table and no column, return the source table and the name. If the column has no source
-        table, return the name
+        `__str__` is a special method that returns a string representation of an object
 
         Returns:
-          The string representation of the column.
+          The full name of the column.
+        """
+        return self.full_to_str()
+
+    def source_to_str(self):
+        """
+        If the column has a transformation, return the transformation. Otherwise, return the column name
+
+        Returns:
+          The source_to_str method returns a string that is the source of the column.
+        """
+        if self.transformation:
+            return self.transformation
+
+        column = ""
+        if self.source_column:
+            column = self.source_column
+        elif self.name:
+            column = self.name
+        else:
+            return ""
+
+        alias = ""
+        if self.source_table:
+            alias = self.source_table.alias
+
+        return f"{alias}.{column}"
+
+    def full_to_str(self):
+        """
+        > This function takes a `Full` object and returns a string representation of it
+
+        Returns:
+          The source and name of the object.
         """
         name = ""
-        table = ""
-        column = ""
-
-        if self.transformation:
-            if self.name:
-                name = f" as {self.name}"
-
-            return f"{self.transformation}{name}"
-
-        if self.source_table:
-            table = f"{self.source_table.dataset_name}.{self.source_table.table_name}."
-
-        if self.source_column:
-            column = f"{self.source_column}"
-            if self.name:
-                name = f" as {self.name}"
-        else:
-            name = f"{self.name}"
-
-        return f"{table}{column}{name}"
+        if self.name:
+            name = f" as {self.name}"
+        return f"{self.source_to_str}{name}"
 
     def todict(self) -> dict:
         """
@@ -1001,6 +1014,7 @@ class Field(models.Model):
             "is_surrogate_key": self.is_surrogate_key,
             "is_nullable": self.is_nullable,
             "is_history_key": self.is_history_key,
+            "text": self.source_to_str(),
             "id": self.id,
         }
 
