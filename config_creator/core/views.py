@@ -16,6 +16,7 @@ from .forms import (
 )
 from .models import *
 from accounts.models import GitRepository
+from database_interface_api.dbhelper import get_table_deletion_columns
 from django.contrib import messages
 from django.db.models import Q
 from django.http import HttpResponse
@@ -541,7 +542,7 @@ def editjobtaskview(request, job_id, pk=None):
         task.job_id = request.POST["job_id"]
         task.save()
 
-        get_source_table(
+        driving_table = get_source_table(
             task.id,
             m.group("dataset_name"),
             m.group("table_name"),
@@ -556,6 +557,8 @@ def editjobtaskview(request, job_id, pk=None):
             "trg",
             Job.objects.get(id=task.job_id).get_property_object().target_project,
         )
+
+        get_table_deletion_columns(driving_table)
 
         if (
             task.table_type != TableType.objects.get(code="TYPE1")
